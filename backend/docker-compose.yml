@@ -1,0 +1,35 @@
+services:
+  api:
+    build: .
+    container_name: guzomate
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://guzomate:guzomate_dev_password@db:5432/guzomate
+    restart: unless-stopped
+
+  db:
+    image: postgis/postgis:17-3.5
+    container_name: guzomate-db
+    environment:
+      POSTGRES_DB: guzomate
+      POSTGRES_USER: guzomate
+      POSTGRES_PASSWORD: guzomate_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guzomate -d guzomate"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
