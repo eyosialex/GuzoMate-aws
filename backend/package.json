@@ -5,14 +5,18 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "seed:rag": "tsx database/seeds/seed-rag.ts",
+    "test:assistant": "tsx src/modules/assistant/__tests__/assistant.test.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "express": "^4.21.2",
+    "@google/genai": "^2.31.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "pg": "^8.13.3",
-    "cors": "^2.8.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

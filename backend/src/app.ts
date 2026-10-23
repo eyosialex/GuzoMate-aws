@@ -1,11 +1,15 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { pool } from './config/database.js';
+import { assistantRouter } from './modules/assistant/assistant.routes.js';
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Assistant routes
+app.use('/api/v1', assistantRouter);
 
 // Health check with DB status
 app.get('/api/v1/health', async (_req: Request, res: Response) => {
