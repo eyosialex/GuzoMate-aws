@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Pool } from 'pg';
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://guzomate:guzomate_dev_password@localhost:5432/guzomate';

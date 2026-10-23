@@ -77,6 +77,16 @@ export interface SourceItem {
   retrievedAt: string;
 }
 
+export interface AddisVoiceResult {
+  provider: 'addis-ai';
+  voiceId: string;
+  language: SupportedLanguage;
+  audioUrl: string;
+  audioBase64?: string;
+  mimeType: string;
+  durationSeconds?: number;
+}
+
 export interface AssistantQueryResponse {
   answer: string;
   language: SupportedLanguage;
@@ -86,4 +96,5 @@ export interface AssistantQueryResponse {
   incidents: IncidentResultItem[];
   sources: SourceItem[];
   limitations: string[];
+  voice?: AddisVoiceResult | null;
 }

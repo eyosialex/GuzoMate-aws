@@ -57,6 +57,58 @@ export class AssistantController {
       });
     }
   }
+
+  /**
+   * POST /api/v1/speech/synthesis or /api/v1/assistant/speech/synthesis
+   * Addis AI Speech Synthesis endpoint (GuzoMate API Ref Section 8)
+   */
+  public async handleSpeechSynthesis(req: Request, res: Response): Promise<void> {
+    const { text, language = 'en', voice } = req.body;
+
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'text is required and must be a non-empty string.',
+        },
+      });
+      return;
+    }
+
+    const validLangs = ['en', 'am', 'om'];
+    if (language && !validLangs.includes(language)) {
+      res.status(422).json({
+        error: {
+          code: 'UNSUPPORTED_LANGUAGE',
+          message: `Language '${language}' is not supported for speech synthesis. Supported: en, am, om.`,
+        },
+      });
+      return;
+    }
+
+    try {
+      const voiceResult = await assistantService.synthesizeSpeech(text, language, voice);
+      if (!voiceResult) {
+        res.status(502).json({
+          error: {
+            code: 'SPEECH_SYNTHESIS_FAILED',
+            message: 'Addis AI speech service unavailable or unable to synthesize audio.',
+          },
+        });
+        return;
+      }
+
+      res.status(200).json(voiceResult);
+    } catch (err: any) {
+      console.error('[SpeechSynthesis Error]', err);
+      res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: err?.message || 'Speech synthesis failed.',
+        },
+      });
+    }
+  }
 }
 
 export const assistantController = new AssistantController();
