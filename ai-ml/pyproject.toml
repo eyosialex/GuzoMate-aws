@@ -1,0 +1,18 @@
+[project]
+name = "guzomate-ai-ml"
+version = "0.1.0"
+description = "GuzoMate AI & RAG Evaluation Pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai>=0.1.0",
+    "psycopg2-binary>=2.9.9",
+    "numpy>=1.26.0",
+    "pytest>=8.0.0",
+    "pydantic>=2.6.0",
+    "python-dotenv>=1.0.1",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
