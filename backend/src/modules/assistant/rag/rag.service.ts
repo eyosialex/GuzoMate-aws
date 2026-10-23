@@ -3,6 +3,24 @@ import { IntentAnalysisResult } from '../intent/intent.service.js';
 import { PlaceResultItem, WeatherResultItem, IncidentResultItem, SourceItem } from '../dto/assistant-response.dto.js';
 import { geminiProvider, SupportedLanguage } from '../providers/gemini.provider.js';
 import { addisAiProvider } from '../providers/addis-ai.provider.js';
+import { weatherProvider } from '../providers/weather.provider.js';
+
+export const DESTINATION_COORDINATES: Record<string, { lat: number; lon: number }> = {
+  'Arat Kilo': { lat: 9.033, lon: 38.763 },
+  'Sidist Kilo': { lat: 9.043, lon: 38.762 },
+  'Mercato': { lat: 9.030, lon: 38.740 },
+  'Bole': { lat: 8.995, lon: 38.788 },
+  'Piazza': { lat: 9.035, lon: 38.752 },
+  'Kazanchis': { lat: 9.018, lon: 38.769 },
+  'Sarbet': { lat: 9.001, lon: 38.736 },
+  'Megenagna': { lat: 9.020, lon: 38.802 },
+  'Mexico': { lat: 9.011, lon: 38.745 },
+  'Churchill Road': { lat: 9.023, lon: 38.751 },
+  'Gotera': { lat: 8.986, lon: 38.756 },
+  'Kality': { lat: 8.919, lon: 38.761 },
+  'Ayat': { lat: 9.027, lon: 38.868 },
+  'CMC': { lat: 9.024, lon: 38.847 },
+};
 
 export interface RouteResultItem {
   origin: string;
@@ -41,7 +59,11 @@ export class RagService {
     const limitations: string[] = [];
     const sources: SourceItem[] = [];
 
-    const effectiveLocation = location || analysis.entities.coordinates;
+    const destinationCoords = analysis.entities.destination
+      ? DESTINATION_COORDINATES[analysis.entities.destination]
+      : undefined;
+
+    const effectiveLocation = location || analysis.entities.coordinates || destinationCoords;
 
     // 1. Gather Places (via Supabase addis_geo_points with PostGIS radius search)
     let places: PlaceResultItem[] = [];
@@ -63,10 +85,19 @@ export class RagService {
       }
     }
 
-    // 2. Gather Weather (WeatherAPI / Arrival Advice)
+    // 2. Gather Weather & Destination Arrival Advice (Open-Meteo Weather Service)
     let weather: WeatherResultItem | null = null;
-    if (analysis.intents.includes('WEATHER') || analysis.intent === 'COMPOSITE') {
-      weather = await this.getWeatherEvidence(effectiveLocation, analysis.entities.arrivalTime);
+    const shouldFetchWeather =
+      analysis.intents.includes('WEATHER') ||
+      analysis.intent === 'COMPOSITE' ||
+      Boolean(analysis.entities.arrivalTime);
+
+    if (shouldFetchWeather) {
+      weather = await this.getWeatherEvidence(
+        effectiveLocation,
+        analysis.entities.arrivalTime,
+        analysis.language
+      );
       if (weather) {
         sources.push({
           type: 'weatherapi',
@@ -270,50 +301,15 @@ export class RagService {
   }
 
   /**
-   * Weather information and arrival advice.
+   * Weather information and destination arrival advice retrieved from live WEATHER_URL (Open-Meteo).
    */
   private async getWeatherEvidence(
     loc?: { lat: number; lon: number },
-    arrivalTime?: string
+    arrivalTime?: string,
+    language: SupportedLanguage = 'en'
   ): Promise<WeatherResultItem | null> {
     const coordinates = loc || { lat: 9.033, lon: 38.763 };
-    const now = new Date().toISOString();
-
-    return {
-      location: coordinates,
-      current: {
-        temperatureC: 21,
-        condition: 'Partly Cloudy',
-        precipitationMm: 0,
-        windKph: 11,
-      },
-      forecast: [
-        {
-          date: now.split('T')[0],
-          hourly: [
-            {
-              time: arrivalTime || `${now.split('T')[0]}T16:00:00+03:00`,
-              temperatureC: 19,
-              condition: 'Chance of rain',
-              precipitationProbability: 60,
-            },
-          ],
-        },
-      ],
-      arrivalAdvice: {
-        arrivalTime: arrivalTime || `${now.split('T')[0]}T16:00:00+03:00`,
-        suggestions: [
-          {
-            type: 'accessory',
-            text: 'Carry an umbrella',
-            reason: '60% chance of precipitation expected around your arrival time in Addis Ababa',
-          },
-        ],
-      },
-      provider: 'weatherapi',
-      retrievedAt: now,
-      cached: false,
-    };
+    return weatherProvider.getForecast(coordinates, arrivalTime, language);
   }
 
   /**
@@ -390,18 +386,24 @@ export class RagService {
     }
     blocks.push('');
 
-    // Block 2: Weather
+    // Block 2: Weather & Destination Arrival Advice
     blocks.push('[SOURCE: WeatherAPI Forecast]');
     if (!data.weather) {
       blocks.push('Weather data currently unavailable.');
     } else {
       blocks.push(
-        `Current: ${data.weather.current?.condition}, ${data.weather.current?.temperatureC}°C, Wind: ${data.weather.current?.windKph}km/h`
+        `Current Weather: ${data.weather.current?.condition}, ${data.weather.current?.temperatureC}°C, Precipitation: ${data.weather.current?.precipitationMm}mm, Wind: ${data.weather.current?.windKph}km/h`
       );
       if (data.weather.arrivalAdvice) {
-        blocks.push(`Arrival Time: ${data.weather.arrivalAdvice.arrivalTime}`);
+        blocks.push(`Destination Arrival Time: ${data.weather.arrivalAdvice.arrivalTime}`);
+        const hourlySample = data.weather.forecast?.[0]?.hourly?.[0];
+        if (hourlySample) {
+          blocks.push(
+            `Forecast around Arrival: ${hourlySample.condition}, ${hourlySample.temperatureC}°C, Rain Chance: ${hourlySample.precipitationProbability}%`
+          );
+        }
         data.weather.arrivalAdvice.suggestions.forEach((s) => {
-          blocks.push(`- Advice: ${s.text} (${s.reason})`);
+          blocks.push(`- Recommended Travel Advice: ${s.text} (${s.reason})`);
         });
       }
     }

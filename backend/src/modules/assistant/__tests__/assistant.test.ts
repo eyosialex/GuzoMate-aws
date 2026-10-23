@@ -6,6 +6,7 @@ import { ragService } from '../rag/rag.service.js';
 import { AssistantQuerySchema } from '../dto/assistant-query.dto.js';
 import { assistantService } from '../assistant.service.js';
 import { addisAiProvider } from '../providers/addis-ai.provider.js';
+import { weatherProvider } from '../providers/weather.provider.js';
 
 let passed = 0;
 let failed = 0;
@@ -193,6 +194,49 @@ async function runTests() {
     assert.ok(response.voice !== null && response.voice !== undefined);
     assert.strictEqual(response.voice?.provider, 'addis-ai');
     assert.ok(response.voice?.audioUrl.startsWith('https://'));
+  });
+
+  console.log('\n[Task 6: Live Weather Forecast & Destination Arrival Advice]');
+  await it('retrieves live weather forecast and arrival suggestions from WEATHER_URL', async () => {
+    // Forecast 1 hour 30 minutes in the future
+    const futureTime = new Date(Date.now() + 90 * 60 * 1000).toISOString();
+    const weatherResult = await weatherProvider.getForecast(
+      { lat: 9.033, lon: 38.763 },
+      futureTime,
+      'en'
+    );
+
+    assert.ok(weatherResult !== null);
+    assert.ok(typeof weatherResult.current?.temperatureC === 'number');
+    assert.ok(weatherResult.current?.condition);
+    assert.ok(weatherResult.forecast && weatherResult.forecast.length > 0);
+    assert.ok(weatherResult.arrivalAdvice !== undefined);
+    assert.strictEqual(weatherResult.arrivalAdvice?.arrivalTime, futureTime);
+    assert.ok(Array.isArray(weatherResult.arrivalAdvice?.suggestions));
+    assert.ok(weatherResult.arrivalAdvice?.suggestions.length > 0);
+  });
+
+  await it('evaluates arrival weather and generates clothing/umbrella advice', async () => {
+    const futureTime = new Date(Date.now() + 90 * 60 * 1000).toISOString();
+    const response = await assistantService.query({
+      query: 'I will arrive at Arat Kilo in 1 hour and 30 minutes. What will the weather be and should I carry an umbrella or jacket?',
+      language: 'en',
+      location: { lat: 9.033, lon: 38.763 },
+      arrivalTime: futureTime,
+      enableVoice: false,
+    });
+
+    assert.ok(response.answer.length > 0);
+    assert.ok(response.weather !== null);
+    assert.ok(response.weather?.arrivalAdvice?.suggestions.length! > 0);
+    assert.ok(
+      response.answer.toLowerCase().includes('weather') ||
+      response.answer.toLowerCase().includes('°c') ||
+      response.answer.toLowerCase().includes('umbrella') ||
+      response.answer.toLowerCase().includes('jacket') ||
+      response.answer.toLowerCase().includes('clothing') ||
+      response.answer.toLowerCase().includes('temperature')
+    );
   });
 
   console.log(`\n=== Test Summary: ${passed} passed, ${failed} failed ===`);

@@ -121,7 +121,8 @@ STRICT GROUNDING INSTRUCTIONS:
 2. FACT GROUNDING: Use ONLY the verified facts provided below. Do NOT fabricate, guess, or assume missing information (e.g. prices, opening hours, safety guarantees).
 3. UNCERTAINTY & LIMITATIONS: If details are missing from the facts, state explicitly that they are unverified or currently unavailable in GuzoMate records.
 4. ACCURACY: Preserve coordinates, metric units (meters, km), and local landmark names (e.g. Arat Kilo, Mercato, Bole, Piazza).
-5. COMMUNITY REPORTS: Explicitly refer to community-reported road incidents as unverified notices.`;
+5. COMMUNITY REPORTS: Explicitly refer to community-reported road incidents as unverified notices.
+6. WEATHER & ARRIVAL ADVICE: When destination weather or arrival time forecast facts are present, clearly explain to the traveler what weather to expect around arrival (temperature in °C, rain probability), and proactively suggest suitable clothing (warm layers, light jacket), an umbrella, footwear, or accessories compatible with the forecasted weather.`;
 
     const userMessage = `VERIFIED CONTEXT FACTS FROM DATABASE:
 ${contextFacts}
