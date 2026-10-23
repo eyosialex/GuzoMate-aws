@@ -5,16 +5,8 @@ import psycopg2
 if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
 
-<<<<<<< HEAD
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://postgres.jdbdgcrmmtbkelkmsiug:Eyosi%231234%40Eyosi@aws-0-eu-west-1.pooler.supabase.com:6543/postgres"
-)
- 
-=======
 DATABASE_URL = os.environ.get( "DATABASE_URL" )
 
->>>>>>> 1595a04 (added database schema)
 def test_connection():
     print("Connecting to Supabase Cloud Database...")
     try:
