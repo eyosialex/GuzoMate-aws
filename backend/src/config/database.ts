@@ -1,20 +1,32 @@
-<<<<<<< HEAD
-=======
 import 'dotenv/config';
->>>>>>> feature/db-schema
+import dns from 'node:dns';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 
-const connectionString =
+// Use public DNS nameservers to avoid intermittent corporate resolver timeouts
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // Fallback to system default
+}
+
+let connectionString =
   process.env.DATABASE_URL ||
   'postgresql://guzomate:guzomate_dev_password@localhost:5432/guzomate';
+
+if (!connectionString.includes('connection_limit=')) {
+  connectionString += (connectionString.includes('?') ? '&' : '?') + 'connection_limit=1';
+}
+
+const directConnectionString = process.env.DIRECT_URL || connectionString;
 
 // -----------------------------------------------------------------------------
 // Legacy / Direct pg Pool
 // Preserved for backwards compatibility with raw-query endpoints in app.ts
 // -----------------------------------------------------------------------------
 export const pool = new Pool({
-  connectionString,
+  connectionString: directConnectionString,
+  max: 3,
 });
 
 pool.on('error', (err) => {
@@ -33,6 +45,7 @@ declare global {
 export const prisma =
   globalThis.__prisma ??
   new PrismaClient({
+    datasourceUrl: connectionString,
     log:
       process.env.NODE_ENV === 'development'
         ? ['query', 'error', 'warn']
