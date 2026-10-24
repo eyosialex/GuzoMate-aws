@@ -1,10 +1,7 @@
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-<<<<<<< HEAD
-=======
   directUrl  = env("DIRECT_URL")
->>>>>>> feature/db-schema
   extensions = [postgis, vector, uuidOssp(map: "uuid-ossp")]
 }
 
@@ -21,6 +18,13 @@ enum UserRole {
   @@map("user_role")
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+
+  @@map("user_status")
+}
+
 enum Language {
   EN @map("en")
   AM @map("am")
@@ -31,12 +35,14 @@ enum Language {
 
 enum IncidentType {
   ACCIDENT
+  ROAD_BLOCK
   ROAD_CLOSURE
   FLOODING
   LANDSLIDE
   ROAD_DAMAGE
   CONSTRUCTION
   HEAVY_TRAFFIC
+  HAZARD
   OTHER
 
   @@map("incident_type")
@@ -70,6 +76,8 @@ enum VerificationStatus {
 }
 
 enum ConfirmationType {
+  CONFIRM
+  DISPUTE
   STILL_PRESENT
   RESOLVED
   INACCURATE
@@ -78,18 +86,22 @@ enum ConfirmationType {
 }
 
 model User {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email             String?   @unique @db.VarChar(255)
-  passwordHash      String?   @map("password_hash") @db.VarChar(255)
-  preferredLanguage Language  @default(EN) @map("preferred_language")
-  role              UserRole  @default(USER)
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String?    @unique @db.VarChar(255)
+  passwordHash      String?    @map("password_hash") @db.VarChar(255)
+  name              String?    @db.VarChar(255)
+  preferredLanguage Language   @default(EN) @map("preferred_language")
+  role              UserRole   @default(USER)
+  status            UserStatus @default(ACTIVE)
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   savedPlaces               SavedPlace[]
   reportedIncidents         Incident[]
   incidentConfirmations     IncidentConfirmation[]
   notificationSubscriptions NotificationSubscription[]
+  notifications             Notification[]
+  deviceTokens              DeviceToken[]
   auditLogs                 AuditLog[]
 
   @@map("users")
@@ -134,24 +146,27 @@ model SavedPlace {
 }
 
 model Incident {
-  id           String                                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reporterId   String?                                @map("reporter_id") @db.Uuid
-  type         IncidentType
-  description  String                                 @db.Text
-  latitude     Float?
-  longitude    Float?
-  location     Unsupported("geography(Point, 4326)")?
-  status       IncidentStatus                         @default(PENDING)
-  severity     IncidentSeverity?
-  verification VerificationStatus                     @default(UNVERIFIED)
-  occurredAt   DateTime?                              @map("occurred_at") @db.Timestamptz(6)
-  expiresAt    DateTime?                              @map("expires_at") @db.Timestamptz(6)
-  evidenceUrl  String?                                @map("evidence_url") @db.VarChar(1024)
-  createdAt    DateTime                               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                 String                                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterId         String?                                @map("reporter_id") @db.Uuid
+  type               IncidentType
+  description        String                                 @db.Text
+  latitude           Float?
+  longitude          Float?
+  location           Unsupported("geography(Point, 4326)")?
+  status             IncidentStatus                         @default(PENDING)
+  severity           IncidentSeverity?
+  verification       VerificationStatus                     @default(UNVERIFIED)
+  confirmationsCount Int                                    @default(0) @map("confirmations_count")
+  disputesCount      Int                                    @default(0) @map("disputes_count")
+  occurredAt         DateTime?                              @map("occurred_at") @db.Timestamptz(6)
+  expiresAt          DateTime?                              @map("expires_at") @db.Timestamptz(6)
+  evidenceUrl        String?                                @map("evidence_url") @db.VarChar(1024)
+  createdAt          DateTime                               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   reporter      User?                  @relation(fields: [reporterId], references: [id], onDelete: SetNull)
   confirmations IncidentConfirmation[]
+  notifications Notification[]
 
   @@index([status])
   @@index([type])
@@ -167,6 +182,7 @@ model IncidentConfirmation {
   userId           String           @map("user_id") @db.Uuid
   confirmationType ConfirmationType @map("confirmation_type")
   createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -190,6 +206,43 @@ model NotificationSubscription {
 
   @@index([userId])
   @@map("notification_subscriptions")
+}
+
+model Notification {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  incidentId     String?   @map("incident_id") @db.Uuid
+  type           String    @db.VarChar(64)
+  title          String    @db.VarChar(255)
+  message        String    @db.Text
+  isRead         Boolean   @default(false) @map("is_read")
+  deliveryStatus String    @default("PENDING") @map("delivery_status") @db.VarChar(32)
+  deliveredAt    DateTime? @map("delivered_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  incident Incident? @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model DeviceToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(512)
+  platform  String   @default("web") @db.VarChar(32)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
 }
 
 model WeatherCache {

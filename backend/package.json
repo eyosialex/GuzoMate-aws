@@ -7,6 +7,10 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run tests/auth.test.ts && vitest run tests/users.test.ts && vitest run tests/incidents.test.ts && vitest run tests/confirmations.test.ts && vitest run tests/moderation.test.ts && vitest run tests/notifications.test.ts",
+    "test:all": "vitest run",
+    "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
@@ -14,30 +18,36 @@
     "db:studio": "prisma studio"
   },
   "prisma": {
-<<<<<<< HEAD
-=======
     "schema": "./prisma/schema.prisma",
->>>>>>> feature/db-schema
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "pg": "^8.13.3"
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.13.3",
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.19.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.13.1",
     "@types/pg": "^8.11.11",
+    "@types/supertest": "^7.2.1",
+    "@types/swagger-ui-express": "^4.1.8",
     "prisma": "^6.19.3",
-<<<<<<< HEAD
-    "tsx": "^4.19.2",
-=======
+    "supertest": "^7.3.1",
     "tsx": "^4.23.15",
->>>>>>> feature/db-schema
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^5.0.5"
   }
 }
