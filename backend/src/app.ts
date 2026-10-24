@@ -1,13 +1,30 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { pool } from './config/database.js';
+import { env } from './config/env.js';
+import apiRoutes from './routes/index.js';
+import { errorHandler } from './middleware/error-handler.js';
+import { notFoundHandler } from './middleware/not-found.middleware.js';
+import { apiLimiter } from './middleware/rate-limit.middleware.js';
 
 export const app = express();
 
-app.use(cors());
-app.use(express.json());
+// Security and utility middleware
+app.use(helmet());
+app.use(
+  cors({
+    origin: env.CORS_ORIGIN === '*' ? true : env.CORS_ORIGIN.split(','),
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(apiLimiter);
 
-// Health check with DB status
+// -----------------------------------------------------------------------------
+// Legacy & Health check endpoints
+// -----------------------------------------------------------------------------
 app.get('/api/v1/health', async (_req: Request, res: Response) => {
   try {
     const dbResult = await pool.query('SELECT NOW() as now, postgis_version() as postgis');
@@ -17,14 +34,14 @@ app.get('/api/v1/health', async (_req: Request, res: Response) => {
       database: 'connected',
       dbTime: dbResult.rows[0].now,
       postgisVersion: dbResult.rows[0].postgis,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
     res.status(500).json({
       status: 'error',
       service: 'guzomate-backend',
       database: 'disconnected',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -38,7 +55,6 @@ app.post('/api/v1/places', async (req: Request, res: Response) => {
   }
 
   try {
-    // ST_SetSRID(ST_MakePoint(lon, lat), 4326): Note PostGIS uses (Longitude, Latitude) order!
     const query = `
       INSERT INTO places (name, category, address, osm_type, osm_id, location)
       VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($6, $7), 4326)::geography)
@@ -90,3 +106,21 @@ app.get('/api/v1/places/nearby', async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// -----------------------------------------------------------------------------
+// GuzoMate Complete API Routes
+// -----------------------------------------------------------------------------
+app.use('/api/v1', apiRoutes);
+
+// Root health redirect
+app.get('/', (_req, res) => {
+  res.redirect('/api/v1/health');
+});
+
+// -----------------------------------------------------------------------------
+// Error & 404 Handlers
+// -----------------------------------------------------------------------------
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+export default app;
