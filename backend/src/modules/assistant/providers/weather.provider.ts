@@ -74,7 +74,7 @@ export class WeatherProvider {
 
     const entry = conditions[code];
     if (entry) {
-      return entry[language] || entry.en;
+      return (entry as Record<string, string>)[language] || entry.en;
     }
 
     if (code >= 51 && code <= 67) {

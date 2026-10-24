@@ -22,6 +22,17 @@ export const DESTINATION_COORDINATES: Record<string, { lat: number; lon: number 
   'CMC': { lat: 9.024, lon: 38.847 },
 };
 
+const CATEGORY_SEARCH_PATTERNS: Record<string, string[]> = {
+  pharmacy: ['%pharmacy%', '%chemist%', '%drugstore%', '%medicine%', '%መድሃኒት%', '%qoricha%'],
+  hospital: ['%hospital%', '%clinic%', '%health%', '%ክሊኒክ%', '%ሆስፒታል%', '%ጤና%', '%fayyaa%'],
+  restaurant: ['%restaurant%', '%food%', '%dinner%', '%lunch%', '%ምግብ%', '%ሬስቶራንት%', '%nyaata%'],
+  cafe: ['%cafe%', '%coffee%', '%buna%', '%macchiato%', '%ካፌ%', '%ቡና%'],
+  hotel: ['%hotel%', '%hostel%', '%lodging%', '%motel%', '%guesthouse%', '%ሆቴል%'],
+  bank: ['%bank%', '%atm%', '%ባንክ%', '%baankii%'],
+  fuel: ['%fuel%', '%gas_station%', '%petrol%', '%ነዳጅ%', '%ቤንዚን%'],
+  mechanic: ['%mechanic%', '%garage%', '%car repair%', '%መካኒክ%', '%ጋራጅ%'],
+};
+
 export interface RouteResultItem {
   origin: string;
   destination: string;
@@ -63,25 +74,29 @@ export class RagService {
       ? DESTINATION_COORDINATES[analysis.entities.destination]
       : undefined;
 
-    const effectiveLocation = location || analysis.entities.coordinates || destinationCoords;
+    const effectiveLocation =
+      location ||
+      analysis.entities.coordinates ||
+      destinationCoords ||
+      { lat: 9.033, lon: 38.763 };
+
+    if (!location && !analysis.entities.coordinates && !destinationCoords) {
+      limitations.push('No GPS location provided; displaying recommendations for central Addis Ababa.');
+    }
 
     // 1. Gather Places (via Supabase addis_geo_points with PostGIS radius search)
     let places: PlaceResultItem[] = [];
     if (analysis.intents.includes('PLACES') || analysis.intent === 'COMPOSITE') {
-      if (effectiveLocation) {
-        places = await this.queryPlacesFromSupabase(
-          effectiveLocation,
-          analysis.entities.radiusMeters || 3000,
-          analysis.entities.categories
-        );
-        if (places.length > 0) {
-          sources.push({
-            type: 'openstreetmap',
-            retrievedAt: new Date().toISOString(),
-          });
-        }
-      } else {
-        limitations.push('Location coordinates were not supplied for nearby place lookup.');
+      places = await this.queryPlacesFromSupabase(
+        effectiveLocation,
+        analysis.entities.radiusMeters || 3000,
+        analysis.entities.categories
+      );
+      if (places.length > 0) {
+        sources.push({
+          type: 'openstreetmap',
+          retrievedAt: new Date().toISOString(),
+        });
       }
     }
 
@@ -204,39 +219,206 @@ export class RagService {
    * Queries Supabase addis_geo_points table (13,861 Addis Ababa locations) using PostGIS radius filtering,
    * with seamless fallback to places table if addis_geo_points does not exist in local dev.
    */
+  /**
+   * Parses a raw row from addis_geo_points into a structured PlaceResultItem.
+   */
+  private parseAddisGeoPoint(row: any): PlaceResultItem {
+    const content = row.content || '';
+    const otherTags = row.other_tags || '';
+
+    // 1. Extract place name (from content or other_tags)
+    let name: string | null = null;
+    const nameMatch =
+      content.match(/Place name:\s*([^\n]+)/i) ||
+      content.match(/English name:\s*([^\n]+)/i) ||
+      content.match(/Amharic name:\s*([^\n]+)/i);
+
+    if (nameMatch && nameMatch[1]?.trim()) {
+      name = nameMatch[1].trim();
+    } else {
+      const tagMatch = otherTags.match(/"name"=>"([^"]+)"/);
+      if (tagMatch && tagMatch[1]?.trim()) {
+        name = tagMatch[1].trim();
+      }
+    }
+
+    // 2. Extract Category
+    let category = 'place';
+    const catMatch = content.match(/(?:Amenity|Healthcare|Tourism|Shop|Highway|Leisure):\s*([^\n]+)/i);
+    if (catMatch && catMatch[1]?.trim()) {
+      category = catMatch[1].trim().toLowerCase();
+    } else {
+      const tagCatMatch = otherTags.match(/"(amenity|healthcare|tourism|shop|leisure)"=>"([^"]+)"/);
+      if (tagCatMatch && tagCatMatch[2]?.trim()) {
+        category = tagCatMatch[2].trim().toLowerCase();
+      }
+    }
+
+    // 3. Extract Address components
+    let address: string | null = null;
+    const addrDesc = otherTags.match(/"addr:description"=>"([^"]+)"/);
+    const addrStreet = otherTags.match(/"addr:street"=>"([^"]+)"/);
+    const addrSubcity = otherTags.match(/"addr:subcity"=>"([^"]+)"/);
+    const addrCity = otherTags.match(/"addr:city"=>"([^"]+)"/);
+    const addrParts = [
+      addrDesc ? addrDesc[1] : null,
+      addrStreet ? addrStreet[1] : null,
+      addrSubcity ? `${addrSubcity[1]} Subcity` : null,
+      addrCity ? addrCity[1] : null,
+    ].filter(Boolean);
+
+    if (addrParts.length > 0) {
+      address = addrParts.join(', ');
+    }
+
+    // 4. Parse key-value tags
+    const tags: Record<string, string> = {};
+    if (otherTags) {
+      const tagPairs = otherTags.match(/"([^"]+)"=>"([^"]+)"/g);
+      if (tagPairs) {
+        for (const pair of tagPairs) {
+          const m = pair.match(/"([^"]+)"=>"([^"]+)"/);
+          if (m) {
+            tags[m[1]] = m[2];
+          }
+        }
+      }
+    }
+
+    return {
+      id: String(row.id),
+      name: name || 'Local Point of Interest',
+      category,
+      location: {
+        lat: Number(row.latitude),
+        lon: Number(row.longtiude),
+      },
+      distanceMeters: Number(row.distance_meters),
+      address,
+      tags,
+      source: 'openstreetmap',
+      osm: {
+        type: 'node',
+        id: String(row.id),
+      },
+    };
+  }
+
+  /**
+   * Queries Supabase addis_geo_points table (enriched with cleaned HOTOSM and Overpass POIs)
+   * using PostGIS spatial radius filtering, matching categories across content and other_tags.
+   */
   private async queryPlacesFromSupabase(
     loc: { lat: number; lon: number },
     radiusMeters: number,
     categories?: string[]
   ): Promise<PlaceResultItem[]> {
     try {
-      // 1. Try querying Supabase addis_geo_points table
+      // 1. Build category search patterns
+      const searchPatterns: string[] = [];
+      if (categories && categories.length > 0) {
+        for (const cat of categories) {
+          const lowerCat = cat.toLowerCase();
+          const patterns = CATEGORY_SEARCH_PATTERNS[lowerCat] || [`%${lowerCat}%`];
+          searchPatterns.push(...patterns);
+        }
+      }
+
+      // 2. Query addis_geo_points using PostGIS spatial coordinates (longtiude, latitude)
       let query = `
         SELECT 
           id, 
-          name, 
-          COALESCE(category, tags->>'amenity', tags->>'tourism', tags->>'shop', 'place') as category, 
-          address,
-          tags,
-          ST_Y(location::geometry) as lat,
-          ST_X(location::geometry) as lon,
-          ROUND(ST_Distance(location::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography)::numeric, 1) as distance_meters
+          latitude, 
+          longtiude, 
+          content, 
+          other_tags,
+          ROUND(ST_Distance(
+            ST_SetSRID(ST_MakePoint(longtiude, latitude), 4326)::geography,
+            ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+          )::numeric, 1) as distance_meters
         FROM addis_geo_points
-        WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3)
+        WHERE ST_DWithin(
+          ST_SetSRID(ST_MakePoint(longtiude, latitude), 4326)::geography,
+          ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+          $3
+        )
       `;
 
       const params: any[] = [loc.lon, loc.lat, radiusMeters];
 
-      if (categories && categories.length > 0) {
-        params.push(categories);
-        query += ` AND category = ANY($4)`;
+      if (searchPatterns.length > 0) {
+        params.push(searchPatterns);
+        query += ` AND (content ILIKE ANY($4) OR other_tags ILIKE ANY($4))`;
       }
 
       query += ` ORDER BY distance_meters ASC LIMIT 10;`;
 
-      const result = await pool.query(query, params);
+      let result = await pool.query(query, params);
 
-      return result.rows.map((row) => ({
+      // If initial search radius yields 0 rows, auto-expand radius up to 6000m
+      if (result.rows.length === 0 && radiusMeters < 6000) {
+        const expandedRadius = Math.min(6000, radiusMeters * 2);
+        const expandedParams: any[] = [loc.lon, loc.lat, expandedRadius];
+        let expandedQuery = `
+          SELECT 
+            id, 
+            latitude, 
+            longtiude, 
+            content, 
+            other_tags,
+            ROUND(ST_Distance(
+              ST_SetSRID(ST_MakePoint(longtiude, latitude), 4326)::geography,
+              ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+            )::numeric, 1) as distance_meters
+          FROM addis_geo_points
+          WHERE ST_DWithin(
+            ST_SetSRID(ST_MakePoint(longtiude, latitude), 4326)::geography,
+            ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+            $3
+          )
+        `;
+        if (searchPatterns.length > 0) {
+          expandedParams.push(searchPatterns);
+          expandedQuery += ` AND (content ILIKE ANY($4) OR other_tags ILIKE ANY($4))`;
+        }
+        expandedQuery += ` ORDER BY distance_meters ASC LIMIT 10;`;
+        result = await pool.query(expandedQuery, expandedParams);
+      }
+
+      if (result.rows.length > 0) {
+        return result.rows.map((row) => this.parseAddisGeoPoint(row));
+      }
+    } catch (err: any) {
+      console.warn('[RagService] addis_geo_points query error, falling back to places:', err.message);
+    }
+
+    // 3. Fallback to places table if addis_geo_points is unavailable in dev
+    try {
+      let fallbackQuery = `
+        SELECT 
+          id, 
+          name, 
+          category, 
+          address, 
+          tags, 
+          osm_type, 
+          osm_id,
+          ST_Y(location::geometry) as lat,
+          ST_X(location::geometry) as lon,
+          ROUND(ST_Distance(location::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography)::numeric, 1) as distance_meters
+        FROM places
+        WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3)
+      `;
+
+      const fallbackParams: any[] = [loc.lon, loc.lat, radiusMeters];
+      if (categories && categories.length > 0) {
+        fallbackParams.push(categories);
+        fallbackQuery += ` AND category = ANY($4)`;
+      }
+      fallbackQuery += ` ORDER BY distance_meters ASC LIMIT 10;`;
+
+      const fallbackResult = await pool.query(fallbackQuery, fallbackParams);
+      return fallbackResult.rows.map((row) => ({
         id: String(row.id),
         name: row.name || null,
         category: row.category,
@@ -246,57 +428,12 @@ export class RagService {
         tags: row.tags || {},
         source: 'openstreetmap',
         osm: {
-          type: 'node',
-          id: String(row.id),
+          type: row.osm_type || 'node',
+          id: String(row.osm_id || ''),
         },
       }));
     } catch {
-      // 2. Fallback to places table
-      try {
-        let fallbackQuery = `
-          SELECT 
-            id, 
-            name, 
-            category, 
-            address,
-            tags,
-            osm_type,
-            osm_id,
-            ST_Y(location::geometry) as lat,
-            ST_X(location::geometry) as lon,
-            ROUND(ST_Distance(location::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography)::numeric, 1) as distance_meters
-          FROM places
-          WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3)
-        `;
-
-        const fallbackParams: any[] = [loc.lon, loc.lat, radiusMeters];
-
-        if (categories && categories.length > 0) {
-          fallbackParams.push(categories);
-          fallbackQuery += ` AND category = ANY($4)`;
-        }
-
-        fallbackQuery += ` ORDER BY distance_meters ASC LIMIT 10;`;
-
-        const fallbackResult = await pool.query(fallbackQuery, fallbackParams);
-
-        return fallbackResult.rows.map((row) => ({
-          id: String(row.id),
-          name: row.name || null,
-          category: row.category,
-          location: { lat: Number(row.lat), lon: Number(row.lon) },
-          distanceMeters: Number(row.distance_meters),
-          address: row.address || null,
-          tags: row.tags || {},
-          source: 'openstreetmap',
-          osm: {
-            type: row.osm_type || 'node',
-            id: String(row.osm_id || ''),
-          },
-        }));
-      } catch {
-        return [];
-      }
+      return [];
     }
   }
 
@@ -379,8 +516,10 @@ export class RagService {
     } else {
       data.places.forEach((p, i) => {
         const addr = p.address ? `, Address: "${p.address}"` : '';
+        const phone = p.tags?.phone ? `, Phone: "${p.tags.phone}"` : '';
+        const hours = p.tags?.opening_hours ? `, Hours: "${p.tags.opening_hours}"` : '';
         blocks.push(
-          `${i + 1}. Name: "${p.name || 'Unnamed'}", Category: ${p.category}, Distance: ${p.distanceMeters}m${addr}`
+          `${i + 1}. Name: "${p.name || 'Unnamed'}", Category: ${p.category}, Distance: ${p.distanceMeters}m${addr}${phone}${hours}`
         );
       });
     }

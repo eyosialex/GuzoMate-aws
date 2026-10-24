@@ -239,6 +239,33 @@ async function runTests() {
     );
   });
 
+  console.log('\n[Task 7: PostGIS Retrieval from addis_geo_points (13,861 Locations)]');
+  await it('retrieves verified hospitals from addis_geo_points near Mercato', async () => {
+    const response = await assistantService.query({
+      query: 'Is there a hospital near Mercato?',
+      language: 'en',
+      location: { lat: 9.030, lon: 38.740 },
+      enableVoice: false,
+    });
+
+    assert.ok(response.places.length > 0);
+    assert.ok(response.places.some((p) => p.name && (p.name.toLowerCase().includes('health') || p.name.toLowerCase().includes('hospital') || p.name.toLowerCase().includes('clinic') || p.name.includes('ጤና') || p.name.includes('ሆስፒታል'))));
+    assert.ok(!response.answer.toLowerCase().includes('no record of hospital'));
+  });
+
+  await it('retrieves verified restaurants from addis_geo_points near Arat Kilo', async () => {
+    const response = await assistantService.query({
+      query: 'Find a restaurant near Arat Kilo',
+      language: 'en',
+      location: { lat: 9.033, lon: 38.763 },
+      enableVoice: false,
+    });
+
+    assert.ok(response.places.length > 0);
+    assert.ok(response.places.some((p) => p.name && p.distanceMeters < 3000));
+    assert.ok(!response.answer.toLowerCase().includes('no record of restaurant'));
+  });
+
   console.log(`\n=== Test Summary: ${passed} passed, ${failed} failed ===`);
   if (failed > 0) {
     process.exit(1);
