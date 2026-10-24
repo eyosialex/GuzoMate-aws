@@ -5,8 +5,8 @@ import { SecurityGuards } from '../rag/guards.js';
 import { ragService } from '../rag/rag.service.js';
 import { AssistantQuerySchema } from '../dto/assistant-query.dto.js';
 import { assistantService } from '../assistant.service.js';
-import { addisAiProvider } from '../providers/addis-ai.provider.js';
-import { weatherProvider } from '../providers/weather.provider.js';
+import { addisAiProvider } from '../../travel-services/speech/addis-ai.provider.js';
+import { weatherProvider } from '../../travel-services/weather/weatherapi.provider.js';
 import { memoryService } from '../memory/memory.service.js';
 
 let passed = 0;

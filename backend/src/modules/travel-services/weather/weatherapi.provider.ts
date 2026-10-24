@@ -1,10 +1,10 @@
-import { SupportedLanguage } from '../dto/assistant-query.dto.js';
+import { SupportedLanguage } from '../../assistant/dto/assistant-query.dto.js';
 import {
   WeatherResultItem,
   WeatherSuggestion,
   WeatherHourlyForecast,
   WeatherForecastDay,
-} from '../dto/assistant-response.dto.js';
+} from '../../assistant/dto/assistant-response.dto.js';
 
 export interface OpenMeteoCurrentResponse {
   time: string;

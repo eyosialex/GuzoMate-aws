@@ -1,5 +1,5 @@
-import { AppError } from '../dto/errors.js';
-import { SupportedLanguage } from '../dto/assistant-query.dto.js';
+import { AppError } from '../../assistant/dto/errors.js';
+import { SupportedLanguage } from '../../assistant/dto/assistant-query.dto.js';
 
 export interface AddisVoiceResult {
   provider: 'addis-ai';

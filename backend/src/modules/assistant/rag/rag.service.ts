@@ -2,8 +2,8 @@ import { pool } from '../../../config/database.js';
 import { IntentAnalysisResult } from '../intent/intent.service.js';
 import { PlaceResultItem, WeatherResultItem, IncidentResultItem, SourceItem } from '../dto/assistant-response.dto.js';
 import { geminiProvider, SupportedLanguage, LLMRetrievalPlan } from '../providers/gemini.provider.js';
-import { addisAiProvider } from '../providers/addis-ai.provider.js';
-import { weatherProvider } from '../providers/weather.provider.js';
+import { addisAiProvider } from '../../travel-services/speech/addis-ai.provider.js';
+import { weatherProvider } from '../../travel-services/weather/weatherapi.provider.js';
 import { ChatTurn } from '../memory/memory.service.js';
 
 export const DESTINATION_COORDINATES: Record<string, { lat: number; lon: number }> = {

@@ -3,7 +3,7 @@ import { AssistantQueryResponse, AddisVoiceResult } from './dto/assistant-respon
 import { intentService } from './intent/intent.service.js';
 import { SecurityGuards } from './rag/guards.js';
 import { ragService } from './rag/rag.service.js';
-import { addisAiProvider } from './providers/addis-ai.provider.js';
+import { addisAiProvider } from '../travel-services/speech/addis-ai.provider.js';
 import { memoryService } from './memory/memory.service.js';
 
 export class AssistantService {
