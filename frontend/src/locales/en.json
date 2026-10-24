@@ -1,0 +1,118 @@
+{
+  "app": {
+    "title": "GuzoMate",
+    "subtitle": "Intelligent Travel Assistant",
+    "city": "Addis Ababa"
+  },
+  "nav": {
+    "assistant": "AI Assistant",
+    "places": "Discover",
+    "routes": "Routes",
+    "weather": "Weather",
+    "incidents": "Incidents",
+    "saved": "Saved"
+  },
+  "assistant": {
+    "title": "Travel Assistant",
+    "subtitle": "Powered by Gemini & Addis Transit RAG",
+    "welcome": "Hello! I am GuzoMate, your Addis Ababa travel companion. Ask me for nearby places, weather forecasts, or transit routes.",
+    "inputPlaceholder": "Ask GuzoMate (e.g., 'Find coffee near Bole and will it rain?')...",
+    "listening": "Listening to your voice...",
+    "speakNow": "Speak now",
+    "suggest1": "Hospitals near Meskel Square",
+    "suggest2": "Traditional coffee places in Bole",
+    "suggest3": "Will it rain when I arrive at Piazza?",
+    "suggest4": "Report traffic congestion on Ring Road",
+    "sourcesLabel": "Grounded via",
+    "voiceNotSupported": "Voice speech recognition is not supported in this browser."
+  },
+  "places": {
+    "searchPlaceholder": "Search mapped places in Addis...",
+    "categories": {
+      "all": "All",
+      "restaurant": "Dining",
+      "cafe": "Cafe",
+      "hotel": "Hotels",
+      "hospital": "Hospitals",
+      "pharmacy": "Pharmacy",
+      "mechanic": "Mechanics",
+      "fuel": "Fuel",
+      "bank": "Banks"
+    },
+    "resultsFound": "{{count}} mapped places nearby",
+    "noResults": "No places found matching your filter.",
+    "distance": "away",
+    "save": "Save",
+    "saved": "Saved",
+    "sourceOsm": "OpenStreetMap",
+    "viewOnMap": "View on map"
+  },
+  "routes": {
+    "title": "Addis Route Planner",
+    "origin": "Current location (Bole)",
+    "destination": "Destination (e.g. Piazza, Kazanchis)",
+    "originPlaceholder": "Enter starting point...",
+    "destinationPlaceholder": "Enter destination...",
+    "planRoute": "Calculate Route",
+    "transit": "Transit",
+    "driving": "Drive",
+    "walking": "Walk",
+    "duration": "Est. Time",
+    "distance": "Distance",
+    "steps": "Step-by-step navigation",
+    "selectOnMap": "Tap map to set destination"
+  },
+  "weather": {
+    "title": "Weather & Road Conditions",
+    "currentCondition": "Current Atmosphere",
+    "feelsLike": "Feels like",
+    "precipitation": "Precipitation",
+    "wind": "Wind",
+    "lastUpdated": "Last updated",
+    "arrivalAdvice": "AI Arrival Advice",
+    "hourlyForecast": "Upcoming Hours",
+    "umbrellaAdvised": "Consider carrying an umbrella due to rainfall probability."
+  },
+  "incidents": {
+    "title": "Road Incidents",
+    "reportNew": "Report Incident",
+    "modalTitle": "Report a Road Incident",
+    "modalSubtitle": "Help other travelers navigate safely around Addis Ababa",
+    "typeLabel": "Incident Type",
+    "descLabel": "Description",
+    "descPlaceholder": "Describe the road condition or issue (e.g. Waterlogging on Ring road)...",
+    "locationLabel": "Location Coordinates",
+    "dropPinHelp": "Drag marker on map or click to choose precise incident coordinates",
+    "submit": "Submit Report",
+    "submitting": "Submitting...",
+    "types": {
+      "ACCIDENT": "Traffic Accident",
+      "ROAD_CLOSURE": "Road Closure",
+      "FLOODING": "Flooding",
+      "LANDSLIDE": "Landslide / Debris",
+      "ROAD_DAMAGE": "Road Damage / Pothole",
+      "CONSTRUCTION": "Road Construction",
+      "HEAVY_TRAFFIC": "Heavy Congestion",
+      "OTHER": "Other Hazard"
+    },
+    "status": {
+      "PENDING": "Pending Review",
+      "ACTIVE": "Active Incident",
+      "RESOLVED": "Resolved"
+    },
+    "verification": {
+      "UNVERIFIED": "Unverified",
+      "COMMUNITY_CONFIRMED": "Community Confirmed",
+      "OFFICIALLY_VERIFIED": "Officially Verified"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Unable to retrieve data. Using local cache.",
+    "retry": "Try again",
+    "attribution": "© OpenStreetMap contributors"
+  }
+}

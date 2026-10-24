@@ -1,0 +1,176 @@
+import { create } from 'zustand';
+import { 
+  Language, 
+  ActiveTab, 
+  Place, 
+  Incident, 
+  RouteOption, 
+  ChatMessage, 
+  GeoLocation 
+} from '../types';
+import { MOCK_USER_LOCATION } from '../lib/mockData';
+
+export type BottomSheetSnap = 'collapsed' | 'half' | 'expanded';
+
+interface AppState {
+  // Localization
+  language: Language;
+  setLanguage: (lang: Language) => void;
+
+  // Active Navigation
+  activeTab: ActiveTab;
+  setActiveTab: (tab: ActiveTab) => void;
+
+  // Location & Map State
+  userLocation: GeoLocation;
+  mapCenter: [number, number];
+  mapZoom: number;
+  setUserLocation: (loc: GeoLocation) => void;
+  setMapCenter: (center: [number, number], zoom?: number) => void;
+
+  // Selections
+  selectedPlace: Place | null;
+  selectedIncident: Incident | null;
+  selectedRoute: RouteOption | null;
+  setSelectedPlace: (place: Place | null) => void;
+  setSelectedIncident: (incident: Incident | null) => void;
+  setSelectedRoute: (route: RouteOption | null) => void;
+
+  // Incident Modal & Draft
+  isReportingIncident: boolean;
+  incidentDraftLocation: GeoLocation | null;
+  openIncidentModal: (loc?: GeoLocation) => void;
+  closeIncidentModal: () => void;
+  setIncidentDraftLocation: (loc: GeoLocation) => void;
+
+  // Saved Places
+  savedPlaceIds: string[];
+  toggleSavePlace: (id: string) => void;
+
+  // Chat State
+  messages: ChatMessage[];
+  isAssistantLoading: boolean;
+  addMessage: (msg: ChatMessage) => void;
+  setAssistantLoading: (loading: boolean) => void;
+  clearMessages: () => void;
+
+  // Mobile Bottom Sheet
+  bottomSheetSnap: BottomSheetSnap;
+  setBottomSheetSnap: (snap: BottomSheetSnap) => void;
+}
+
+const initialSavedPlaces = ['place-02']; // MCM Korean Hospital
+
+export const useAppStore = create<AppState>((set, get) => ({
+  language: (localStorage.getItem('guzo_lang') as Language) || 'en',
+  setLanguage: (lang: Language) => {
+    localStorage.setItem('guzo_lang', lang);
+    set({ language: lang });
+  },
+
+  activeTab: 'assistant',
+  setActiveTab: (tab: ActiveTab) => {
+    set({ 
+      activeTab: tab,
+      // If switching tab on mobile, expand sheet to half view
+      bottomSheetSnap: 'half'
+    });
+  },
+
+  userLocation: MOCK_USER_LOCATION,
+  mapCenter: [MOCK_USER_LOCATION.lat, MOCK_USER_LOCATION.lon],
+  mapZoom: 14,
+  setUserLocation: (loc: GeoLocation) => {
+    set({ 
+      userLocation: loc, 
+      mapCenter: [loc.lat, loc.lon] 
+    });
+  },
+  setMapCenter: (center: [number, number], zoom?: number) => {
+    set((state) => ({ 
+      mapCenter: center, 
+      mapZoom: zoom !== undefined ? zoom : state.mapZoom 
+    }));
+  },
+
+  selectedPlace: null,
+  selectedIncident: null,
+  selectedRoute: null,
+  setSelectedPlace: (place: Place | null) => {
+    set({ selectedPlace: place });
+    if (place) {
+      set({ 
+        mapCenter: [place.location.lat, place.location.lon], 
+        mapZoom: 16 
+      });
+    }
+  },
+  setSelectedIncident: (incident: Incident | null) => {
+    set({ selectedIncident: incident });
+    if (incident) {
+      set({ 
+        mapCenter: [incident.location.lat, incident.location.lon], 
+        mapZoom: 16 
+      });
+    }
+  },
+  setSelectedRoute: (route: RouteOption | null) => {
+    set({ selectedRoute: route });
+    if (route && route.segments.length > 0) {
+      const firstCoord = route.segments[0].coordinates[0];
+      if (firstCoord) {
+        set({ mapCenter: [firstCoord[0], firstCoord[1]], mapZoom: 13 });
+      }
+    }
+  },
+
+  isReportingIncident: false,
+  incidentDraftLocation: null,
+  openIncidentModal: (loc?: GeoLocation) => {
+    set({ 
+      isReportingIncident: true, 
+      incidentDraftLocation: loc || get().userLocation 
+    });
+  },
+  closeIncidentModal: () => {
+    set({ isReportingIncident: false, incidentDraftLocation: null });
+  },
+  setIncidentDraftLocation: (loc: GeoLocation) => {
+    set({ incidentDraftLocation: loc });
+  },
+
+  savedPlaceIds: initialSavedPlaces,
+  toggleSavePlace: (id: string) => {
+    set((state) => {
+      const exists = state.savedPlaceIds.includes(id);
+      const updated = exists 
+        ? state.savedPlaceIds.filter((pId) => pId !== id)
+        : [...state.savedPlaceIds, id];
+      return { savedPlaceIds: updated };
+    });
+  },
+
+  messages: [
+    {
+      id: 'welcome-1',
+      sender: 'assistant',
+      content: 'Hello! I am GuzoMate, your AI travel companion for Addis Ababa. Ask me for nearby points of interest, real-time routes, weather forecasts, or road conditions.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }
+  ],
+  isAssistantLoading: false,
+  addMessage: (msg: ChatMessage) => {
+    set((state) => ({ messages: [...state.messages, msg] }));
+  },
+  setAssistantLoading: (loading: boolean) => {
+    set({ isAssistantLoading: loading });
+  },
+  clearMessages: () => {
+    set({ messages: [] });
+  },
+
+  bottomSheetSnap: 'half',
+  setBottomSheetSnap: (snap: BottomSheetSnap) => {
+    set({ bottomSheetSnap: snap });
+  },
+}));
