@@ -8,6 +8,7 @@ export interface ExtractedEntities {
   categories: string[];
   radiusMeters?: number;
   isCityWide?: boolean;
+  isExpansionRequested?: boolean;
 }
 
 export interface IntentAnalysisResult {
@@ -225,15 +226,25 @@ export class IntentService {
       if (!categories.includes('restaurant')) categories.push('restaurant');
     }
 
-    // Check for city-wide / anywhere intent (flexible search across Addis Ababa)
-    const cityWideKeywords = [
-      'anywhere', 'everywhere', 'in the city', 'across the city', 'across addis',
-      'around addis', 'in addis', 'in addis ababa', 'best places', 'top places',
-      'any good place', 'somewhere', 'any place', 'recommend a place', 'suggest a place',
-      'የትም', 'አዲስ አበባ ውስጥ', 'በከተማው', 'ከተማ ውስጥ', 'የትም ቦታ',
-      'bakka kamiyyuu', 'finfinnee keessatti', 'magaalaa keessatti'
+    // Explicit city-wide / anywhere intent (only when explicitly requested)
+    const explicitCityWideKeywords = [
+      'anywhere', 'everywhere', 'across the whole city', 'across addis',
+      'around the entire city', 'anywhere in addis', 'anywhere in the city',
+      'all of addis', 'all over addis', 'all over the city',
+      'የትም', 'የትም ቦታ', 'በመላው አዲስ አበባ', 'መላው ከተማ',
+      'bakka kamiyyuu'
     ];
-    const isCityWide = cityWideKeywords.some((kw) => lowerQuery.includes(kw));
+    const isCityWide = explicitCityWideKeywords.some((kw) => lowerQuery.includes(kw));
+
+    // Progressive expansion intent (when user wants more options, is unsatisfied with nearby, or asks to go wider/further)
+    const expansionKeywords = [
+      'further', 'farther', 'further away', 'wider', 'outside this area', 'outside',
+      'other options', 'more options', 'somewhere else', 'other places', 'any other',
+      'not satisfied', 'elsewhere', 'expand search', 'different area', 'different neighborhood',
+      'show me more', 'give me more', 'not these',
+      'ሌላ ቦታ', 'ከዚህ ውጭ', 'ሌላ አማራጭ', 'ራቅ ያለ', 'ተጨማሪ'
+    ];
+    const isExpansionRequested = expansionKeywords.some((kw) => lowerQuery.includes(kw));
 
     // 2. Extract destination
     let destination: string | undefined;
@@ -287,6 +298,13 @@ export class IntentService {
       detectedIntents.push(intent);
     }
 
+    let radiusMeters = 3000;
+    if (isCityWide) {
+      radiusMeters = 15000;
+    } else if (isExpansionRequested) {
+      radiusMeters = 7000;
+    }
+
     return {
       language,
       intent,
@@ -296,8 +314,9 @@ export class IntentService {
         destination,
         arrivalTime,
         categories: Array.from(new Set(categories)),
-        radiusMeters: isCityWide ? 15000 : 3000,
+        radiusMeters,
         isCityWide,
+        isExpansionRequested,
       },
     };
   }

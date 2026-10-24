@@ -389,6 +389,36 @@ async function runTests() {
     );
   });
 
+  console.log('\n[Task 10: Nearby First Priority & Progressive Expansion]');
+  it('detects nearby-first default vs progressive expansion keywords', () => {
+    // Normal query without explicit anywhere defaults to nearby (3000m)
+    const normal = detectIntent('Suggest me a good cafe', 'en', { lat: 9.030, lon: 38.740 });
+    assert.strictEqual(normal.entities.radiusMeters, 3000);
+    assert.strictEqual(normal.entities.isCityWide, false);
+
+    // Expansion query (user unsatisfied or asking for further/wider options) expands radius
+    const expanded = detectIntent('Can you show me more options further away or outside this area?');
+    assert.strictEqual(expanded.entities.radiusMeters, 7000);
+    assert.strictEqual(expanded.entities.isExpansionRequested, true);
+  });
+
+  await it('prioritizes closest nearby places first when location is provided', async () => {
+    const nearbyResponse = await assistantService.query({
+      query: 'Suggest me a cafe near here',
+      location: { lat: 9.030, lon: 38.740 },
+      language: 'en',
+      enableVoice: false,
+    });
+
+    assert.ok(nearbyResponse.places.length > 0);
+    // Closest place should be immediately near the user (< 3000m)
+    assert.ok(nearbyResponse.places[0].distanceMeters <= 3000);
+    // Places must be ordered from nearest to farthest
+    for (let i = 1; i < nearbyResponse.places.length; i++) {
+      assert.ok(nearbyResponse.places[i].distanceMeters >= nearbyResponse.places[i - 1].distanceMeters);
+    }
+  });
+
   console.log(`\n=== Test Summary: ${passed} passed, ${failed} failed ===`);
   if (failed > 0) {
     process.exit(1);

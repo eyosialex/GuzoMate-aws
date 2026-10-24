@@ -105,9 +105,21 @@ export class RagService {
       ? DESTINATION_COORDINATES[destinationName]
       : undefined;
 
-    const isCityWide =
-      llmPlan?.places?.scope === 'city_wide' ||
+    const lowerQuery = query.toLowerCase();
+
+    // Check if user explicitly asked for city-wide / anywhere search
+    const isExplicitAnywhere =
+      lowerQuery.includes('anywhere') ||
+      lowerQuery.includes('everywhere') ||
+      lowerQuery.includes('across the city') ||
+      lowerQuery.includes('across addis') ||
+      lowerQuery.includes('all of addis') ||
+      lowerQuery.includes('all over addis') ||
+      lowerQuery.includes('የትም') ||
       Boolean(analysis.entities.isCityWide);
+
+    // Check if user is asking to expand or go wider (unsatisfied with nearby)
+    const isExpansionRequested = Boolean(analysis.entities.isExpansionRequested);
 
     const centralAddis = { lat: 9.022, lon: 38.746 };
     const effectiveLocation =
@@ -116,9 +128,22 @@ export class RagService {
       analysis.entities.coordinates ||
       centralAddis;
 
-    const searchRadius = isCityWide
-      ? (llmPlan?.places?.radiusMeters || 15000)
-      : (analysis.entities.radiusMeters || 3000);
+    // Prioritize nearby first (3000m) when user coordinates are available,
+    // escalating wider (6000m - 7000m) if user asks for further/more/unsatisfied,
+    // and full city-wide (15000m) only if explicitly asked for anywhere or no location provided.
+    let searchRadius = 3000;
+    if (isExplicitAnywhere) {
+      searchRadius = llmPlan?.places?.radiusMeters || 15000;
+    } else if (isExpansionRequested || llmPlan?.places?.scope === 'neighborhood') {
+      searchRadius = Math.max(6000, llmPlan?.places?.radiusMeters || 7000);
+    } else if (location) {
+      // With GPS location provided, strictly prioritize nearby radius (max 3000m) first
+      searchRadius = Math.min(3000, llmPlan?.places?.radiusMeters || 3000);
+    } else if (llmPlan?.places?.radiusMeters) {
+      searchRadius = llmPlan.places.radiusMeters;
+    } else if (analysis.entities.radiusMeters) {
+      searchRadius = analysis.entities.radiusMeters;
+    }
 
     if (!location && !analysis.entities.coordinates && !destinationCoords) {
       limitations.push('No GPS location provided; displaying recommendations for central Addis Ababa.');

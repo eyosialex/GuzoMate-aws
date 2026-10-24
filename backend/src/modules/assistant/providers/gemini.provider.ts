@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { AppError } from '../dto/errors.js';
 
 export type SupportedLanguage = 'en' | 'am' | 'om';
@@ -42,7 +42,7 @@ export class GeminiProvider {
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY;
-    this.defaultModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+    this.defaultModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
     this.fallbackModel =
       process.env.GEMINI_MODEL_SECOND ||
       process.env.GEMINI_FALLBACK_MODEL ||
@@ -172,9 +172,17 @@ Guidelines:
 2. places.needed: true if the traveler is looking for places, amenities, food, services, relaxation, or landmarks.
 3. places.categories: array of general categories like "park", "garden", "cafe", "restaurant", "hospital", "pharmacy", "hotel", "bank", "fuel", "mechanic", "attraction", "viewpoint", "museum".
 4. places.keywords: array of specific search keywords to match in OpenStreetMap database tags/content (e.g. for relaxation: ["park", "garden", "cafe", "recreation", "leisure", "viewpoint"]).
-5. places.scope: "city_wide" if the user mentions "anywhere", "in Addis", "around the city", or asks for general recommendations. "neighborhood" if a specific neighborhood (e.g. "Bole", "Piazza", "Arat Kilo", "Mercato") is requested. "local" if searching right around their current coordinates.
-6. places.radiusMeters: 3000 for local, 5000 for neighborhood, 15000 for city_wide.
-7. weather.needed: true if the user asks about weather, rain, forecast, temperature, or arrival conditions.
+5. places.scope & radiusMeters (NEARBY-FIRST PROGRESSIVE EXPANSION):
+   - DEFAULT TO NEARBY FIRST: When User Current Location is provided, ALWAYS prioritize "local" (radiusMeters: 2500-3000m) so the traveler sees what is closest to them first.
+   - WIDER / EXPANDED SEARCH: If the user indicates they want MORE/OTHER options, are UNSATISFIED with immediate nearby places, or ask for places further away (e.g. "any other options?", "further away", "outside this area", "show me more", "something else", "not these", "expand search"), expand to "neighborhood" (radiusMeters: 6000-8000m).
+   - CITY-WIDE: Set scope to "city_wide" (radiusMeters: 15000m) ONLY if:
+     a) The traveler explicitly asks for "anywhere", "all over Addis", "across the whole city", OR
+     b) In recent conversation history, the traveler has already received both local and neighborhood recommendations and wants wider options across the city, OR
+     c) No current location is provided.
+6. Concise extraction rules:
+   - routes.origin and routes.destination: Extract ONLY a concise Latin transliterated place name (1 to 3 words, e.g. "Bole", "Merkato", "Arat Kilo", "Piassa", "Gerji"). Do NOT include punctuation, explanations, or repetitive synonyms.
+   - places.destination: Extract a concise Latin place name if mentioned, or null.
+7. weather.needed: true if the user asks about weather, rain, forecast, temperature, or arrival conditions. weather.arrivalTime: short time string (e.g. "14:30", "in 1 hour", "now") or null.
 8. routes.needed: true if the user asks how to get from one location to another.
 9. incidents.needed: true if the user asks about traffic jams, road closures, or accidents.`;
 
@@ -193,6 +201,57 @@ ${historySummary}`;
 
     const candidateModels = Array.from(new Set([this.defaultModel, this.fallbackModel].filter(Boolean)));
 
+    const retrievalSchema = {
+      type: Type.OBJECT,
+      properties: {
+        language: { type: Type.STRING, enum: ['en', 'am', 'om'] },
+        intents: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.STRING,
+            enum: ['PLACES', 'WEATHER', 'ROUTING', 'INCIDENTS'],
+          },
+        },
+        places: {
+          type: Type.OBJECT,
+          properties: {
+            needed: { type: Type.BOOLEAN },
+            categories: { type: Type.ARRAY, items: { type: Type.STRING } },
+            keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+            destination: { type: Type.STRING },
+            scope: { type: Type.STRING, enum: ['local', 'neighborhood', 'city_wide'] },
+            radiusMeters: { type: Type.NUMBER },
+          },
+          required: ['needed', 'categories', 'keywords', 'scope', 'radiusMeters'],
+        },
+        weather: {
+          type: Type.OBJECT,
+          properties: {
+            needed: { type: Type.BOOLEAN },
+            arrivalTime: { type: Type.STRING },
+          },
+          required: ['needed'],
+        },
+        routes: {
+          type: Type.OBJECT,
+          properties: {
+            needed: { type: Type.BOOLEAN },
+            origin: { type: Type.STRING },
+            destination: { type: Type.STRING },
+          },
+          required: ['needed'],
+        },
+        incidents: {
+          type: Type.OBJECT,
+          properties: {
+            needed: { type: Type.BOOLEAN },
+          },
+          required: ['needed'],
+        },
+      },
+      required: ['language', 'intents', 'places', 'weather', 'routes', 'incidents'],
+    };
+
     for (const modelName of candidateModels) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 7000);
@@ -204,14 +263,25 @@ ${historySummary}`;
           config: {
             systemInstruction,
             responseMimeType: 'application/json',
+            responseSchema: retrievalSchema,
             temperature: 0.1,
-            maxOutputTokens: 600,
+            maxOutputTokens: 1200,
           },
         });
         clearTimeout(timeout);
 
-        const jsonText = response.text?.trim();
+        let jsonText = response.text?.trim() || '';
         if (jsonText) {
+          // Remove Markdown code block wrappers if any
+          if (jsonText.startsWith('```')) {
+            jsonText = jsonText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+          }
+          const firstBrace = jsonText.indexOf('{');
+          const lastBrace = jsonText.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
+            jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+          }
+
           return JSON.parse(jsonText) as LLMRetrievalPlan;
         }
       } catch (err: any) {
@@ -250,7 +320,10 @@ Your mission is to provide accurate, helpful, flexible, and culturally respectfu
 HELPFUL & FLEXIBLE ASSISTANT GUIDELINES:
 1. TARGET LANGUAGE: Answer strictly in ${targetLangName}. All conversational prose must be in ${targetLangName}.
 2. WELCOMING & HELPFUL GUIDANCE: Be friendly, flexible, and encouraging. When a traveler asks for recommendations, leisure spots, or a place to relax (whether near them or anywhere in the city), provide warm, practical suggestions. Consider green parks, peaceful cafes, scenic viewpoints (such as Entoto Park, Friendship Park, Unity Park), gardens, and restaurants.
-3. GROUNDING WITH FLEXIBILITY: Ground your specific place details in the verified context facts provided. If the traveler asks a broad question (e.g., "suggest me a place to relax anywhere"), do NOT bluntly refuse or claim you are restricted to a single spot. Instead, actively present the best matching places from the context facts or prominent Addis Ababa landmarks and explain why they are great to visit.
+3. SENCE OF URGENCY: Try to pick up sence of urgency. If the user explicitly say they are urgents or if they are talking about urgent things (eg. emergency health issues, they are about to be late, miss somehting, etc..), your answer should only include the important details they needed, in short format.
+3. NEARBY-FIRST PRESENTATION & PROGRESSIVE EXPANSION:
+   - When places are provided in the verified context, prioritize and present the closest nearby options first with their estimated distances (e.g., "about 110 meters away").
+   - If the traveler is asking locally, conclude by offering: "If you'd like options further away or in other neighborhoods across Addis Ababa, just let me know and I can search wider for you!"
 4. UNCERTAINTY & LIMITATIONS: Do NOT fabricate fake phone numbers, non-existent ticket prices, or imaginary opening hours. If specific administrative details are not in the context, politely suggest checking locally while keeping your recommendation helpful.
 5. ACCURACY: Preserve metric distances (meters, kilometers), temperature in Celsius (°C), and proper local place names (e.g., Arat Kilo, Merkato, Piazza, Bole, Entoto).
 6. COMMUNITY REPORTS: Explicitly refer to community-reported road incidents as unverified notices.
