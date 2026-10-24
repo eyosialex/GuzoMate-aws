@@ -7,6 +7,7 @@ export interface ExtractedEntities {
   arrivalTime?: string;
   categories: string[];
   radiusMeters?: number;
+  isCityWide?: boolean;
 }
 
 export interface IntentAnalysisResult {
@@ -69,6 +70,24 @@ export class IntentService {
     {
       category: 'bank',
       keywords: ['bank', 'atm', 'cash', 'ባንክ', 'ኤቲኤም', 'baankii'],
+    },
+    {
+      category: 'park',
+      keywords: ['park', 'garden', 'green space', 'botanical', 'nature', 'recreation', 'ፓርክ', 'መናፈሻ', 'የተፈጥሮ ፓርክ', 'iddoo bashannanaa', 'paarkii'],
+    },
+    {
+      category: 'leisure',
+      keywords: [
+        'relax', 'relaxation', 'chill', 'hangout', 'hang out', 'leisure', 'resort', 'spa', 'unwind', 'weekend',
+        'መዝናናት', 'መዝናኛ', 'ተዝናኖት', 'እረፍት', 'መዝናኛ ቦታ', 'ማረፊያ', 'bashannana', 'boqonnaa'
+      ],
+    },
+    {
+      category: 'attraction',
+      keywords: [
+        'attraction', 'museum', 'monument', 'memorial', 'sightseeing', 'viewpoint', 'view', 'culture', 'heritage',
+        'square', 'ሙዚየም', 'ቤተ-መዘክር', 'ታሪክ', 'ባህል', 'ሀውልት', 'አደባባይ', 'muziyeemii', 'siidaa'
+      ],
     },
   ];
 
@@ -184,10 +203,37 @@ export class IntentService {
     // 1. Extract categories
     const categories: string[] = [];
     for (const rule of IntentService.CATEGORY_RULES) {
-      if (rule.keywords.some((kw) => lowerQuery.includes(kw.toLowerCase()))) {
+      if (
+        rule.keywords.some((kw) => {
+          const lowerKw = kw.toLowerCase();
+          // For short Latin words (<= 5 chars), require word boundary to avoid false positives (e.g. "chill" in "Churchill")
+          if (/^[a-z]+$/.test(lowerKw) && lowerKw.length <= 5) {
+            const regex = new RegExp(`\\b${lowerKw}\\b`, 'i');
+            return regex.test(lowerQuery);
+          }
+          return lowerQuery.includes(lowerKw);
+        })
+      ) {
         categories.push(rule.category);
       }
     }
+
+    // Leisure queries ("place to relax", "hang out") inherently include parks, cafes, and restaurants
+    if (categories.includes('leisure')) {
+      if (!categories.includes('park')) categories.push('park');
+      if (!categories.includes('cafe')) categories.push('cafe');
+      if (!categories.includes('restaurant')) categories.push('restaurant');
+    }
+
+    // Check for city-wide / anywhere intent (flexible search across Addis Ababa)
+    const cityWideKeywords = [
+      'anywhere', 'everywhere', 'in the city', 'across the city', 'across addis',
+      'around addis', 'in addis', 'in addis ababa', 'best places', 'top places',
+      'any good place', 'somewhere', 'any place', 'recommend a place', 'suggest a place',
+      'የትም', 'አዲስ አበባ ውስጥ', 'በከተማው', 'ከተማ ውስጥ', 'የትም ቦታ',
+      'bakka kamiyyuu', 'finfinnee keessatti', 'magaalaa keessatti'
+    ];
+    const isCityWide = cityWideKeywords.some((kw) => lowerQuery.includes(kw));
 
     // 2. Extract destination
     let destination: string | undefined;
@@ -205,6 +251,10 @@ export class IntentService {
       categories.length > 0 ||
       lowerQuery.includes('place') ||
       lowerQuery.includes('near') ||
+      lowerQuery.includes('relax') ||
+      lowerQuery.includes('visit') ||
+      lowerQuery.includes('መዝናኛ') ||
+      lowerQuery.includes('መሄድ') ||
       lowerQuery.includes('አጠገብ') ||
       lowerQuery.includes('አካባቢ') ||
       lowerQuery.includes('dhihoo') ||
@@ -246,7 +296,8 @@ export class IntentService {
         destination,
         arrivalTime,
         categories: Array.from(new Set(categories)),
-        radiusMeters: 3000,
+        radiusMeters: isCityWide ? 15000 : 3000,
+        isCityWide,
       },
     };
   }

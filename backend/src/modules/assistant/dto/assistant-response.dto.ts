@@ -12,7 +12,7 @@ export interface PlaceResultItem {
   address: string | null;
   tags: Record<string, any>;
   source: 'openstreetmap';
-  osm: {
+  osm?: {
     type: string;
     id: string;
   };

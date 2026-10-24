@@ -1,7 +1,7 @@
 import { pool } from '../../../config/database.js';
 import { IntentAnalysisResult } from '../intent/intent.service.js';
 import { PlaceResultItem, WeatherResultItem, IncidentResultItem, SourceItem } from '../dto/assistant-response.dto.js';
-import { geminiProvider, SupportedLanguage } from '../providers/gemini.provider.js';
+import { geminiProvider, SupportedLanguage, LLMRetrievalPlan } from '../providers/gemini.provider.js';
 import { addisAiProvider } from '../providers/addis-ai.provider.js';
 import { weatherProvider } from '../providers/weather.provider.js';
 import { ChatTurn } from '../memory/memory.service.js';
@@ -32,6 +32,15 @@ const CATEGORY_SEARCH_PATTERNS: Record<string, string[]> = {
   bank: ['%bank%', '%atm%', '%ባንክ%', '%baankii%'],
   fuel: ['%fuel%', '%gas_station%', '%petrol%', '%ነዳጅ%', '%ቤንዚን%'],
   mechanic: ['%mechanic%', '%garage%', '%car repair%', '%መካኒክ%', '%ጋራጅ%'],
+  park: ['%park%', '%garden%', '%recreation%', '%መናፈሻ%', '%ፓርክ%', '%paarkii%'],
+  leisure: [
+    '%leisure%', '%park%', '%garden%', '%resort%', '%spa%', '%recreation%',
+    '%cafe%', '%restaurant%', '%hotel%', '%መዝናኛ%', '%መናፈሻ%', '%ተዝናኖት%', '%bashannana%'
+  ],
+  attraction: [
+    '%attraction%', '%tourism%', '%museum%', '%viewpoint%', '%monument%',
+    '%memorial%', '%ሙዚየም%', '%ቤተ-መዘክር%'
+  ],
 };
 
 export interface RouteResultItem {
@@ -72,28 +81,71 @@ export class RagService {
     const limitations: string[] = [];
     const sources: SourceItem[] = [];
 
-    const destinationCoords = analysis.entities.destination
-      ? DESTINATION_COORDINATES[analysis.entities.destination]
+    // 0. Use Gemini Flash (LLM) to intelligently plan database retrieval from query & context
+    let llmPlan: LLMRetrievalPlan | null = null;
+    if (geminiProvider.isAvailable()) {
+      try {
+        llmPlan = await geminiProvider.planRetrieval(
+          query,
+          history,
+          location,
+          analysis.entities.arrivalTime
+        );
+      } catch (err: any) {
+        console.warn('[RagService] LLM retrieval planner skipped:', err?.message);
+      }
+    }
+
+    // Determine target language (LLM-detected or rule analysis)
+    const effectiveLanguage = llmPlan?.language || analysis.language;
+
+    // Determine destination coordinates
+    const destinationName = llmPlan?.places?.destination || analysis.entities.destination;
+    const destinationCoords = destinationName
+      ? DESTINATION_COORDINATES[destinationName]
       : undefined;
 
+    const isCityWide =
+      llmPlan?.places?.scope === 'city_wide' ||
+      Boolean(analysis.entities.isCityWide);
+
+    const centralAddis = { lat: 9.022, lon: 38.746 };
     const effectiveLocation =
+      destinationCoords ||
       location ||
       analysis.entities.coordinates ||
-      destinationCoords ||
-      { lat: 9.033, lon: 38.763 };
+      centralAddis;
+
+    const searchRadius = isCityWide
+      ? (llmPlan?.places?.radiusMeters || 15000)
+      : (analysis.entities.radiusMeters || 3000);
 
     if (!location && !analysis.entities.coordinates && !destinationCoords) {
       limitations.push('No GPS location provided; displaying recommendations for central Addis Ababa.');
     }
 
-    // 1. Gather Places (via Supabase addis_geo_points with PostGIS radius search)
+    // 1. Gather Places dynamically from addis_geo_points (PostGIS spatial radius search)
     let places: PlaceResultItem[] = [];
-    if (analysis.intents.includes('PLACES') || analysis.intent === 'COMPOSITE') {
+    const shouldFetchPlaces =
+      llmPlan ? (Boolean(llmPlan.places?.needed) || llmPlan.intents.includes('PLACES'))
+              : (analysis.intents.includes('PLACES') || analysis.intent === 'COMPOSITE');
+
+    if (shouldFetchPlaces) {
+      // Combine LLM-decided categories & keywords with analysis categories
+      const activeCategories = Array.from(
+        new Set([
+          ...(llmPlan?.places?.categories || []),
+          ...(llmPlan?.places?.keywords || []),
+          ...(analysis.entities.categories || []),
+        ])
+      );
+
       places = await this.queryPlacesFromSupabase(
         effectiveLocation,
-        analysis.entities.radiusMeters || 3000,
-        analysis.entities.categories
+        searchRadius,
+        activeCategories
       );
+
       if (places.length > 0) {
         sources.push({
           type: 'openstreetmap',
@@ -105,15 +157,15 @@ export class RagService {
     // 2. Gather Weather & Destination Arrival Advice (Open-Meteo Weather Service)
     let weather: WeatherResultItem | null = null;
     const shouldFetchWeather =
-      analysis.intents.includes('WEATHER') ||
-      analysis.intent === 'COMPOSITE' ||
-      Boolean(analysis.entities.arrivalTime);
+      llmPlan ? (Boolean(llmPlan.weather?.needed) || llmPlan.intents.includes('WEATHER'))
+              : (analysis.intents.includes('WEATHER') || analysis.intent === 'COMPOSITE' || Boolean(analysis.entities.arrivalTime));
 
     if (shouldFetchWeather) {
+      const arrival = llmPlan?.weather?.arrivalTime || analysis.entities.arrivalTime;
       weather = await this.getWeatherEvidence(
         effectiveLocation,
-        analysis.entities.arrivalTime,
-        analysis.language
+        arrival,
+        effectiveLanguage
       );
       if (weather) {
         sources.push({
@@ -125,11 +177,14 @@ export class RagService {
 
     // 3. Gather Routing (Addis Transit)
     let routes: RouteResultItem | null = null;
-    if (analysis.intents.includes('ROUTING')) {
-      routes = await this.getTransitEvidence(
-        effectiveLocation ? `Lat ${effectiveLocation.lat}, Lon ${effectiveLocation.lon}` : 'Current Location',
-        analysis.entities.destination || 'Destination'
-      );
+    const shouldFetchRouting =
+      llmPlan ? (Boolean(llmPlan.routes?.needed) || llmPlan.intents.includes('ROUTING'))
+              : analysis.intents.includes('ROUTING');
+
+    if (shouldFetchRouting) {
+      const originStr = location ? `Lat ${location.lat}, Lon ${location.lon}` : 'Current Location';
+      const destStr = llmPlan?.routes?.destination || destinationName || 'Destination';
+      routes = await this.getTransitEvidence(originStr, destStr);
       sources.push({
         type: 'addis-transit',
         retrievedAt: new Date().toISOString(),
@@ -138,7 +193,11 @@ export class RagService {
 
     // 4. Gather Road Incidents
     let incidents: IncidentResultItem[] = [];
-    if (analysis.intents.includes('INCIDENTS') || analysis.intent === 'COMPOSITE') {
+    const shouldFetchIncidents =
+      llmPlan ? (Boolean(llmPlan.incidents?.needed) || llmPlan.intents.includes('INCIDENTS'))
+              : (analysis.intents.includes('INCIDENTS') || analysis.intent === 'COMPOSITE');
+
+    if (shouldFetchIncidents) {
       incidents = await this.getIncidentEvidence(effectiveLocation);
       if (incidents.length > 0) {
         sources.push({
@@ -354,14 +413,20 @@ export class RagService {
         query += ` AND (content ILIKE ANY($4) OR other_tags ILIKE ANY($4))`;
       }
 
+      // Exclude car parking spaces when searching for parks, leisure, or gardens
+      const isParkQuery = searchPatterns.some((p) => p.includes('park') || p.includes('garden') || p.includes('leisure'));
+      if (isParkQuery) {
+        query += ` AND (content NOT ILIKE '%parking%' AND (other_tags IS NULL OR other_tags NOT ILIKE '%parking%'))`;
+      }
+
       query += ` ORDER BY distance_meters ASC LIMIT 10;`;
 
       let result = await pool.query(query, params);
 
-      // If initial search radius yields 0 rows, auto-expand radius up to 6000m
-      if (result.rows.length === 0 && radiusMeters < 6000) {
-        const expandedRadius = Math.min(6000, radiusMeters * 2);
-        const expandedParams: any[] = [loc.lon, loc.lat, expandedRadius];
+      // If initial search radius yields 0 rows, dynamically auto-expand city-wide across addis_geo_points
+      if (result.rows.length === 0 && radiusMeters < 15000) {
+        const expandedRadius = 18000;
+        const expandedParams: any[] = [38.746, 9.022, expandedRadius];
         let expandedQuery = `
           SELECT 
             id, 
@@ -383,6 +448,9 @@ export class RagService {
         if (searchPatterns.length > 0) {
           expandedParams.push(searchPatterns);
           expandedQuery += ` AND (content ILIKE ANY($4) OR other_tags ILIKE ANY($4))`;
+        }
+        if (isParkQuery) {
+          expandedQuery += ` AND (content NOT ILIKE '%parking%' AND (other_tags IS NULL OR other_tags NOT ILIKE '%parking%'))`;
         }
         expandedQuery += ` ORDER BY distance_meters ASC LIMIT 10;`;
         result = await pool.query(expandedQuery, expandedParams);
@@ -532,8 +600,9 @@ export class RagService {
         const addr = p.address ? `, Address: "${p.address}"` : '';
         const phone = p.tags?.phone ? `, Phone: "${p.tags.phone}"` : '';
         const hours = p.tags?.opening_hours ? `, Hours: "${p.tags.opening_hours}"` : '';
+        const desc = p.tags?.description ? `, Details: "${p.tags.description}"` : '';
         blocks.push(
-          `${i + 1}. Name: "${p.name || 'Unnamed'}", Category: ${p.category}, Distance: ${p.distanceMeters}m${addr}${phone}${hours}`
+          `${i + 1}. Name: "${p.name || 'Unnamed'}", Category: ${p.category}, Distance: ${p.distanceMeters}m${addr}${phone}${hours}${desc}`
         );
       });
     }

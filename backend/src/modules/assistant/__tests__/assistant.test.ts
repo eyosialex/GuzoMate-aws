@@ -358,6 +358,37 @@ async function runTests() {
     assert.strictEqual(emptyAmHistory.length, 0);
   });
 
+  console.log('\n[Task 9: Flexible City-Wide Recommendations & Leisure Places]');
+  it('detects leisure and city-wide relaxation intent without rigid restriction', () => {
+    const analysis = detectIntent('suggest me a place to relax anywhere');
+    assert.strictEqual(analysis.intent, 'PLACES');
+    assert.ok(analysis.entities.categories.includes('leisure'));
+    assert.ok(analysis.entities.categories.includes('park'));
+    assert.strictEqual(analysis.entities.isCityWide, true);
+    assert.ok(analysis.entities.radiusMeters! >= 10000);
+  });
+
+  await it('flexibly suggests relaxation places (parks, cafes, gardens) even when GPS location is provided', async () => {
+    const response = await assistantService.query({
+      query: 'Suggest me a place to relax anywhere in Addis Ababa',
+      location: { lat: 9.030, lon: 38.740 },
+      language: 'en',
+      enableVoice: false,
+    });
+
+    assert.ok(response.places.length > 0);
+    assert.ok(response.answer.length > 0);
+    assert.ok(!response.answer.toLowerCase().includes('i only have information'));
+    assert.ok(
+      response.answer.toLowerCase().includes('park') ||
+      response.answer.toLowerCase().includes('cafe') ||
+      response.answer.toLowerCase().includes('relax') ||
+      response.answer.toLowerCase().includes('entoto') ||
+      response.answer.toLowerCase().includes('friendship') ||
+      response.answer.toLowerCase().includes('unity')
+    );
+  });
+
   console.log(`\n=== Test Summary: ${passed} passed, ${failed} failed ===`);
   if (failed > 0) {
     process.exit(1);
