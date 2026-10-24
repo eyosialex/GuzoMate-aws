@@ -32,6 +32,7 @@ export const AssistantQuerySchema = z.object({
   filters: FiltersSchema.optional(),
   enableVoice: z.boolean().optional(),
   voiceId: z.string().optional(),
+  userId: z.string().optional(),
 });
 
 export type LocationDto = z.infer<typeof LocationSchema>;

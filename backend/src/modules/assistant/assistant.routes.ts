@@ -15,3 +15,12 @@ assistantRouter.post('/assistant/query', (req, res) => assistantController.handl
  */
 assistantRouter.post('/speech/synthesis', (req, res) => assistantController.handleSpeechSynthesis(req, res));
 assistantRouter.post('/assistant/speech/synthesis', (req, res) => assistantController.handleSpeechSynthesis(req, res));
+
+/**
+ * POST /api/v1/assistant/memory/clear
+ * DELETE /api/v1/assistant/memory
+ * Clears persistent conversation memory for the user's single session.
+ */
+assistantRouter.post('/assistant/memory/clear', (req, res) => assistantController.handleClearMemory(req, res));
+assistantRouter.delete('/assistant/memory', (req, res) => assistantController.handleClearMemory(req, res));
+

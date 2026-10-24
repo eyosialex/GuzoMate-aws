@@ -9,9 +9,14 @@ export class AssistantController {
    */
   public async handleQuery(req: Request, res: Response): Promise<void> {
     const requestId = (req.headers['x-request-id'] as string) || `req_${Date.now()}`;
+    const rawBody = req.body || {};
+    const effectiveUserId = rawBody.userId || (req.headers['x-user-id'] as string) || undefined;
 
     // 1. Schema validation
-    const validationResult = AssistantQuerySchema.safeParse(req.body);
+    const validationResult = AssistantQuerySchema.safeParse({
+      ...rawBody,
+      userId: effectiveUserId,
+    });
 
     if (!validationResult.success) {
       const details = validationResult.error.issues.map((issue) => ({
@@ -105,6 +110,32 @@ export class AssistantController {
         error: {
           code: 'INTERNAL_ERROR',
           message: err?.message || 'Speech synthesis failed.',
+        },
+      });
+    }
+  }
+
+  /**
+   * POST /api/v1/assistant/memory/clear
+   * Clears the persistent conversation memory for a user's single session.
+   */
+  public async handleClearMemory(req: Request, res: Response): Promise<void> {
+    const rawBody = req.body || {};
+    const userId = (rawBody.userId as string) || (req.headers['x-user-id'] as string) || 'default_traveler';
+
+    try {
+      const deletedCount = await assistantService.clearUserMemory(userId);
+      res.status(200).json({
+        success: true,
+        message: `Persistent session memory cleared for user '${userId}'.`,
+        deletedTurns: deletedCount,
+      });
+    } catch (err: any) {
+      console.error('[ClearMemory Error]', err);
+      res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: err?.message || 'Failed to clear conversation memory.',
         },
       });
     }

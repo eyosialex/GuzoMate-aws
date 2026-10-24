@@ -7,6 +7,7 @@ import { AssistantQuerySchema } from '../dto/assistant-query.dto.js';
 import { assistantService } from '../assistant.service.js';
 import { addisAiProvider } from '../providers/addis-ai.provider.js';
 import { weatherProvider } from '../providers/weather.provider.js';
+import { memoryService } from '../memory/memory.service.js';
 
 let passed = 0;
 let failed = 0;
@@ -264,6 +265,97 @@ async function runTests() {
     assert.ok(response.places.length > 0);
     assert.ok(response.places.some((p) => p.name && p.distanceMeters < 3000));
     assert.ok(!response.answer.toLowerCase().includes('no record of restaurant'));
+  });
+
+  console.log('\n[Task 8: Single-Session Conversation Memory & Erase]');
+  it('detects natural language memory clear intents across EN, AM, and OM', () => {
+    // English
+    assert.strictEqual(memoryService.isClearMemoryIntent('erase your memory'), true);
+    assert.strictEqual(memoryService.isClearMemoryIntent('please clear our chat history'), true);
+    assert.strictEqual(memoryService.isClearMemoryIntent('forget everything I said'), true);
+    assert.strictEqual(memoryService.isClearMemoryIntent('reset your memory'), true);
+    // Amharic
+    assert.strictEqual(memoryService.isClearMemoryIntent('እባክህ ትዝታህን አጥፋ'), true);
+    assert.strictEqual(memoryService.isClearMemoryIntent('ማስታወሻህን አጥፋ'), true);
+    assert.strictEqual(memoryService.isClearMemoryIntent('ሁሉንም እርሳ'), true);
+    // Afaan Oromo
+    assert.strictEqual(memoryService.isClearMemoryIntent('yaadannoo kee haqi'), true);
+    assert.strictEqual(memoryService.isClearMemoryIntent('hunda irraanfadhu'), true);
+    // Non-clear intents should be false
+    assert.strictEqual(memoryService.isClearMemoryIntent('Where is the memorial museum?'), false);
+    assert.strictEqual(memoryService.isClearMemoryIntent('How much is a taxi to Bole?'), false);
+  });
+
+  await it('records and persists turns in a single session for a specific user', async () => {
+    const testUser = 'test_user_session_persistent';
+    await memoryService.clearMemory(testUser);
+
+    const firstResponse = await assistantService.query({
+      query: 'I am planning a trip to Bole Medhanealem.',
+      language: 'en',
+      userId: testUser,
+      enableVoice: false,
+    });
+
+    assert.ok(firstResponse.answer.length > 0);
+    const history = await memoryService.getRecentHistory(testUser, 10);
+    assert.strictEqual(history.length, 2);
+    assert.strictEqual(history[0].role, 'user');
+    assert.strictEqual(history[0].content, 'I am planning a trip to Bole Medhanealem.');
+    assert.strictEqual(history[1].role, 'assistant');
+    assert.ok(history[1].content.length > 0);
+  });
+
+  await it('uses prior conversation history in multi-turn assistant queries', async () => {
+    const testUser = 'test_user_session_persistent';
+    const followUp = await assistantService.query({
+      query: 'Are there any banks near that cathedral?',
+      language: 'en',
+      userId: testUser,
+      enableVoice: false,
+    });
+
+    assert.ok(followUp.answer.length > 0);
+    const updatedHistory = await memoryService.getRecentHistory(testUser, 10);
+    assert.strictEqual(updatedHistory.length, 4);
+    assert.strictEqual(updatedHistory[2].role, 'user');
+    assert.strictEqual(updatedHistory[2].content, 'Are there any banks near that cathedral?');
+    assert.strictEqual(updatedHistory[3].role, 'assistant');
+  });
+
+  await it('clears user memory on natural language request ("erase your memory")', async () => {
+    const testUser = 'test_user_session_persistent';
+    const wipeResponse = await assistantService.query({
+      query: 'Please erase your memory and start fresh',
+      language: 'en',
+      userId: testUser,
+      enableVoice: false,
+    });
+
+    assert.strictEqual(wipeResponse.intent, 'CLEAR_MEMORY');
+    assert.ok(wipeResponse.answer.toLowerCase().includes('cleared my memory'));
+
+    const emptyHistory = await memoryService.getRecentHistory(testUser, 10);
+    assert.strictEqual(emptyHistory.length, 0);
+  });
+
+  await it('clears user memory on Amharic natural language request ("ትዝታህን አጥፋ")', async () => {
+    const amUser = 'test_user_amharic_memory';
+    await memoryService.recordMessage(amUser, 'user', 'ሰላም');
+    await memoryService.recordMessage(amUser, 'assistant', 'ሰላም! እንዴት ልርዳዎ?');
+
+    const amWipe = await assistantService.query({
+      query: 'እባክህ ትዝታህን አጥፋ',
+      language: 'am',
+      userId: amUser,
+      enableVoice: false,
+    });
+
+    assert.strictEqual(amWipe.intent, 'CLEAR_MEMORY');
+    assert.ok(amWipe.answer.includes('ማስታወሻዬን') || amWipe.answer.includes('አጥፍቻለሁ'));
+
+    const emptyAmHistory = await memoryService.getRecentHistory(amUser, 10);
+    assert.strictEqual(emptyAmHistory.length, 0);
   });
 
   console.log(`\n=== Test Summary: ${passed} passed, ${failed} failed ===`);

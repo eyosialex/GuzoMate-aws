@@ -4,6 +4,7 @@ import { PlaceResultItem, WeatherResultItem, IncidentResultItem, SourceItem } fr
 import { geminiProvider, SupportedLanguage } from '../providers/gemini.provider.js';
 import { addisAiProvider } from '../providers/addis-ai.provider.js';
 import { weatherProvider } from '../providers/weather.provider.js';
+import { ChatTurn } from '../memory/memory.service.js';
 
 export const DESTINATION_COORDINATES: Record<string, { lat: number; lon: number }> = {
   'Arat Kilo': { lat: 9.033, lon: 38.763 },
@@ -65,7 +66,8 @@ export class RagService {
   public async executePipeline(
     query: string,
     analysis: IntentAnalysisResult,
-    location?: { lat: number; lon: number }
+    location?: { lat: number; lon: number },
+    history: ChatTurn[] = []
   ): Promise<RagPipelineResult> {
     const limitations: string[] = [];
     const sources: SourceItem[] = [];
@@ -154,6 +156,7 @@ export class RagService {
       routes,
       incidents,
       limitations,
+      history,
     });
 
     // 6. Generate Grounded Response via LLM (Addis AI / Gemini based on database facts)
@@ -506,8 +509,19 @@ export class RagService {
     routes?: RouteResultItem | null;
     incidents: IncidentResultItem[];
     limitations: string[];
+    history?: ChatTurn[];
   }): string {
     const blocks: string[] = [];
+
+    // Block 0: Prior Conversational History (Session Memory)
+    if (data.history && data.history.length > 0) {
+      blocks.push('[CONVERSATION_HISTORY]');
+      data.history.forEach((turn) => {
+        const roleName = turn.role === 'user' ? 'Traveler' : 'Assistant';
+        blocks.push(`${roleName}: ${turn.content}`);
+      });
+      blocks.push('');
+    }
 
     // Block 1: Places
     blocks.push('[SOURCE: OpenStreetMap Verified POI]');
