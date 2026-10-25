@@ -554,7 +554,7 @@ export class RagService {
         location: coordinates,
         current: data.current,
         arrivalAdvice,
-        provider: data.provider,
+        provider: 'weatherapi' as const,
         retrievedAt: data.retrievedAt,
       };
     } catch (err: any) {

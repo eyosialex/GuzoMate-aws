@@ -169,8 +169,8 @@ async function runTests() {
     const facts = '[SOURCE: OpenStreetMap Verified POI]\n- Tomoca Coffee (Cafe, 120m away in Arat Kilo, open)';
     const query = 'Is there a cafe near Arat Kilo?';
     const answer = await addisAiProvider.generateGroundedResponse(query, facts, 'am');
-    assert.ok(answer.length > 0);
-    assert.ok(answer.includes('ቶሞካ') || answer.includes('ካፌ') || answer.includes('አራት ኪሎ'));
+    assert.ok((answer?.length || 0) > 0);
+    assert.ok(answer?.includes('ቶሞካ') || answer?.includes('ካፌ') || answer?.includes('አራት ኪሎ'));
   });
 
   await it('generates speech audio response via Addis AI Voices 2', async () => {
@@ -201,7 +201,7 @@ async function runTests() {
   await it('retrieves live weather forecast and arrival suggestions from WEATHER_URL', async () => {
     // Forecast 1 hour 30 minutes in the future
     const futureTime = new Date(Date.now() + 90 * 60 * 1000).toISOString();
-    const weatherResult = await weatherProvider.getForecast(
+    const weatherResult = await weatherProvider.fetchForecast(
       { lat: 9.033, lon: 38.763 },
       futureTime,
       'en'
@@ -352,7 +352,7 @@ async function runTests() {
     });
 
     assert.strictEqual(amWipe.intent, 'CLEAR_MEMORY');
-    assert.ok(amWipe.answer.includes('ማስታወሻዬን') || amWipe.answer.includes('አጥፍቻለሁ'));
+    assert.ok(amWipe.answer?.includes('ማስታወሻዬን') || amWipe.answer?.includes('አጥፍቻለሁ'));
 
     const emptyAmHistory = await memoryService.getRecentHistory(amUser, 10);
     assert.strictEqual(emptyAmHistory.length, 0);

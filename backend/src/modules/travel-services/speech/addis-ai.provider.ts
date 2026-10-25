@@ -207,9 +207,9 @@ export const addisAiSpeechProvider = new AddisAiSpeechProvider();
 // Assistant module backwards-compatible object
 export const addisAiProvider = {
   isAvailable(): boolean {
-    return true;
+    return false;
   },
-  async generateGroundedResponse(): Promise<string | null> {
+  async generateGroundedResponse(query: string, facts: string, lang: string): Promise<string | null> {
     return null;
   },
   async generateVoice(text: string, language: any, opts?: any): Promise<any> {

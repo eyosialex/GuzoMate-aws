@@ -433,3 +433,7 @@ export class WeatherApiProvider implements IWeatherProvider {
 }
 
 export const weatherApiProvider = new WeatherApiProvider();
+
+
+// Export alias for backwards compatibility
+export const weatherProvider = weatherApiProvider;

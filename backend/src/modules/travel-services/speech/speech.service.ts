@@ -1,5 +1,6 @@
-import { addisAiSpeechProvider, ISpeechProvider } from './addis-ai.provider.js';
+import { addisAiSpeechProvider } from './addis-ai.provider.js';
 import {
+  ISpeechProvider,
   SpeechLanguage,
   SpeechSynthesisResponse,
   SpeechTranscriptionResponse,
