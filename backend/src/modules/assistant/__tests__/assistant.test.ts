@@ -203,7 +203,7 @@ async function runTests() {
     const futureTime = new Date(Date.now() + 90 * 60 * 1000).toISOString();
     const weatherResult = await weatherProvider.fetchForecast(
       { lat: 9.033, lon: 38.763 },
-      futureTime,
+      3,
       'en'
     );
 
@@ -211,10 +211,6 @@ async function runTests() {
     assert.ok(typeof weatherResult.current?.temperatureC === 'number');
     assert.ok(weatherResult.current?.condition);
     assert.ok(weatherResult.forecast && weatherResult.forecast.length > 0);
-    assert.ok(weatherResult.arrivalAdvice !== undefined);
-    assert.strictEqual(weatherResult.arrivalAdvice?.arrivalTime, futureTime);
-    assert.ok(Array.isArray(weatherResult.arrivalAdvice?.suggestions));
-    assert.ok(weatherResult.arrivalAdvice?.suggestions.length > 0);
   });
 
   await it('evaluates arrival weather and generates clothing/umbrella advice', async () => {
