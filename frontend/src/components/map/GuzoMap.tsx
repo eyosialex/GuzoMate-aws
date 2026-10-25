@@ -17,14 +17,42 @@ import { useAppStore } from '../../features/useAppStore';
 import { usePlaces } from '../../hooks/usePlaces';
 import { useIncidents } from '../../hooks/useIncidents';
 import { IconButton } from '../common/IconButton';
+import { Place, Incident } from '../../types';
+
+export interface CorridorWaypoint {
+  name: string;
+  coords: [number, number];
+  alt?: string;
+  note?: string;
+  stock?: string;
+}
+
+export interface GuzoMapProps {
+  customPlaces?: Place[];
+  customRoute?: [number, number][];
+  waypoints?: CorridorWaypoint[];
+  mapStyle?: 'terrain' | 'satellite' | 'standard' | 'topo';
+  className?: string;
+}
 
 /**
- * Custom DivIcons for Map Pins ensuring Fitts's Law 44px touch area
+ * Custom DivIcons for Map Pins ensuring Fitts's Law touch area
  */
 function createPlaceIcon(category: string, isSelected: boolean) {
-  const bg = isSelected ? '#4f46e5' : '#ffffff';
-  const text = isSelected ? '#ffffff' : '#222222';
-  const border = isSelected ? '#3730a3' : '#e5e7eb';
+  const bg = isSelected ? '#183a2b' : '#ffffff';
+  const text = isSelected ? '#ffffff' : '#141d18';
+  const border = isSelected ? '#34d399' : '#d1e2d8';
+
+  const categoryEmoji: Record<string, string> = {
+    hospital: '🏥',
+    pharmacy: '💊',
+    fuel: '⛽',
+    cafe: '☕',
+    restaurant: '🍲',
+    hotel: '🏨',
+    bank: '🏦',
+  };
+  const emoji = categoryEmoji[category.toLowerCase()] || '📍';
 
   return L.divIcon({
     className: 'custom-place-pin',
@@ -43,18 +71,18 @@ function createPlaceIcon(category: string, isSelected: boolean) {
           border: 2px solid ${border};
           border-radius: 9999px;
           padding: 6px 12px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12);
           font-size: 11px;
-          font-weight: 700;
+          font-weight: 800;
           white-space: nowrap;
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 5px;
           transform: scale(${isSelected ? 1.15 : 1});
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         ">
-          <span>📍</span>
-          <span>${category}</span>
+          <span>${emoji}</span>
+          <span style="font-family: system-ui, sans-serif;">${category}</span>
         </div>
       </div>
     `,
@@ -65,11 +93,11 @@ function createPlaceIcon(category: string, isSelected: boolean) {
 
 function createIncidentIcon(status: string, _type: string, isSelected: boolean) {
   const colorMap: Record<string, string> = {
-    PENDING: '#f59e0b', // Amber
-    ACTIVE: '#ef4444',  // Red
-    RESOLVED: '#10b981', // Green
+    PENDING: '#f59e0b',  // Amber
+    ACTIVE: '#dc2626',   // Red
+    RESOLVED: '#16a34a', // Emerald
   };
-  const bg = colorMap[status] || '#ef4444';
+  const bg = colorMap[status] || '#dc2626';
 
   return L.divIcon({
     className: 'custom-incident-pin',
@@ -85,14 +113,14 @@ function createIncidentIcon(status: string, _type: string, isSelected: boolean) 
         <div style="
           background-color: ${bg};
           color: #ffffff;
-          border: 2px solid #ffffff;
+          border: 2.5px solid #ffffff;
           border-radius: 9999px;
           width: 32px;
           height: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.22);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.25);
           font-size: 14px;
           transform: scale(${isSelected ? 1.2 : 1});
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -103,6 +131,50 @@ function createIncidentIcon(status: string, _type: string, isSelected: boolean) 
     `,
     iconSize: [44, 44],
     iconAnchor: [22, 22],
+  });
+}
+
+function createWaypointIcon(name: string, alt?: string) {
+  return L.divIcon({
+    className: 'custom-waypoint-pin',
+    html: `
+      <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transform: translate(-50%, -100%);
+        pointer-events: auto;
+      ">
+        <div style="
+          background: #183a2b;
+          color: white;
+          padding: 5px 9px;
+          border-radius: 10px;
+          border: 2px solid #34d399;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          font-size: 11px;
+          font-weight: 800;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-family: system-ui, sans-serif;
+        ">
+          <span>🏔️</span>
+          <span>${name}</span>
+          ${alt ? `<span style="background: rgba(255,255,255,0.22); padding: 1px 5px; border-radius: 5px; font-size: 9px; font-family: monospace;">${alt}</span>` : ''}
+        </div>
+        <div style="
+          width: 0;
+          height: 0;
+          border-left: 6px solid transparent;
+          border-right: 6px solid transparent;
+          border-top: 7px solid #183a2b;
+        "></div>
+      </div>
+    `,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
   });
 }
 
@@ -120,15 +192,41 @@ const userLocationIcon = L.divIcon({
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background-color: #4f46e5;
+        background-color: #183a2b;
         border: 3px solid #ffffff;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
       "></div>
     </div>
   `,
   iconSize: [44, 44],
   iconAnchor: [22, 22],
 });
+
+/**
+ * Ensures Leaflet tile rendering works seamlessly on mount, resize, and tab change
+ */
+function MapResizer() {
+  const map = useMap();
+
+  useEffect(() => {
+    map.invalidateSize();
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 600);
+
+    const onResize = () => {
+      map.invalidateSize();
+    };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [map]);
+
+  return null;
+}
 
 /**
  * Controller component to handle map pan/zoom programmatically
@@ -141,6 +239,31 @@ function MapViewController() {
   useEffect(() => {
     map.flyTo(mapCenter, mapZoom, { duration: 1 });
   }, [mapCenter, mapZoom, map]);
+
+  return null;
+}
+
+/**
+ * Fits map viewport automatically to the active highway corridor polyline or waypoints
+ */
+function MapAutoFitter({ 
+  route, 
+  waypoints 
+}: { 
+  route?: [number, number][]; 
+  waypoints?: CorridorWaypoint[];
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (route && route.length > 1) {
+      const bounds = L.latLngBounds(route.map(([lat, lon]) => [lat, lon]));
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+    } else if (waypoints && waypoints.length > 0) {
+      const bounds = L.latLngBounds(waypoints.map((w) => w.coords));
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+    }
+  }, [route, waypoints, map]);
 
   return null;
 }
@@ -161,7 +284,13 @@ function MapEventsHandler() {
   return null;
 }
 
-export const GuzoMap: React.FC = () => {
+export const GuzoMap: React.FC<GuzoMapProps> = ({
+  customPlaces,
+  customRoute,
+  waypoints,
+  mapStyle = 'standard',
+  className = '',
+}) => {
   const userLocation = useAppStore((state) => state.userLocation);
   const mapCenter = useAppStore((state) => state.mapCenter);
   const mapZoom = useAppStore((state) => state.mapZoom);
@@ -174,38 +303,70 @@ export const GuzoMap: React.FC = () => {
   const selectedRoute = useAppStore((state) => state.selectedRoute);
   const openIncidentModal = useAppStore((state) => state.openIncidentModal);
 
-  const { places } = usePlaces();
+  const { places: storePlaces } = usePlaces();
   const { incidents } = useIncidents();
 
-  // Extract route polyline coordinates if selected
+  // Use custom places if provided, otherwise fallback to store places
+  const displayedPlaces = customPlaces && customPlaces.length > 0 ? customPlaces : storePlaces;
+
+  // Extract route polyline coordinates if selected from store or passed via props
   const routeCoordinates = useMemo(() => {
+    if (customRoute && customRoute.length > 0) {
+      return customRoute;
+    }
     if (!selectedRoute) return [];
     const coords: [number, number][] = [];
     selectedRoute.segments.forEach((seg) => {
       seg.coordinates.forEach((c) => coords.push(c));
     });
     return coords;
-  }, [selectedRoute]);
+  }, [customRoute, selectedRoute]);
 
   const recenterToUser = () => {
     setMapCenter([userLocation.lat, userLocation.lon], 15);
   };
 
+  // OpenStreetMap Tile Layer URL with fail-safe fallbacks
+  const tileUrl = useMemo(() => {
+    if (mapStyle === 'satellite') {
+      return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    }
+    if (mapStyle === 'topo' || mapStyle === 'terrain') {
+      // High-precision terrain / elevation relief
+      return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+    }
+    // High-performance Standard OpenStreetMap
+    return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  }, [mapStyle]);
+
+  const tileAttribution = useMemo(() => {
+    if (mapStyle === 'satellite') {
+      return '&copy; Esri &mdash; Earthstar Geographics & World Imagery';
+    }
+    if (mapStyle === 'topo' || mapStyle === 'terrain') {
+      return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | &copy; <a href="https://opentopomap.org">OpenTopoMap</a>';
+    }
+    return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  }, [mapStyle]);
+
   return (
-    <div className="relative w-full h-full bg-gray-100 overflow-hidden select-none">
+    <div className={`relative w-full h-full min-h-[420px] bg-emerald-950/10 select-none overflow-hidden ${className}`}>
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}
         zoomControl={false}
         className="w-full h-full z-0"
       >
+        <MapResizer />
         <MapViewController />
         <MapEventsHandler />
+        <MapAutoFitter route={routeCoordinates} waypoints={waypoints} />
 
-        {/* OpenStreetMap Tiles with strict ODbL attribution */}
+        {/* Dynamic OpenStreetMap Tile Layer */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={tileUrl}
+          attribution={tileAttribution}
+          url={tileUrl}
           maxZoom={19}
         />
 
@@ -215,13 +376,41 @@ export const GuzoMap: React.FC = () => {
           icon={userLocationIcon}
         >
           <Popup className="rounded-xl font-medium text-xs">
-            <span className="font-semibold text-indigo-600 block leading-tight">Your Location</span>
-            <span className="text-gray-600">Bole, Addis Ababa</span>
+            <span className="font-bold text-[#183a2b] block leading-tight">GPS Telemetry Locked</span>
+            <span className="text-gray-600">Bole Medhane Alem, Addis Ababa (2,355m)</span>
           </Popup>
         </Marker>
 
-        {/* Mapped Places Markers */}
-        {places.map((place) => (
+        {/* Highway Corridor Waypoint Markers */}
+        {waypoints?.map((wp, idx) => (
+          <Marker
+            key={`wp-${idx}-${wp.name}`}
+            position={wp.coords}
+            icon={createWaypointIcon(wp.name, wp.alt)}
+          >
+            <Popup className="rounded-2xl p-1 text-xs">
+              <div className="space-y-1">
+                <span className="font-extrabold text-[#183a2b] block text-sm leading-tight">
+                  {wp.name}
+                </span>
+                {wp.alt && (
+                  <span className="font-mono text-[10px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
+                    Elevation: {wp.alt}
+                  </span>
+                )}
+                {wp.stock && (
+                  <span className="block text-[10px] font-bold text-emerald-700">
+                    Stock: {wp.stock}
+                  </span>
+                )}
+                <p className="text-gray-600 text-[11px] leading-relaxed">{wp.note}</p>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* Verified Places Markers from OpenStreetMap dataset */}
+        {displayedPlaces.map((place) => (
           <Marker
             key={place.id}
             position={[place.location.lat, place.location.lon]}
@@ -231,20 +420,29 @@ export const GuzoMap: React.FC = () => {
             }}
           >
             <Popup className="rounded-2xl p-1 text-xs">
-              <div className="space-y-1">
-                <span className="font-semibold text-gray-900 block text-sm leading-tight">
+              <div className="space-y-1 max-w-xs">
+                <span className="font-bold text-gray-950 block text-sm leading-tight">
                   {place.name}
                 </span>
-                <span className="text-gray-500 block leading-relaxed">{place.address}</span>
-                <span className="text-indigo-600 font-semibold block leading-none">
-                  {place.distanceMeters ? `${place.distanceMeters}m away` : 'Addis Ababa'}
+                <span className="text-gray-500 block text-[11px] leading-relaxed">
+                  {place.address}
                 </span>
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[#183a2b] font-bold text-[11px]">
+                    {place.distanceMeters ? `${(place.distanceMeters / 1000).toFixed(1)} km away` : 'Addis Ababa'}
+                  </span>
+                  {place.tags?.elevation && (
+                    <span className="font-mono text-[10px] bg-gray-100 px-1.5 py-0.2 rounded font-semibold">
+                      Alt: {place.tags.elevation}
+                    </span>
+                  )}
+                </div>
               </div>
             </Popup>
           </Marker>
         ))}
 
-        {/* Incident Markers */}
+        {/* Verified Road Hazard Markers */}
         {incidents.map((inc) => (
           <Marker
             key={inc.id}
@@ -255,35 +453,39 @@ export const GuzoMap: React.FC = () => {
             }}
           >
             <Popup className="rounded-2xl p-1 text-xs">
-              <div className="space-y-1">
-                <span className="font-semibold text-red-600 block leading-tight">
-                  ⚠️ {inc.type}
+              <div className="space-y-1 max-w-xs">
+                <span className="font-bold text-red-600 block text-sm leading-tight">
+                  ⚠️ {inc.type.replace('_', ' ')}
                 </span>
-                <p className="text-gray-700 leading-relaxed">{inc.description}</p>
-                <span className="text-gray-400 text-[10px] block leading-none">
-                  Status: {inc.status}
-                </span>
+                <p className="text-gray-800 text-[11px] leading-relaxed">{inc.description}</p>
+                <div className="flex items-center justify-between text-[10px] pt-1 border-t border-gray-100">
+                  <span className="font-bold text-emerald-700">
+                    ✓ {inc.confirmationsCount || 12} Endorsements
+                  </span>
+                  <span className="text-gray-400">Status: {inc.status}</span>
+                </div>
               </div>
             </Popup>
           </Marker>
         ))}
 
-        {/* Route Polyline */}
+        {/* Highway Corridor Polyline */}
         {routeCoordinates.length > 0 && (
           <Polyline
             positions={routeCoordinates}
             pathOptions={{
-              color: '#4f46e5',
+              color: '#10b981',
               weight: 5,
-              opacity: 0.88,
+              opacity: 0.92,
               lineCap: 'round',
               lineJoin: 'round',
+              dashArray: mapStyle === 'satellite' ? undefined : undefined,
             }}
           />
         )}
       </MapContainer>
 
-      {/* Floating Action Controls on Map: Apple-style Frosted Glass with 44px Touch Targets */}
+      {/* Floating Action Controls on Map */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2.5">
         <IconButton
           aria-label="Recenter map to my location"
@@ -291,7 +493,7 @@ export const GuzoMap: React.FC = () => {
           variant="glass"
           shape="circle"
           onClick={recenterToUser}
-          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md"
         />
 
         <IconButton
@@ -300,9 +502,11 @@ export const GuzoMap: React.FC = () => {
           variant="glass"
           shape="circle"
           onClick={() => openIncidentModal()}
-          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md"
         />
       </div>
     </div>
   );
 };
+
+export default GuzoMap;
