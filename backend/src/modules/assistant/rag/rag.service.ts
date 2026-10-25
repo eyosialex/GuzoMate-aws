@@ -3,7 +3,7 @@ import { IntentAnalysisResult } from '../intent/intent.service.js';
 import { PlaceResultItem, WeatherResultItem, IncidentResultItem, SourceItem } from '../dto/assistant-response.dto.js';
 import { geminiProvider, SupportedLanguage, LLMRetrievalPlan } from '../providers/gemini.provider.js';
 import { addisAiProvider } from '../../travel-services/speech/addis-ai.provider.js';
-import { weatherProvider } from '../../travel-services/weather/weatherapi.provider.js';
+import { weatherService } from '../../travel-services/weather/weather.service.js';
 import { ChatTurn } from '../memory/memory.service.js';
 
 export const DESTINATION_COORDINATES: Record<string, { lat: number; lon: number }> = {
@@ -542,7 +542,25 @@ export class RagService {
     language: SupportedLanguage = 'en'
   ): Promise<WeatherResultItem | null> {
     const coordinates = loc || { lat: 9.033, lon: 38.763 };
-    return weatherProvider.getForecast(coordinates, arrivalTime, language);
+    try {
+      const { data } = await weatherService.getNormalizedData(coordinates, 1, language);
+      let arrivalAdvice: any = undefined;
+      if (arrivalTime) {
+        try {
+          arrivalAdvice = await weatherService.getArrivalAdvice(coordinates, arrivalTime, undefined, language);
+        } catch {}
+      }
+      return {
+        location: coordinates,
+        current: data.current,
+        arrivalAdvice,
+        provider: data.provider,
+        retrievedAt: data.retrievedAt,
+      };
+    } catch (err: any) {
+      console.warn('[RagService] Weather evidence error:', err?.message);
+      return null;
+    }
   }
 
   /**

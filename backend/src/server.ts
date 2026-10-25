@@ -1,3 +1,8 @@
+// Allow local dev HTTPS requests
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 import { app } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';

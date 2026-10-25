@@ -239,3 +239,16 @@ export class AddisAiSpeechProvider implements ISpeechProvider {
 }
 
 export const addisAiSpeechProvider = new AddisAiSpeechProvider();
+
+// Compatibility export for assistant module
+export const addisAiProvider = {
+  isAvailable(): boolean {
+    return false;
+  },
+  async generateGroundedResponse(_query: string, _facts: string, _lang: string): Promise<string | null> {
+    return null;
+  },
+  async generateVoice(_text: string, _lang: string, _opts?: any): Promise<any> {
+    return null;
+  }
+};
