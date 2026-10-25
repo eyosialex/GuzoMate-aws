@@ -1,20 +1,30 @@
-import { addisAiProvider, AddisAiProvider, AddisVoiceResult } from './addis-ai.provider.js';
-import { SupportedLanguage } from '../../assistant/dto/assistant-query.dto.js';
+import { addisAiSpeechProvider, ISpeechProvider } from './addis-ai.provider.js';
+import {
+  SpeechLanguage,
+  SpeechSynthesisResponse,
+  SpeechTranscriptionResponse,
+} from './speech.types.js';
 
 export class SpeechService {
-  constructor(private provider: AddisAiProvider = addisAiProvider) {}
+  constructor(private provider: ISpeechProvider = addisAiSpeechProvider) {}
+
+  public isAvailable(): boolean {
+    return this.provider.isAvailable();
+  }
+
+  public async transcribe(
+    audio: string,
+    language: SpeechLanguage = 'am'
+  ): Promise<SpeechTranscriptionResponse> {
+    return this.provider.transcribe(audio, language);
+  }
 
   public async synthesize(
     text: string,
-    language: SupportedLanguage = 'am',
+    language: SpeechLanguage = 'am',
     voiceId?: string
-  ): Promise<AddisVoiceResult | null> {
-    return this.provider.generateVoice(text, language, { voiceId });
-  }
-
-  public async transcribe(audioBuffer: Buffer, language?: SupportedLanguage): Promise<{ text: string }> {
-    // Placeholder for STT integration
-    return { text: '' };
+  ): Promise<SpeechSynthesisResponse> {
+    return this.provider.synthesize(text, language, voiceId);
   }
 }
 

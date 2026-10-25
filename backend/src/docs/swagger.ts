@@ -402,5 +402,132 @@ export const swaggerDocument = {
         responses: { 201: { description: 'Device registered' } },
       },
     },
+    // =========================================================================
+    // Travel Services (Member 3: Weather, Routing, Speech)
+    // =========================================================================
+    '/weather/current': {
+      get: {
+        summary: 'Get current weather conditions for coordinates',
+        tags: ['Weather'],
+        parameters: [
+          { name: 'lat', in: 'query', required: true, schema: { type: 'number', example: 9.03 } },
+          { name: 'lon', in: 'query', required: true, schema: { type: 'number', example: 38.74 } },
+          { name: 'lang', in: 'query', required: false, schema: { type: 'string', enum: ['en', 'am', 'om'], default: 'en' } },
+        ],
+        responses: {
+          200: { description: 'Current weather condition data' },
+          400: { description: 'Invalid coordinate parameters' },
+          503: { description: 'Weather provider temporarily unavailable' },
+        },
+      },
+    },
+    '/weather/forecast': {
+      get: {
+        summary: 'Get multi-day weather forecast with hourly predictions',
+        tags: ['Weather'],
+        parameters: [
+          { name: 'lat', in: 'query', required: true, schema: { type: 'number', example: 9.03 } },
+          { name: 'lon', in: 'query', required: true, schema: { type: 'number', example: 38.74 } },
+          { name: 'days', in: 'query', required: false, schema: { type: 'integer', default: 3, minimum: 1, maximum: 14 } },
+          { name: 'lang', in: 'query', required: false, schema: { type: 'string', enum: ['en', 'am', 'om'], default: 'en' } },
+        ],
+        responses: {
+          200: { description: 'Daily and hourly weather forecast' },
+          400: { description: 'Invalid parameters' },
+        },
+      },
+    },
+    '/weather/arrival-advice': {
+      get: {
+        summary: 'Get destination weather conditions and clothing/umbrella suggestions for arrival time',
+        tags: ['Weather'],
+        parameters: [
+          { name: 'lat', in: 'query', required: true, schema: { type: 'number', example: 9.03 } },
+          { name: 'lon', in: 'query', required: true, schema: { type: 'number', example: 38.74 } },
+          { name: 'arrivalTime', in: 'query', required: false, schema: { type: 'string', format: 'date-time' } },
+          { name: 'etaMinutes', in: 'query', required: false, schema: { type: 'integer', example: 45 } },
+          { name: 'lang', in: 'query', required: false, schema: { type: 'string', enum: ['en', 'am', 'om'], default: 'en' } },
+        ],
+        responses: {
+          200: { description: 'Arrival weather advice and clothing recommendations' },
+          400: { description: 'Missing arrivalTime or etaMinutes' },
+        },
+      },
+    },
+    '/routes': {
+      get: {
+        summary: 'Calculate road routing, walking directions, and public transit options with incident alerts',
+        tags: ['Routing & Transit'],
+        parameters: [
+          { name: 'originLat', in: 'query', required: true, schema: { type: 'number', example: 9.03 } },
+          { name: 'originLon', in: 'query', required: true, schema: { type: 'number', example: 38.74 } },
+          { name: 'destLat', in: 'query', required: true, schema: { type: 'number', example: 9.01 } },
+          { name: 'destLon', in: 'query', required: true, schema: { type: 'number', example: 38.76 } },
+          { name: 'mode', in: 'query', required: false, schema: { type: 'string', enum: ['driving', 'walking', 'transit', 'all'], default: 'driving' } },
+          { name: 'language', in: 'query', required: false, schema: { type: 'string', enum: ['en', 'am', 'om'], default: 'en' } },
+          { name: 'includeIncidents', in: 'query', required: false, schema: { type: 'boolean', default: true } },
+        ],
+        responses: {
+          200: { description: 'Calculated route legs, duration, distance, maneuvers, and road hazard alerts' },
+          400: { description: 'Invalid coordinate parameters' },
+        },
+      },
+    },
+    '/speech/transcriptions': {
+      post: {
+        summary: 'Transcribe spoken audio in Amharic, Afaan Oromo, or English (STT)',
+        tags: ['Speech'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['audio'],
+                properties: {
+                  audio: { type: 'string', description: 'Base64 encoded audio or accessible audio URL' },
+                  format: { type: 'string', enum: ['wav', 'mp3', 'webm', 'ogg', 'm4a'] },
+                  language: { type: 'string', enum: ['en', 'am', 'om'], default: 'am' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Transcribed text and language detection' },
+          400: { description: 'Invalid audio payload' },
+          401: { description: 'Authentication required' },
+          503: { description: 'Speech recognition provider unavailable or unconfigured' },
+        },
+      },
+    },
+    '/speech/synthesis': {
+      post: {
+        summary: 'Synthesize spoken audio from text in Amharic, Afaan Oromo, or English (TTS)',
+        tags: ['Speech'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['text'],
+                properties: {
+                  text: { type: 'string', example: 'መንገድዎ በግንባታ ምክንያት ሊዘጋጋ ይችላል' },
+                  language: { type: 'string', enum: ['en', 'am', 'om'], default: 'am' },
+                  voiceId: { type: 'string', example: 'am-hamen' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Generated audio stream / URL and metadata' },
+          400: { description: 'Invalid text or incompatible voice requested' },
+          503: { description: 'Speech synthesis provider unavailable or unconfigured' },
+        },
+      },
+    },
   },
 };

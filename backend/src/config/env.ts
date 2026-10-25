@@ -13,6 +13,17 @@ const envSchema = z.object({
   FCM_PROJECT_ID: z.string().optional(),
   FCM_CLIENT_EMAIL: z.string().optional(),
   FCM_PRIVATE_KEY: z.string().optional(),
+  // Member 3: Travel Services Configuration
+  WEATHER_API_KEY: z.string().optional(),
+  WEATHER_URL: z.string().default('https://api.weatherapi.com/v1'),
+  WEATHER_CACHE_TTL_MINUTES: z.coerce.number().default(20),
+  WEATHER_REQUEST_TIMEOUT_MS: z.coerce.number().default(10000),
+  OSRM_BASE_URL: z.string().default('https://router.project-osrm.org'),
+  ROUTING_REQUEST_TIMEOUT_MS: z.coerce.number().default(10000),
+  ADDIS_AI_API_KEY: z.string().optional(),
+  ADDIS_AI_BASE_URL: z.string().default('https://api.addisassistant.com'),
+  SPEECH_MAX_AUDIO_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
+  SPEECH_REQUEST_TIMEOUT_MS: z.coerce.number().default(15000),
 });
 
 const parsed = envSchema.safeParse(process.env);

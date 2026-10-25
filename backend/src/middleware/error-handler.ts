@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
 import { AppError } from '../shared/errors/app-error.js';
 import { ErrorCode } from '../shared/errors/error-codes.js';
 import { sendError } from '../shared/utils/response.js';
@@ -31,7 +32,32 @@ export function errorHandler(
     return sendError(res, err.message, err.statusCode, err.code, err.details);
   }
 
-  // 2. Body Parser / JSON Syntax Error
+  // 2. Zod Validation Error
+  if (err instanceof ZodError) {
+    const issues = err.issues.map((issue) => ({
+      field: issue.path.join('.'),
+      message: issue.message,
+    }));
+    return sendError(
+      res,
+      'Request validation failed',
+      400,
+      ErrorCode.VALIDATION_ERROR,
+      issues
+    );
+  }
+
+  // 3. Payload Too Large (Express Body Parser)
+  if (err.type === 'entity.too.large' || err.status === 413) {
+    return sendError(
+      res,
+      'Request payload exceeds size limit',
+      413,
+      ErrorCode.PAYLOAD_TOO_LARGE
+    );
+  }
+
+  // 4. Body Parser / JSON Syntax Error
   if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400) {
     return sendError(
       res,

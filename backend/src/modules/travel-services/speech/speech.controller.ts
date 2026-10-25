@@ -1,27 +1,44 @@
-import { Request, Response } from 'express';
-import { speechService } from './speech.service.js';
+import { Request, Response, NextFunction } from 'express';
+import { speechService, SpeechService } from './speech.service.js';
+import {
+  speechTranscriptionSchema,
+  speechSynthesisSchema,
+} from './speech.validation.js';
 
 export class SpeechController {
-  public async synthesize(req: Request, res: Response) {
-    try {
-      const { text, language, voiceId } = req.body;
-      if (!text) {
-        return res.status(400).json({ error: 'text is required.' });
-      }
+  constructor(private service: SpeechService = speechService) {}
 
-      const result = await speechService.synthesize(text, language || 'am', voiceId);
-      return res.json({ speech: result });
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
+  public async transcribe(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const parsed = await speechTranscriptionSchema.parseAsync(req.body);
+      const result = await this.service.transcribe(parsed.audio, parsed.language);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+        ...result,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 
-  public async transcribe(req: Request, res: Response) {
+  public async synthesize(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Placeholder for audio transcription
-      return res.json({ text: '' });
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
+      const parsed = await speechSynthesisSchema.parseAsync(req.body);
+      const result = await this.service.synthesize(
+        parsed.text,
+        parsed.language,
+        parsed.voiceId
+      );
+
+      res.status(200).json({
+        success: true,
+        data: result,
+        ...result,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 }

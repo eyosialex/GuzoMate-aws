@@ -56,16 +56,6 @@ python backend/scripts/test_supabase_connection.py
 ```
 If successful, you will see the total count (`13,861 places available`) and sample records.
 
-### 3. Connect via Desktop GUI Tools (pgAdmin / DBeaver)
-
-To view tables and run SQL queries from your local machine:
-- **Host / Address:** `aws-0-eu-west-1.pooler.supabase.com`
-- **Port:** `6543`
-- **Maintenance Database:** `postgres`
-- **Username:** `postgres.jdbdgcrmmtbkelkmsiug`
-- **Password:** `Eyosi#1234@Eyosi`
-- **SSL Mode:** `Require`
-
 ---
 
 ## 🔍 Multilingual Hybrid Search (Semantic + PostGIS Distance)
