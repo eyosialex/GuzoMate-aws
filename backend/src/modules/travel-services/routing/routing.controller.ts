@@ -1,28 +1,20 @@
-import { Request, Response, NextFunction } from 'express';
-import { routingService, RoutingService } from './routing.service.js';
-import { routeQuerySchema } from './routing.validation.js';
+import { Request, Response } from 'express';
+import { routingService } from './routing.service.js';
 
 export class RoutingController {
-  constructor(private service: RoutingService = routingService) {}
-
-  public async getRoutes(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public async getRoutes(req: Request, res: Response) {
     try {
-      const parsed = await routeQuerySchema.parseAsync(req.query);
-      const result = await this.service.calculateRoutes(
-        { lat: parsed.originLat, lon: parsed.originLon },
-        { lat: parsed.destLat, lon: parsed.destLon },
-        parsed.mode,
-        parsed.language as 'en' | 'am' | 'om',
-        parsed.includeIncidents
-      );
+      const origin = req.query.origin as string;
+      const destination = req.query.destination as string;
 
-      res.status(200).json({
-        success: true,
-        data: result,
-        ...result,
-      });
-    } catch (err) {
-      next(err);
+      if (!origin || !destination) {
+        return res.status(400).json({ error: 'origin and destination are required query parameters.' });
+      }
+
+      const routes = await routingService.getRoutes(origin, destination);
+      return res.json({ count: routes.length, routes });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
     }
   }
 }
