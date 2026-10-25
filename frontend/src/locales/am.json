@@ -1,0 +1,118 @@
+{
+  "app": {
+    "title": "ጉዞሜት",
+    "subtitle": "ዘመናዊ የጉዞ ረዳት",
+    "city": "አዲስ አበባ"
+  },
+  "nav": {
+    "assistant": "AI ረዳት",
+    "places": "ቦታዎች",
+    "routes": "መንገዶች",
+    "weather": "የአየር ሁኔታ",
+    "incidents": "ክስተቶች",
+    "saved": "የተቀመጡ"
+  },
+  "assistant": {
+    "title": "የጉዞ ረዳት",
+    "subtitle": "በጄሚናይ AI እና አዲስ ትራንዚት የተደገፈ",
+    "welcome": "ሰላም! እኔ ጉዞሜት ነኝ፣ በአዲስ አበባ የጉዞ ጓደኛዎ። ስለ ቅርብ ቦታዎች፣ የአየር ጠባይ ወይም የትራንስፖርት መንገዶች ይጠይቁኝ።",
+    "inputPlaceholder": "ጉዞሜትን ይጠይቁ (ለምሳሌ፦ 'ቦሌ አካባቢ ባህላዊ ቡና ቤት የት አለ?')...",
+    "listening": "ድምፅዎን እያደመጥኩ ነው...",
+    "speakNow": "አሁን ይናገሩ",
+    "suggest1": "መስቀል አደባባይ አቅራቢያ ያሉ ሆስፒታሎች",
+    "suggest2": "ቦሌ አካባቢ ያሉ ባህላዊ የቡና ቦታዎች",
+    "suggest3": "ፒያሳ ስደርስ ዝናብ ይኖራል?",
+    "suggest4": "በቀለበት መንገድ ላይ የተፈጠረ የትራፊክ መጨናነቅ",
+    "sourcesLabel": "መረጃው የተገኘው ከ፦",
+    "voiceNotSupported": "የድምፅ ግብዓት በዚህ አሳሽ አይደገፍም።"
+  },
+  "places": {
+    "searchPlaceholder": "በአዲስ አበባ ውስጥ ያሉ ቦታዎችን ይፈልጉ...",
+    "categories": {
+      "all": "ሁሉም",
+      "restaurant": "ምግብ ቤቶች",
+      "cafe": "ካፌዎች",
+      "hotel": "ሆቴሎች",
+      "hospital": "ሆስፒታሎች",
+      "pharmacy": "ፋርማሲዎች",
+      "mechanic": "ጋራዦች",
+      "fuel": "ነዳጅ ማደያዎች",
+      "bank": "ባንኮች"
+    },
+    "resultsFound": "{{count}} የተገኙ ቦታዎች",
+    "noResults": "ምንም የተገኘ ቦታ የለም።",
+    "distance": "ርቀት",
+    "save": "አስቀምጥ",
+    "saved": "ተቀምጧል",
+    "sourceOsm": "OpenStreetMap",
+    "viewOnMap": "በካርታ ላይ እይ"
+  },
+  "routes": {
+    "title": "የመንገድ እቅድ",
+    "origin": "መነሻ ቦታ (ቦሌ)",
+    "destination": "መድረሻ ቦታ (ፒያሳ፣ ካዛንቺስ)",
+    "originPlaceholder": "መነሻ ያስገቡ...",
+    "destinationPlaceholder": "መድረሻ ያስገቡ...",
+    "planRoute": "መንገድ አስላ",
+    "transit": "የህዝብ ትራንስፖርት",
+    "driving": "በመኪና",
+    "walking": "በእግር",
+    "duration": "የሚፈጀው ጊዜ",
+    "distance": "ርቀት",
+    "steps": "ደረጃ በደረጃ አቅጣጫዎች",
+    "selectOnMap": "መድረሻን በካርታ ላይ ይምረጡ"
+  },
+  "weather": {
+    "title": "የአየር ሁኔታ እና የመንገድ ሁኔታ",
+    "currentCondition": "አሁን ያለው የአየር ሁኔታ",
+    "feelsLike": "የሚሰማው ሙቀት",
+    "precipitation": "የዝናብ መጠን",
+    "wind": "የንፋስ ፍጥነት",
+    "lastUpdated": "የመጨረሻ ዝመና",
+    "arrivalAdvice": "የAI የጉዞ ምክር",
+    "hourlyForecast": "የሚቀጥሉት ሰዓታት",
+    "umbrellaAdvised": "ዝናብ ሊኖር ስለሚችል ጃንጥላ መያዝ ይመከራል።"
+  },
+  "incidents": {
+    "title": "የመንገድ ክስተቶች",
+    "reportNew": "ክስተት ሪፖርት አድርግ",
+    "modalTitle": "የመንገድ ክስተት ሪፖርት ያድርጉ",
+    "modalSubtitle": "ተጓዦች በጥንቃቄ እንዲጓዙ ይርዱ",
+    "typeLabel": "የክስተት አይነት",
+    "descLabel": "ዝርዝር መግለጫ",
+    "descPlaceholder": "የመንገዱን ሁኔታ ያብራሩ (ለምሳሌ፦ የቀለበት መንገድ ውኃ ሞልቷል)...",
+    "locationLabel": "የቦታው መጋጠሚያ",
+    "dropPinHelp": "ትክክለኛውን ቦታ ለመምረጥ ምልክቱን በካርታው ላይ ያንቀሳቅሱ",
+    "submit": "ሪፖርት ላክ",
+    "submitting": "በመላክ ላይ...",
+    "types": {
+      "ACCIDENT": "የትራፊክ አደጋ",
+      "ROAD_CLOSURE": "የተዘጋ መንገድ",
+      "FLOODING": "የጎርፍ መከማቸት",
+      "LANDSLIDE": "የአፈር መናድ",
+      "ROAD_DAMAGE": "የተበላሸ መንገድ / ጉድጓድ",
+      "CONSTRUCTION": "የመንገድ ግንባታ",
+      "HEAVY_TRAFFIC": "ከፍተኛ መጨናነቅ",
+      "OTHER": "ሌላ ችግር"
+    },
+    "status": {
+      "PENDING": "በመገምገም ላይ",
+      "ACTIVE": "አሁን ያለ ችግር",
+      "RESOLVED": "የተፈታ"
+    },
+    "verification": {
+      "UNVERIFIED": "ያልተረጋገጠ",
+      "COMMUNITY_CONFIRMED": "በተጠቃሚዎች የተረጋገጠ",
+      "OFFICIALLY_VERIFIED": "በይፋ የተረጋገጠ"
+    }
+  },
+  "common": {
+    "cancel": "ይቅር",
+    "close": "ዝጋ",
+    "save": "አስቀምጥ",
+    "loading": "በመጫን ላይ...",
+    "error": "መረጃ ማምጣት አልተቻለም።",
+    "retry": "እንደገና ሞክር",
+    "attribution": "© OpenStreetMap አበርካቾች"
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "app": {
+    "title": "GuzoMate",
+    "subtitle": "Gargaaraa Imalaa Ammayyaa",
+    "city": "Finfinnee"
+  },
+  "nav": {
+    "assistant": "Gargaaraa AI",
+    "places": "Bakkeewwan",
+    "routes": "Karaalee",
+    "weather": "Haala Qilleensaa",
+    "incidents": "Balaawwan",
+    "saved": "Kan Olkaa'ame"
+  },
+  "assistant": {
+    "title": "Gargaaraa Imalaa",
+    "subtitle": "Gemini AI fi Addis Transit tiin kan gargaarame",
+    "welcome": "Akkam! Ani GuzoMate, hiriyaa imala keessanii Finfinnee keessaa ti. Bakkeewwan dhiyoo, haala qilleensaa ykn karaalee geejjibaa na gaafadhaa.",
+    "inputPlaceholder": "GuzoMate gaafadhaa (fkf., 'Bolee keessatti bakka bunaa eessa jira?')...",
+    "listening": "Sagalee kee dhaggeeffachaan jira...",
+    "speakNow": "Amma dubbadhaa",
+    "suggest1": "Hospitaalota Addabaabayii Masqala dhiyoo jiran",
+    "suggest2": "Bakkeewwan buna aadaa Boolee keessa jiran",
+    "suggest3": "Yommuun Piyaasaa ga'u roobni ni jiraata?",
+    "suggest4": "Daandii Geengoo irratti cufamuu tiraafikaa",
+    "sourcesLabel": "Odeeffannoo irraa argame:",
+    "voiceNotSupported": "Sagaleen birawzarii kanaan hin deeggaramu."
+  },
+  "places": {
+    "searchPlaceholder": "Bakkeewwan Finfinnee keessaa barbaadaa...",
+    "categories": {
+      "all": "Hunda",
+      "restaurant": "Nyaata",
+      "cafe": "Kaaffee",
+      "hotel": "Hootelota",
+      "hospital": "Hospitaalota",
+      "pharmacy": "Farmaasii",
+      "mechanic": "Makaanikoota",
+      "fuel": "Boba'aa",
+      "bank": "Baankota"
+    },
+    "resultsFound": "Bakkeewwan {{count}} argaman",
+    "noResults": "Bakki barbaaddan hin argamne.",
+    "distance": "fageenya",
+    "save": "Olkaa'i",
+    "saved": "Olkaa'ameera",
+    "sourceOsm": "OpenStreetMap",
+    "viewOnMap": "Kaartaa irratti ilaali"
+  },
+  "routes": {
+    "title": "Karoora Karaa",
+    "origin": "Bakka ka'umsaa (Boolee)",
+    "destination": "Bakka ga'umsaa (Piyaasaa, Kaazaanchiis)",
+    "originPlaceholder": "Ka'umsa galchaa...",
+    "destinationPlaceholder": "Ga'umsa galchaa...",
+    "planRoute": "Karaa herreegi",
+    "transit": "Geejjiba Uummataa",
+    "driving": "Konkolaataan",
+    "walking": "Miilaan",
+    "duration": "Yeroo fudhatu",
+    "distance": "Fageenya",
+    "steps": "Qajeelfama tarkaanfii tarkaanfiin",
+    "selectOnMap": "Ga'umsa kaartaa irratti filadhaa"
+  },
+  "weather": {
+    "title": "Haala Qilleensaa fi Daandii",
+    "currentCondition": "Haala Qilleensa Ammaa",
+    "feelsLike": "Kan dhagahamu",
+    "precipitation": "Hanga Roobaa",
+    "wind": "Saffisa Qilleensaa",
+    "lastUpdated": "Yeroo dhiyootti kan haaromfame",
+    "arrivalAdvice": "Gorsa Imalaa AI",
+    "hourlyForecast": "Sa'aatiiwwan Dhufan",
+    "umbrellaAdvised": "Roobni waan danda'amuuf dibaaba qabachuun gorfama."
+  },
+  "incidents": {
+    "title": "Balaawwan Daandii",
+    "reportNew": "Balaa gabaasi",
+    "modalTitle": "Balaa Daandii Gabaasaa",
+    "modalSubtitle": "Imaltoonni biraa nageenyaan akka imalaniif gargaaraa",
+    "typeLabel": "Gosa Balaa",
+    "descLabel": "Ibsa",
+    "descPlaceholder": "Haala daandichaa ibsaa (fkf., Bishaanni daandii marsee guuteera)...",
+    "locationLabel": "Qubannoo Bakkaa",
+    "dropPinHelp": "Qubannoo sirrii filachuuf mallattoo kaartaa irratti sosochoosaa",
+    "submit": "Gabaasa Ergi",
+    "submitting": "Ergamaa jira...",
+    "types": {
+      "ACCIDENT": "Balaa Tiraafikaa",
+      "ROAD_CLOSURE": "Cufamuu Daandii",
+      "FLOODING": "Lolaa Bishaanii",
+      "LANDSLIDE": "Sigiguu Biyyoo",
+      "ROAD_DAMAGE": "Badiisa Daandii / Boolla",
+      "CONSTRUCTION": "Ijaarsa Daandii",
+      "HEAVY_TRAFFIC": "Cufamuu Guddaa",
+      "OTHER": "Balaa Biraa"
+    },
+    "status": {
+      "PENDING": "Ilaalamaa jira",
+      "ACTIVE": "Amma kan jiru",
+      "RESOLVED": "Furmaata argateera"
+    },
+    "verification": {
+      "UNVERIFIED": "Mirkanaa'uu baate",
+      "COMMUNITY_CONFIRMED": "Hawaasaan mirkanaa'e",
+      "OFFICIALLY_VERIFIED": "Seeraan Mirkanaa'e"
+    }
+  },
+  "common": {
+    "cancel": "Dhiisi",
+    "close": "Cufi",
+    "save": "Olkaa'i",
+    "loading": "Fe'amaa jira...",
+    "error": "Odeeffannoo fiduun hin danda'amne.",
+    "retry": "Irra deebi'ii yaali",
+    "attribution": "© Hirmaattota OpenStreetMap"
+  }
+}
