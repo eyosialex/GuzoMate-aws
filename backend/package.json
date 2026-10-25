@@ -5,6 +5,9 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "seed:rag": "tsx database/seeds/seed-rag.ts",
+    "ingest:transit": "/home/eyob/.venv/bin/python ../ai-ml/src/embeddings/embed_and_push_to_supabase.py",
+    "test:assistant": "tsx src/modules/assistant/__tests__/assistant.test.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
