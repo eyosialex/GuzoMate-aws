@@ -1,57 +1,68 @@
-import { Request, Response } from 'express';
-import { weatherService } from './weather.service.js';
-import { SupportedLanguage } from '../../assistant/dto/assistant-query.dto.js';
+import { Request, Response, NextFunction } from 'express';
+import { weatherService, WeatherService } from './weather.service.js';
+import {
+  currentWeatherQuerySchema,
+  forecastWeatherQuerySchema,
+  arrivalAdviceQuerySchema,
+} from './weather.validation.js';
 
 export class WeatherController {
-  public async getCurrent(req: Request, res: Response) {
+  constructor(private service: WeatherService = weatherService) {}
+
+  public async getCurrent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const lat = parseFloat(req.query.lat as string);
-      const lon = parseFloat(req.query.lon as string);
-      const language = (req.query.lang as SupportedLanguage) || 'en';
+      const parsed = await currentWeatherQuerySchema.parseAsync(req.query);
+      const result = await this.service.getCurrentWeather(
+        { lat: parsed.lat, lon: parsed.lon },
+        parsed.language
+      );
 
-      if (isNaN(lat) || isNaN(lon)) {
-        return res.status(400).json({ error: 'Valid lat and lon query parameters are required.' });
-      }
-
-      const weather = await weatherService.getCurrentAndForecast({ lat, lon }, undefined, language);
-      return res.json({ current: weather.current });
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
+      res.status(200).json({
+        success: true,
+        data: result,
+        ...result,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 
-  public async getForecast(req: Request, res: Response) {
+  public async getForecast(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const lat = parseFloat(req.query.lat as string);
-      const lon = parseFloat(req.query.lon as string);
-      const language = (req.query.lang as SupportedLanguage) || 'en';
+      const parsed = await forecastWeatherQuerySchema.parseAsync(req.query);
+      const result = await this.service.getForecast(
+        { lat: parsed.lat, lon: parsed.lon },
+        parsed.days,
+        parsed.language
+      );
 
-      if (isNaN(lat) || isNaN(lon)) {
-        return res.status(400).json({ error: 'Valid lat and lon query parameters are required.' });
-      }
-
-      const weather = await weatherService.getCurrentAndForecast({ lat, lon }, undefined, language);
-      return res.json({ forecast: weather.forecast });
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
+      res.status(200).json({
+        success: true,
+        data: result,
+        ...result,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 
-  public async getArrivalAdvice(req: Request, res: Response) {
+  public async getArrivalAdvice(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const lat = parseFloat(req.query.lat as string);
-      const lon = parseFloat(req.query.lon as string);
-      const arrivalTime = req.query.arrivalTime as string;
-      const language = (req.query.lang as SupportedLanguage) || 'en';
+      const parsed = await arrivalAdviceQuerySchema.parseAsync(req.query);
+      const result = await this.service.getArrivalAdvice(
+        { lat: parsed.lat, lon: parsed.lon },
+        parsed.arrivalTime,
+        parsed.etaMinutes,
+        parsed.language
+      );
 
-      if (isNaN(lat) || isNaN(lon)) {
-        return res.status(400).json({ error: 'Valid lat and lon query parameters are required.' });
-      }
-
-      const advice = await weatherService.getArrivalAdvice({ lat, lon }, arrivalTime, language);
-      return res.json({ arrivalAdvice: advice });
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
+      res.status(200).json({
+        success: true,
+        data: result,
+        ...result,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 }

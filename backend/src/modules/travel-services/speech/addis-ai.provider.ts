@@ -1,47 +1,34 @@
-import { AppError } from '../../assistant/dto/errors.js';
-import { SupportedLanguage } from '../../assistant/dto/assistant-query.dto.js';
+import { env } from '../../../config/env.js';
+import { logger } from '../../../config/logger.js';
+import { ProviderError } from '../../../shared/errors/app-error.js';
+import {
+  SpeechLanguage,
+  SpeechSynthesisResponse,
+  SpeechTranscriptionResponse,
+} from './speech.types.js';
 
-export interface AddisVoiceResult {
-  provider: 'addis-ai';
-  voiceId: string;
-  language: SupportedLanguage;
-  audioUrl: string;
-  audioBase64?: string;
-  mimeType: string;
-  durationSeconds?: number;
+export interface ISpeechProvider {
+  isAvailable(): boolean;
+  transcribe(audio: string, language?: SpeechLanguage): Promise<SpeechTranscriptionResponse>;
+  synthesize(text: string, language?: SpeechLanguage, voiceId?: string): Promise<SpeechSynthesisResponse>;
 }
 
-export interface AddisGenerateOptions {
-  temperature?: number;
-  maxTokens?: number;
-  timeoutMs?: number;
-}
-
-export interface VoiceGenerationOptions {
-  voiceId?: string;
-  clientRequestId?: string;
-  timeoutMs?: number;
-}
-
-export class AddisAiProvider {
+export class AddisAiSpeechProvider implements ISpeechProvider {
   private apiKey: string | undefined;
   private baseUrl: string;
-  private defaultModel: string;
+  private timeoutMs: number;
 
   constructor() {
-    this.apiKey = process.env.ADDIS_AI_API_KEY;
-    this.baseUrl = process.env.ADDIS_AI_BASE_URL || 'https://api.addisassistant.com';
-    this.defaultModel = process.env.ADDIS_AI_MODEL || 'addis-አሌፍ-፩';
+    this.apiKey = env.ADDIS_AI_API_KEY;
+    this.baseUrl = env.ADDIS_AI_BASE_URL || 'https://api.addisassistant.com';
+    this.timeoutMs = env.SPEECH_REQUEST_TIMEOUT_MS || 15000;
   }
 
-  /**
-   * Checks if Addis AI is configured with a valid API key.
-   */
   public isAvailable(): boolean {
     return Boolean(
       this.apiKey &&
-      this.apiKey.trim().length > 15 &&
-      this.apiKey.startsWith('sk_')
+      this.apiKey.trim().length > 10 &&
+      !this.apiKey.includes('replace-with')
     );
   }
 
@@ -49,25 +36,18 @@ export class AddisAiProvider {
    * Cleans text to prepare it for natural speech synthesis:
    * Removes markdown syntax, source attribution tags, and excess formatting.
    */
-  public cleanTextForVoice(rawText: string, maxLength: number = 380): string {
+  public cleanTextForVoice(rawText: string, maxLength = 400): string {
     if (!rawText) return '';
 
     let text = rawText
-      // Remove source citations e.g. [SOURCE: ...]
       .replace(/\[SOURCE:[^\]]+\]/gi, '')
-      // Remove URLs
       .replace(/https?:\/\/\S+/gi, '')
-      // Remove Markdown headers (#, ##, etc.)
       .replace(/^#{1,6}\s+/gm, '')
-      // Remove bold/italics
       .replace(/[*_~`]/g, '')
-      // Remove bullet marks
       .replace(/^[-*•]\s+/gm, '')
-      // Normalize whitespace
       .replace(/\s+/g, ' ')
       .trim();
 
-    // If text exceeds maximum comfortable voice length, cut at the last complete sentence
     if (text.length > maxLength) {
       const truncated = text.substring(0, maxLength);
       const lastSentenceEnd = Math.max(
@@ -77,7 +57,7 @@ export class AddisAiProvider {
         truncated.lastIndexOf('?')
       );
 
-      if (lastSentenceEnd > 80) {
+      if (lastSentenceEnd > 60) {
         text = truncated.substring(0, lastSentenceEnd + 1).trim();
       } else {
         text = truncated.trim() + '...';
@@ -88,59 +68,26 @@ export class AddisAiProvider {
   }
 
   /**
-   * Generates grounded natural language responses based on retrieved database facts.
-   * Uses Addis AI chat completions ('addis-አሌፍ-፩').
+   * Transcribes audio using Addis AI speech recognition.
    */
-  public async generateGroundedResponse(
-    prompt: string,
-    contextFacts: string,
-    language: SupportedLanguage = 'en',
-    options: AddisGenerateOptions = {}
-  ): Promise<string> {
+  public async transcribe(
+    audio: string,
+    language: SpeechLanguage = 'am'
+  ): Promise<SpeechTranscriptionResponse> {
     if (!this.isAvailable()) {
-      throw new AppError(
-        'PROVIDER_UNAVAILABLE',
-        'Addis AI API key (ADDIS_AI_API_KEY) is not configured in .env',
-        503
+      throw new ProviderError(
+        'Speech-to-text service is unavailable: ADDIS_AI_API_KEY is not configured on the server.',
+        503,
+        undefined,
+        { provider: 'addis-ai', configured: false }
       );
     }
 
-    const languageLabels: Record<SupportedLanguage, string> = {
-      en: 'English',
-      am: 'Amharic (አማርኛ)',
-      om: 'Afaan Oromo',
-    };
-
-    const targetLangName = languageLabels[language] || 'English';
-
-    const systemInstruction = `You are GuzoMate's Multilingual Travel Assistant for Addis Ababa, Ethiopia.
-Your mission is to provide accurate, helpful, flexible, and culturally respectful guidance.
-
-HELPFUL & FLEXIBLE ASSISTANT GUIDELINES:
-1. TARGET LANGUAGE: You MUST respond strictly in ${targetLangName}. All conversational prose must be in ${targetLangName}.
-2. WELCOMING & HELPFUL GUIDANCE: Be friendly, flexible, and encouraging. When a traveler asks for recommendations, leisure spots, or a place to relax (whether near their location or anywhere in the city), provide warm, practical suggestions. Consider green parks, peaceful cafes, scenic viewpoints (such as Entoto Park, Friendship Park, Unity Park), gardens, and restaurants.
-3. NEARBY-FIRST PRESENTATION & PROGRESSIVE EXPANSION:
-   - When places are provided in the verified context with distances, prioritize and present the closest nearby options first with their estimated distances (e.g., "about 110 meters away").
-   - If the traveler is asking locally, conclude by offering: "If you'd like options further away or in other neighborhoods across Addis Ababa, just let me know and I can search wider for you!"
-4. UNCERTAINTY & LIMITATIONS: Do NOT fabricate fake phone numbers, non-existent ticket prices, or imaginary opening hours. If specific administrative details are not in the context, politely suggest checking locally while keeping your recommendation helpful.
-5. ACCURACY: Preserve coordinates, metric units (meters, km), and local landmark names (e.g. Arat Kilo, Mercato, Bole, Piazza, Entoto).
-6. COMMUNITY REPORTS: Explicitly refer to community-reported road incidents as unverified notices.
-7. WEATHER & ARRIVAL ADVICE: When destination weather or arrival time forecast facts are present, clearly explain to the traveler what weather to expect around arrival (temperature in °C, rain probability), and proactively suggest suitable clothing (warm layers, light jacket), an umbrella, footwear, or accessories compatible with the forecasted weather.`;
-
-    const userMessage = `VERIFIED CONTEXT FACTS FROM DATABASE:
-${contextFacts}
-
-TRAVELER QUERY:
-${prompt}
-
-Please answer the traveler's query in a helpful, flexible, and welcoming manner in ${targetLangName}, drawing from the verified context facts above:`;
-
-    const timeoutMs = options.timeoutMs ?? 15000;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+      const response = await fetch(`${this.baseUrl}/api/v1/speech/transcriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,127 +95,147 @@ Please answer the traveler's query in a helpful, flexible, and welcoming manner 
           'x-api-key': this.apiKey!,
         },
         body: JSON.stringify({
-          model: this.defaultModel,
-          messages: [
-            { role: 'system', content: systemInstruction },
-            { role: 'user', content: userMessage },
-          ],
-          temperature: options.temperature ?? 0.2,
-          max_tokens: options.maxTokens ?? 1024,
+          audio,
+          language,
         }),
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
+      clearTimeout(timer);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new AppError(
-          response.status === 429 ? 'PROVIDER_RATE_LIMITED' : 'PROVIDER_UNAVAILABLE',
-          `Addis AI returned HTTP ${response.status}: ${errorText}`,
+        const errText = await response.text();
+        throw new ProviderError(
+          `Addis AI speech transcription failed (HTTP ${response.status}): ${errText}`,
           response.status === 429 ? 429 : 502
         );
       }
 
       const data = (await response.json()) as any;
-      const text = data?.choices?.[0]?.message?.content?.trim();
+      const text = data?.text || data?.data?.text;
 
       if (!text) {
-        throw new AppError('PROVIDER_INVALID_RESPONSE', 'Addis AI returned an empty completion.', 502);
+        throw new ProviderError('Addis AI returned an empty transcription response.', 502);
       }
 
-      return text;
+      return {
+        text,
+        language: (data?.language || language) as SpeechLanguage,
+        detectedLanguage: data?.detected_language || language,
+        confidence: typeof data?.confidence === 'number' ? data.confidence : null,
+        provider: 'addis-ai',
+      };
     } catch (err: any) {
-      clearTimeout(timeoutId);
+      clearTimeout(timer);
+      if (err instanceof ProviderError) throw err;
       if (err.name === 'AbortError') {
-        throw new AppError('PROVIDER_TIMEOUT', 'Addis AI generation timed out.', 504);
+        throw new ProviderError('Addis AI transcription request timed out', 504);
       }
-      if (err instanceof AppError) throw err;
-      throw new AppError('PROVIDER_UNAVAILABLE', err?.message || 'External Addis AI error.', 502);
+      throw new ProviderError(`Speech recognition provider error: ${err.message}`, 502);
     }
   }
 
   /**
-   * Generates high-quality voice audio from text using Addis AI (Addis Voices 2).
+   * Generates audio from text using Addis AI speech synthesis.
    */
-  public async generateVoice(
+  public async synthesize(
     text: string,
-    language: SupportedLanguage = 'en',
-    options: VoiceGenerationOptions = {}
-  ): Promise<AddisVoiceResult | null> {
+    language: SpeechLanguage = 'am',
+    voiceId?: string
+  ): Promise<SpeechSynthesisResponse> {
     if (!this.isAvailable()) {
-      return null;
+      throw new ProviderError(
+        'Speech synthesis service is unavailable: ADDIS_AI_API_KEY is not configured on the server.',
+        503,
+        undefined,
+        { provider: 'addis-ai', configured: false }
+      );
     }
 
     const cleanText = this.cleanTextForVoice(text);
-    if (!cleanText || cleanText.length < 2) {
-      return null;
+    if (!cleanText || cleanText.length === 0) {
+      throw new ProviderError('Cleaned text for speech synthesis is empty.', 400);
     }
 
-    // Default voice mapping per supported language
-    const defaultVoices: Record<SupportedLanguage, string> = {
+    const defaultVoices: Record<SpeechLanguage, string> = {
       am: 'am-hamen',
       om: 'om-bikila',
       en: 'en-emma',
     };
 
-    const voiceId = options.voiceId || defaultVoices[language] || 'am-hamen';
-    const clientRequestId =
-      options.clientRequestId ||
-      `guzo-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const targetVoice = voiceId || defaultVoices[language] || 'am-hamen';
 
-    const timeoutMs = options.timeoutMs ?? 15000;
+    // Verify requested voice matches language capability
+    if (voiceId && !this.isVoiceCompatible(voiceId, language)) {
+      throw new ProviderError(
+        `Requested voice '${voiceId}' is not compatible with language '${language}'. Supported: ${defaultVoices[language]}`,
+        400
+      );
+    }
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/voice/generations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
           'x-api-key': this.apiKey!,
         },
         body: JSON.stringify({
           text: cleanText,
-          voice_id: voiceId,
-          language: language,
-          client_request_id: clientRequestId,
+          voice_id: targetVoice,
+          language,
           output_format: 'mp3_44100',
         }),
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
+      clearTimeout(timer);
 
       if (!response.ok) {
-        const errBody = await response.text();
-        console.warn(`[AddisAiProvider] Voice generation failed (HTTP ${response.status}):`, errBody);
-        return null;
+        const errText = await response.text();
+        throw new ProviderError(
+          `Addis AI voice generation failed (HTTP ${response.status}): ${errText}`,
+          response.status === 429 ? 429 : 502
+        );
       }
 
       const resJson = (await response.json()) as any;
-      const data = resJson?.data;
+      const data = resJson?.data || resJson;
 
-      if (!data || !data.audio_url) {
-        console.warn('[AddisAiProvider] Voice generation did not return audio_url:', resJson);
-        return null;
+      if (!data || (!data.audio_url && !data.audio && !data.audioBase64)) {
+        throw new ProviderError('Addis AI did not return a valid audio stream or URL.', 502);
       }
 
       return {
         provider: 'addis-ai',
-        voiceId: data.voice_id || voiceId,
+        voiceId: data.voice_id || targetVoice,
         language,
-        audioUrl: data.audio_url,
-        audioBase64: data.audio,
+        audioUrl: data.audio_url || null,
+        audioBase64: data.audio || data.audioBase64 || null,
         mimeType: data.mime_type || 'audio/mpeg',
-        durationSeconds: data.duration_seconds,
+        durationSeconds: data.duration_seconds || null,
       };
     } catch (err: any) {
-      clearTimeout(timeoutId);
-      console.warn('[AddisAiProvider] Voice generation error (graceful fallback):', err?.message);
-      return null;
+      clearTimeout(timer);
+      if (err instanceof ProviderError) throw err;
+      if (err.name === 'AbortError') {
+        throw new ProviderError('Addis AI voice generation request timed out', 504);
+      }
+      throw new ProviderError(`Speech synthesis provider error: ${err.message}`, 502);
     }
+  }
+
+  private isVoiceCompatible(voiceId: string, language: SpeechLanguage): boolean {
+    const v = voiceId.toLowerCase();
+    if (language === 'am') return v.startsWith('am-');
+    if (language === 'om') return v.startsWith('om-');
+    if (language === 'en') return v.startsWith('en-');
+    return true;
   }
 }
 
-export const addisAiProvider = new AddisAiProvider();
+export const addisAiSpeechProvider = new AddisAiSpeechProvider();

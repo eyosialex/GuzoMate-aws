@@ -11,7 +11,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run tests/auth.test.ts && vitest run tests/users.test.ts && vitest run tests/incidents.test.ts && vitest run tests/confirmations.test.ts && vitest run tests/moderation.test.ts && vitest run tests/notifications.test.ts",
+    "test": "vitest run tests/auth.test.ts && vitest run tests/users.test.ts && vitest run tests/incidents.test.ts && vitest run tests/confirmations.test.ts && vitest run tests/moderation.test.ts && vitest run tests/notifications.test.ts && vitest run tests/travel-services.test.ts",
     "test:all": "vitest run",
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",

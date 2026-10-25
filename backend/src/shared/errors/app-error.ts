@@ -63,3 +63,16 @@ export class RateLimitError extends AppError {
     super(message, 429, ErrorCode.RATE_LIMIT_EXCEEDED);
   }
 }
+
+export class ProviderError extends AppError {
+  constructor(message = 'Upstream provider error', statusCode = 502, code = ErrorCode.PROVIDER_ERROR, details?: any) {
+    super(message, statusCode, code, details);
+  }
+}
+
+export class PayloadTooLargeError extends AppError {
+  constructor(message = 'Payload too large', details?: any) {
+    super(message, 413, ErrorCode.PAYLOAD_TOO_LARGE, details);
+  }
+}
+

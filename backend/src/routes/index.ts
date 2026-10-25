@@ -5,6 +5,7 @@ import usersRoutes from '../modules/users/users.routes.js';
 import incidentsRoutes from '../modules/incidents/incidents.routes.js';
 import notificationsRoutes from '../modules/notifications/notifications.routes.js';
 import moderationRoutes from '../modules/moderation/moderation.routes.js';
+import travelServicesRoutes from '../modules/travel-services/travel-services.routes.js';
 import { swaggerDocument } from '../docs/swagger.js';
 
 const router = Router();
@@ -23,5 +24,6 @@ router.use('/users', usersRoutes);
 router.use('/incidents', incidentsRoutes);
 router.use('/notifications', notificationsRoutes);
 router.use('/moderation', moderationRoutes);
+router.use(travelServicesRoutes);
 
 export default router;

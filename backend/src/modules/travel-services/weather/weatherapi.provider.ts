@@ -1,54 +1,379 @@
-import { SupportedLanguage } from '../../assistant/dto/assistant-query.dto.js';
+import { env } from '../../../config/env.js';
+import { logger } from '../../../config/logger.js';
+import { ProviderError } from '../../../shared/errors/app-error.js';
 import {
-  WeatherResultItem,
+  NormalizedWeatherData,
+  SupportedLanguage,
+  WeatherArrivalAdvice,
+  WeatherForecastDayItem,
+  WeatherHourlyItem,
+  WeatherLocation,
   WeatherSuggestion,
-  WeatherHourlyForecast,
-  WeatherForecastDay,
-} from '../../assistant/dto/assistant-response.dto.js';
+} from './weather.types.js';
 
-export interface OpenMeteoCurrentResponse {
-  time: string;
-  temperature_2m: number;
-  precipitation: number;
-  weather_code: number;
-  wind_speed_10m: number;
+export interface IWeatherProvider {
+  fetchForecast(location: WeatherLocation, days?: number, language?: SupportedLanguage): Promise<NormalizedWeatherData>;
+  generateArrivalAdvice(
+    weather: NormalizedWeatherData,
+    targetArrivalIso: string,
+    language: SupportedLanguage
+  ): WeatherArrivalAdvice;
 }
 
-export interface OpenMeteoHourlyResponse {
-  time: string[];
-  temperature_2m: number[];
-  precipitation_probability: number[];
-  precipitation: number[];
-  weather_code: number[];
-  wind_speed_10m: number[];
-}
-
-export interface OpenMeteoApiResponse {
-  latitude: number;
-  longitude: number;
-  timezone: string;
-  current?: OpenMeteoCurrentResponse;
-  hourly?: OpenMeteoHourlyResponse;
-}
-
-export class WeatherProvider {
-  private baseUrl: string;
+export class WeatherApiProvider implements IWeatherProvider {
+  private apiKey: string | undefined;
+  private weatherApiBaseUrl: string;
+  private timeoutMs: number;
 
   constructor() {
-    const rawUrl = process.env.WEATHER_URL || 'https://api.open-meteo.com/v1/forecast';
-    // Normalize URL: open-meteo.com homepage resolves to API forecast endpoint
-    if (rawUrl.includes('open-meteo.com') && !rawUrl.includes('/v1/forecast')) {
-      this.baseUrl = 'https://api.open-meteo.com/v1/forecast';
-    } else {
-      this.baseUrl = rawUrl;
+    this.apiKey = env.WEATHER_API_KEY;
+    this.weatherApiBaseUrl = env.WEATHER_URL || 'https://api.weatherapi.com/v1';
+    this.timeoutMs = env.WEATHER_REQUEST_TIMEOUT_MS || 10000;
+  }
+
+  public async fetchForecast(
+    location: WeatherLocation,
+    days = 3,
+    language: SupportedLanguage = 'en'
+  ): Promise<NormalizedWeatherData> {
+    const { lat, lon } = location;
+
+    // 1. Try WeatherAPI if API key is configured
+    if (this.apiKey && this.apiKey.trim().length > 0) {
+      try {
+        return await this.fetchFromWeatherApi(lat, lon, days, language);
+      } catch (err: any) {
+        logger.warn('[WeatherProvider] WeatherAPI request failed, attempting Open-Meteo fallback', {
+          lat,
+          lon,
+          error: err.message,
+        });
+      }
+    }
+
+    // 2. Fallback to Open-Meteo (open meteorological standard, requires no API key)
+    try {
+      return await this.fetchFromOpenMeteo(lat, lon, days, language);
+    } catch (err: any) {
+      logger.error('[WeatherProvider] All weather providers failed', {
+        lat,
+        lon,
+        error: err.message,
+      });
+      throw new ProviderError(
+        'Weather forecast service is temporarily unavailable. Please try again shortly.',
+        503,
+        undefined,
+        { originalError: err.message }
+      );
     }
   }
 
-  /**
-   * Maps WMO weather interpretation codes to human-readable condition text.
-   */
-  public getConditionDescription(code: number, language: SupportedLanguage = 'en'): string {
-    const conditions: Record<number, { en: string; am: string; om: string }> = {
+  private async fetchFromWeatherApi(
+    lat: number,
+    lon: number,
+    days: number,
+    language: SupportedLanguage
+  ): Promise<NormalizedWeatherData> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    const langParam = language === 'am' ? 'am' : language === 'om' ? 'en' : 'en';
+    const url = `${this.weatherApiBaseUrl}/forecast.json?key=${this.apiKey}&q=${lat},${lon}&days=${days}&aqi=no&alerts=no&lang=${langParam}`;
+
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`WeatherAPI returned HTTP ${res.status}: ${text}`);
+      }
+
+      const json = (await res.json()) as any;
+      const current = json.current;
+      const forecastDaysRaw = json.forecast?.forecastday || [];
+
+      const forecast: WeatherForecastDayItem[] = forecastDaysRaw.map((day: any) => ({
+        date: day.date,
+        hourly: (day.hour || []).map((h: any) => ({
+          time: h.time,
+          temperatureC: Math.round(h.temp_c),
+          condition: this.translateConditionText(h.condition?.text || 'Clear', language),
+          precipitationProbability: h.chance_of_rain ?? h.chance_of_snow ?? 0,
+        })),
+      }));
+
+      return {
+        location: { lat, lon },
+        current: {
+          temperatureC: Math.round(current?.temp_c ?? 20),
+          condition: this.translateConditionText(current?.condition?.text || 'Clear', language),
+          precipitationMm: current?.precip_mm ?? 0,
+          windKph: current?.wind_kph ?? 0,
+        },
+        forecast,
+        provider: 'weatherapi',
+        retrievedAt: new Date().toISOString(),
+      };
+    } catch (err: any) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') {
+        throw new Error('WeatherAPI request timed out');
+      }
+      throw err;
+    }
+  }
+
+  private async fetchFromOpenMeteo(
+    lat: number,
+    lon: number,
+    days: number,
+    language: SupportedLanguage
+  ): Promise<NormalizedWeatherData> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m&forecast_days=${days}&timezone=Africa/Addis_Ababa`;
+
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Open-Meteo returned HTTP ${res.status}: ${text}`);
+      }
+
+      const data = (await res.json()) as any;
+      const current = data.current;
+      const hourly = data.hourly;
+
+      // Group hourly entries by date
+      const daysMap = new Map<string, WeatherHourlyItem[]>();
+      if (hourly && Array.isArray(hourly.time)) {
+        for (let i = 0; i < hourly.time.length; i++) {
+          const rawTime = hourly.time[i]; // e.g. "2026-10-25T14:00"
+          const date = rawTime.split('T')[0];
+          const time = rawTime.includes('+') ? rawTime : `${rawTime}:00+03:00`;
+          const code = hourly.weather_code?.[i] ?? 0;
+
+          if (!daysMap.has(date)) {
+            daysMap.set(date, []);
+          }
+
+          daysMap.get(date)!.push({
+            time,
+            temperatureC: Math.round(hourly.temperature_2m?.[i] ?? 20),
+            condition: this.getWmoDescription(code, language),
+            precipitationProbability: hourly.precipitation_probability?.[i] ?? 0,
+          });
+        }
+      }
+
+      const forecast: WeatherForecastDayItem[] = Array.from(daysMap.entries()).map(
+        ([date, items]) => ({
+          date,
+          hourly: items,
+        })
+      );
+
+      const currentCode = current?.weather_code ?? 0;
+      return {
+        location: { lat, lon },
+        current: {
+          temperatureC: Math.round(current?.temperature_2m ?? 20),
+          condition: this.getWmoDescription(currentCode, language),
+          precipitationMm: current?.precipitation ?? 0,
+          windKph: Math.round(current?.wind_speed_10m ?? 0),
+        },
+        forecast,
+        provider: 'weatherapi',
+        retrievedAt: new Date().toISOString(),
+      };
+    } catch (err: any) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') {
+        throw new Error('Open-Meteo request timed out');
+      }
+      throw err;
+    }
+  }
+
+  public generateArrivalAdvice(
+    weather: NormalizedWeatherData,
+    targetArrivalIso: string,
+    language: SupportedLanguage = 'en'
+  ): WeatherArrivalAdvice {
+    const targetMs = new Date(targetArrivalIso).getTime();
+
+    // 1. Locate the closest hourly forecast in time
+    let closestHour: WeatherHourlyItem | null = null;
+    let minDiff = Infinity;
+
+    for (const day of weather.forecast) {
+      for (const h of day.hourly) {
+        const hMs = new Date(h.time).getTime();
+        const diff = Math.abs(hMs - targetMs);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestHour = h;
+        }
+      }
+    }
+
+    // If target time is beyond forecast horizon, disclose limitation
+    const isBeyondHorizon = !closestHour || minDiff > 24 * 60 * 60 * 1000;
+    const arrivalForecast = closestHour || {
+      time: targetArrivalIso,
+      temperatureC: weather.current.temperatureC,
+      condition: weather.current.condition,
+      precipitationProbability: (weather.current.precipitationMm ?? 0) > 0 ? 50 : 10,
+    };
+
+    // 2. Generate multilingual, actionable advice based on forecast metrics
+    const suggestions: WeatherSuggestion[] = [];
+    const tempC = arrivalForecast.temperatureC;
+    const rainProb = arrivalForecast.precipitationProbability;
+    const condition = arrivalForecast.condition.toLowerCase();
+
+    // Rain / Umbrella advice
+    if (rainProb >= 35 || condition.includes('rain') || condition.includes('ዝናብ') || condition.includes('rooba')) {
+      if (language === 'am') {
+        suggestions.push({
+          type: 'accessory',
+          text: 'ዣንጥላ ይያዙ እና የውሃ መከላከያ ጫማ ወይም ጃኬት ይልበሱ',
+          reason: `በመድረሻ ሰዓትዎ ${rainProb}% የዝናብ ዕድል ይጠበቃል`,
+        });
+      } else if (language === 'om') {
+        suggestions.push({
+          type: 'accessory',
+          text: 'Gaaddisaa (dambalii) qabadhaa fi wayyaa roobaa uffadhaa',
+          reason: `Yeroo gahuutti carraan roobaa %${rainProb} eegama`,
+        });
+      } else {
+        suggestions.push({
+          type: 'accessory',
+          text: 'Consider carrying an umbrella and wearing water-resistant footwear',
+          reason: `${rainProb}% chance of rain forecasted around arrival time`,
+        });
+      }
+    }
+
+    // Cold / Warm clothing advice
+    if (tempC <= 15) {
+      if (language === 'am') {
+        suggestions.push({
+          type: 'clothing',
+          text: 'ቀዝቃዛ ስለሚሆን ሞቅ ያለ ልብስ (ሹራብ ወይም ጃኬት) ይልበሱ',
+          reason: `በመድረሻ ሰዓት የሚጠበቀው የሙቀት መጠን ${tempC}°C ነው`,
+        });
+      } else if (language === 'om') {
+        suggestions.push({
+          type: 'clothing',
+          text: 'Qorra waan ta\'eef wayyaa ho\'aa (jaakkeettii) uffadhaa',
+          reason: `Ho\'i qilleensaa yeroo gahuutti ${tempC}°C ta\'a`,
+        });
+      } else {
+        suggestions.push({
+          type: 'clothing',
+          text: 'Dress warmly in layers; a jacket or sweater is recommended',
+          reason: `Cool temperature of ${tempC}°C expected at destination upon arrival`,
+        });
+      }
+    } else if (tempC >= 16 && tempC <= 21 && rainProb < 35) {
+      if (language === 'am') {
+        suggestions.push({
+          type: 'clothing',
+          text: 'ቀለል ያለ ጃኬት ወይም ሸሚዝ ይመረጣል',
+          reason: `የሙቀት መጠኑ ${tempC}°C አካባቢ መጠነኛ ነው`,
+        });
+      } else if (language === 'om') {
+        suggestions.push({
+          type: 'clothing',
+          text: 'Qilleensi madaalawaa waan ta\'eef wayyaa salphaa uffadhaa',
+          reason: `Ho\'i qilleensaa ${tempC}°C dha`,
+        });
+      } else {
+        suggestions.push({
+          type: 'clothing',
+          text: 'Wear comfortable layered clothing suitable for high-altitude Addis Ababa weather',
+          reason: `Mild temperature of ${tempC}°C expected with pleasant breeze`,
+        });
+      }
+    }
+
+    // Sunny / UV protection
+    if (tempC >= 23 && rainProb < 20) {
+      if (language === 'am') {
+        suggestions.push({
+          type: 'sun_protection',
+          text: 'የፀሐይ መነጽር ወይም ባርኔጣ ያድርጉ፤ የፀሐይ መከላከያ ቅባት ይመረጣል',
+          reason: `ሞቃት ፀሐያማ አየር (${tempC}°C) ይጠበቃል`,
+        });
+      } else if (language === 'om') {
+        suggestions.push({
+          type: 'sun_protection',
+          text: 'Aduu waan jiruuf gorsa aduu fi qobbaa aduu fayyadamaa',
+          reason: `Aduu cimaa fi ho\'a ${tempC}°C waan jiruuf`,
+        });
+      } else {
+        suggestions.push({
+          type: 'sun_protection',
+          text: 'Wear sunglasses, a sun hat, and apply UV sunscreen',
+          reason: `Warm sunny conditions (${tempC}°C) with intense high-altitude sunlight`,
+        });
+      }
+    }
+
+    // Fallback neutral advice if no specific condition triggered
+    if (suggestions.length === 0) {
+      suggestions.push({
+        type: 'clothing',
+        text:
+          language === 'am'
+            ? 'ምቹ ልብስ ይልበሱ'
+            : language === 'om'
+            ? 'Wayyaa mijataa uffadhaa'
+            : 'Standard comfortable travel attire is recommended',
+        reason:
+          language === 'am'
+            ? `በመድረሻ ሰዓት ${tempC}°C እና ${arrivalForecast.condition} ይጠበቃል`
+            : language === 'om'
+            ? `Yeroo gahuutti ${tempC}°C fi ${arrivalForecast.condition} ta\'a`
+            : `Forecast indicates ${tempC}°C and ${arrivalForecast.condition} upon arrival`,
+      });
+    }
+
+    if (isBeyondHorizon) {
+      suggestions.push({
+        type: 'caution',
+        text:
+          language === 'am'
+            ? 'የተጠየቀው የመድረሻ ሰዓት ከትንበያ ጊዜ በላይ በመሆኑ አጠቃላይ የአየር ጠባይ ጥቅም ላይ ውሏል'
+            : language === 'om'
+            ? 'Yeroon gaafatame daangaa raagichaa ol waan ta\'eef ragaa waliigalaa fayyadamneera'
+            : 'Target arrival time exceeds detailed hourly forecast horizon; general destination conditions applied',
+        reason: 'Arrival time is beyond 24-48 hour hourly granularity',
+      });
+    }
+
+    return {
+      arrivalTime: targetArrivalIso,
+      forecast: {
+        temperatureC: arrivalForecast.temperatureC,
+        condition: arrivalForecast.condition,
+        precipitationProbability: arrivalForecast.precipitationProbability,
+      },
+      suggestions,
+      language,
+      provider: weather.provider,
+      retrievedAt: weather.retrievedAt,
+    };
+  }
+
+  public getWmoDescription(code: number, language: SupportedLanguage = 'en'): string {
+    const table: Record<number, { en: string; am: string; om: string }> = {
       0: { en: 'Clear sky', am: 'ጥርት ያለ ሰማይ', om: 'Samii qulqulluu' },
       1: { en: 'Mainly clear', am: 'በብዛት ጥርት ያለ', om: 'Irra caalaan qulqulluu' },
       2: { en: 'Partly cloudy', am: 'ከፊል ደመናማ', om: 'Dumessa walakkaa' },
@@ -61,20 +386,15 @@ export class WeatherProvider {
       61: { en: 'Slight rain', am: 'ቀላል ዝናብ', om: 'Rooba salphaa' },
       63: { en: 'Moderate rain', am: 'መካከለኛ ዝናብ', om: 'Rooba giddu-galeessaa' },
       65: { en: 'Heavy rain', am: 'ከባድ ዝናብ', om: 'Rooba cimaa' },
-      71: { en: 'Slight snow', am: 'ቀላል በረዶ', om: 'Cabiitii salphaa' },
-      73: { en: 'Moderate snow', am: 'መካከለኛ በረዶ', om: 'Cabiitii giddu-galeessaa' },
-      75: { en: 'Heavy snow', am: 'ከባድ በረዶ', om: 'Cabiitii cimaa' },
       80: { en: 'Slight rain showers', am: 'ቀላል የበረታ ዝናብ', om: 'Bubbee roobaa salphaa' },
       81: { en: 'Moderate rain showers', am: 'መካከለኛ የበረታ ዝናብ', om: 'Bubbee roobaa giddu-galeessaa' },
       82: { en: 'Violent rain showers', am: 'ኃይለኛ የበረታ ዝናብ', om: 'Bubbee roobaa cimaa' },
       95: { en: 'Thunderstorm', am: 'ነጎድጓዳማ ዝናብ', om: 'Mandhee fi rooba' },
-      96: { en: 'Thunderstorm with slight hail', am: 'ነጎድጓድ ከበረዶ ጋር', om: 'Mandhee cabiitii wajjin' },
-      99: { en: 'Thunderstorm with heavy hail', am: 'ኃይለኛ ነጎድጓድ ከከባድ በረዶ ጋር', om: 'Mandhee cimaa cabiitii wajjin' },
     };
 
-    const entry = conditions[code];
+    const entry = table[code];
     if (entry) {
-      return (entry as Record<string, string>)[language] || entry.en;
+      return entry[language] || entry.en;
     }
 
     if (code >= 51 && code <= 67) {
@@ -90,317 +410,26 @@ export class WeatherProvider {
     return language === 'am' ? 'ደመናማ' : language === 'om' ? 'Dumessa' : 'Cloudy';
   }
 
-  /**
-   * Fetches weather forecast and builds destination arrival advice.
-   */
-  public async getForecast(
-    location: { lat: number; lon: number },
-    arrivalTime?: string,
-    language: SupportedLanguage = 'en'
-  ): Promise<WeatherResultItem> {
-    const lat = location.lat;
-    const lon = location.lon;
-    const nowIso = new Date().toISOString();
-
-    const url = new URL(this.baseUrl);
-    url.searchParams.set('latitude', lat.toString());
-    url.searchParams.set('longitude', lon.toString());
-    url.searchParams.set(
-      'hourly',
-      'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m'
-    );
-    url.searchParams.set(
-      'current',
-      'temperature_2m,precipitation,weather_code,wind_speed_10m'
-    );
-    url.searchParams.set('timezone', 'Africa/Addis_Ababa');
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-      const response = await fetch(url.toString(), { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`Weather API returned HTTP ${response.status}`);
-      }
-
-      const data = (await response.json()) as OpenMeteoApiResponse;
-
-      // 1. Current Weather
-      const currentTemp = data.current ? Math.round(data.current.temperature_2m) : 20;
-      const currentCode = data.current?.weather_code ?? 2;
-      const currentCondition = this.getConditionDescription(currentCode, language);
-      const currentPrecip = data.current?.precipitation ?? 0;
-      const currentWind = data.current ? Math.round(data.current.wind_speed_10m) : 10;
-
-      // 2. Identify Target Arrival Hour
-      const targetArrivalIso = arrivalTime || new Date(Date.now() + 90 * 60 * 1000).toISOString();
-      const targetTimestamp = Date.parse(targetArrivalIso);
-
-      let arrivalIdx = 0;
-      let minDiff = Infinity;
-
-      if (data.hourly && data.hourly.time && data.hourly.time.length > 0) {
-        for (let i = 0; i < data.hourly.time.length; i++) {
-          const hourTimeStr = data.hourly.time[i];
-          // Local Addis Ababa time format: "YYYY-MM-DDTHH:00" -> UTC+3
-          const hourTimestamp = Date.parse(`${hourTimeStr}:00+03:00`);
-          const diff = Math.abs(hourTimestamp - targetTimestamp);
-          if (diff < minDiff) {
-            minDiff = diff;
-            arrivalIdx = i;
-          }
-        }
-      }
-
-      const arrivalHour = data.hourly?.time?.[arrivalIdx]
-        ? `${data.hourly.time[arrivalIdx]}:00+03:00`
-        : targetArrivalIso;
-
-      const arrivalTemp = data.hourly?.temperature_2m?.[arrivalIdx] !== undefined
-        ? Math.round(data.hourly.temperature_2m[arrivalIdx])
-        : currentTemp;
-
-      const arrivalPrecipProb = data.hourly?.precipitation_probability?.[arrivalIdx] ?? 0;
-      const arrivalPrecipMm = data.hourly?.precipitation?.[arrivalIdx] ?? 0;
-      const arrivalCode = data.hourly?.weather_code?.[arrivalIdx] ?? currentCode;
-      const arrivalCondition = this.getConditionDescription(arrivalCode, language);
-      const arrivalWind = data.hourly?.wind_speed_10m?.[arrivalIdx] !== undefined
-        ? Math.round(data.hourly.wind_speed_10m[arrivalIdx])
-        : currentWind;
-
-      // 3. Generate Intelligent Gear & Clothing Advice Compatible with Forecast
-      const suggestions = this.generateCompatibilitySuggestions(
-        arrivalTemp,
-        arrivalPrecipProb,
-        arrivalPrecipMm,
-        arrivalCode,
-        arrivalWind,
-        language
-      );
-
-      // 4. Build Forecast Days (Sample next 24 hours)
-      const hourlyForecasts: WeatherHourlyForecast[] = [];
-      if (data.hourly && data.hourly.time) {
-        const sampleCount = Math.min(24, data.hourly.time.length);
-        for (let i = 0; i < sampleCount; i++) {
-          hourlyForecasts.push({
-            time: `${data.hourly.time[i]}:00+03:00`,
-            temperatureC: Math.round(data.hourly.temperature_2m[i]),
-            condition: this.getConditionDescription(data.hourly.weather_code[i], language),
-            precipitationProbability: data.hourly.precipitation_probability[i] ?? 0,
-          });
-        }
-      }
-
-      const forecastDays: WeatherForecastDay[] = [
-        {
-          date: targetArrivalIso.split('T')[0],
-          hourly: hourlyForecasts,
-        },
-      ];
-
-      return {
-        location: { lat, lon },
-        current: {
-          temperatureC: currentTemp,
-          condition: currentCondition,
-          precipitationMm: currentPrecip,
-          windKph: currentWind,
-        },
-        forecast: forecastDays,
-        arrivalAdvice: {
-          arrivalTime: targetArrivalIso,
-          suggestions,
-        },
-        provider: 'weatherapi',
-        retrievedAt: nowIso,
-        cached: false,
-      };
-    } catch (err: any) {
-      console.warn('[WeatherProvider] Live weather lookup fallback:', err?.message);
-      // Fallback graceful Addis Ababa forecast
-      return this.buildFallbackForecast(lat, lon, arrivalTime, language);
+  private translateConditionText(text: string, language: SupportedLanguage): string {
+    if (language === 'en') return text;
+    const lower = text.toLowerCase();
+    if (lower.includes('sunny') || lower.includes('clear')) {
+      return language === 'am' ? 'ጥርት ያለ ፀሐይ' : 'Aduu qulqulluu';
     }
-  }
-
-  /**
-   * Generates actionable advice based on forecasted temperature, rain probability, and weather codes.
-   */
-  private generateCompatibilitySuggestions(
-    tempC: number,
-    precipProb: number,
-    precipMm: number,
-    code: number,
-    windKph: number,
-    lang: SupportedLanguage
-  ): WeatherSuggestion[] {
-    const suggestions: WeatherSuggestion[] = [];
-    const isRainy = precipProb >= 35 || precipMm > 0.1 || (code >= 51 && code <= 82) || code >= 95;
-
-    // 1. Rain & Umbrella Advice
-    if (isRainy) {
-      if (lang === 'am') {
-        suggestions.push({
-          type: 'umbrella',
-          text: 'ዣንጥላ ይያዙ እና የውሃ መከላከያ ጫማ ወይም ጃኬት ይልበሱ',
-          reason: `በመድረሻ ሰዓትዎ ${precipProb}% የዝናብ ዕድል (${precipMm} mm) ይጠበቃል`,
-        });
-      } else if (lang === 'om') {
-        suggestions.push({
-          type: 'umbrella',
-          text: 'Gaaddisaa (dambalii) qabadhaa fi wayyaa roobaa uffadhaa',
-          reason: `Yeroo gahuutti carraan roobaa %${precipProb} eegama`,
-        });
-      } else {
-        suggestions.push({
-          type: 'umbrella',
-          text: 'Carry an umbrella and wear waterproof outerwear or shoes',
-          reason: `${precipProb}% chance of rain (${precipMm} mm) forecasted around arrival time`,
-        });
-      }
+    if (lower.includes('partly cloudy')) {
+      return language === 'am' ? 'ከፊል ደመናማ' : 'Dumessa walakkaa';
     }
-
-    // 2. Cold / Temperature Advice
-    if (tempC <= 15) {
-      if (lang === 'am') {
-        suggestions.push({
-          type: 'clothing',
-          text: 'ብርድ ስለሚሆን ሞቅ ያለ ልብስ (ሹራብ ወይም ጃኬት) ይልበሱ',
-          reason: `በመድረሻ ሰዓት የሚጠበቀው የሙቀት መጠን ${tempC}°C ነው`,
-        });
-      } else if (lang === 'om') {
-        suggestions.push({
-          type: 'clothing',
-          text: 'Qorra waan ta\'eef wayyaa ho\'aa (jaakkeettii) uffadhaa',
-          reason: `Ho\'i qilleensaa yeroo gahuutti ${tempC}°C ta\'a`,
-        });
-      } else {
-        suggestions.push({
-          type: 'clothing',
-          text: 'Dress warmly in layers (warm sweater or jacket recommended)',
-          reason: `Cool temperature of ${tempC}°C expected at destination upon arrival`,
-        });
-      }
-    } else if (tempC >= 16 && tempC <= 21 && !isRainy) {
-      if (lang === 'am') {
-        suggestions.push({
-          type: 'clothing',
-          text: 'መካከለኛ የአየር ሁኔታ ስለሆነ ቀለል ያለ ጃኬት ወይም ሸሚዝ ይመረጣል',
-          reason: `የሙቀት መጠኑ ${tempC}°C አካባቢ ነው`,
-        });
-      } else if (lang === 'om') {
-        suggestions.push({
-          type: 'clothing',
-          text: 'Qilleensi madaalawaa waan ta\'eef wayyaa salphaa uffadhaa',
-          reason: `Ho\'i qilleensaa ${tempC}°C dha`,
-        });
-      } else {
-        suggestions.push({
-          type: 'clothing',
-          text: 'Wear comfortable layered clothing suitable for mild high-altitude weather',
-          reason: `Mild temperature of ${tempC}°C expected with light breeze`,
-        });
-      }
+    if (lower.includes('cloudy') || lower.includes('overcast')) {
+      return language === 'am' ? 'ደመናማ' : 'Dumessa';
     }
-
-    // 3. Sun & High UV Advice
-    if (tempC >= 23 && (code === 0 || code === 1)) {
-      if (lang === 'am') {
-        suggestions.push({
-          type: 'sun_protection',
-          text: 'የፀሐይ መነጽር ወይም ባርኔጣ ያድርጉ፤ የፀሐይ መከላከያ ቅባት ይመረጣል',
-          reason: `ከፍተኛ የፀሐይ ጨረር ያለበት ሞቃት አየር (${tempC}°C) ይጠበቃል`,
-        });
-      } else if (lang === 'om') {
-        suggestions.push({
-          type: 'sun_protection',
-          text: 'Aduu waan jiruuf gorsa aduu fi qobbaa aduu fayyadamaa',
-          reason: `Aduu cimaa fi ho\'a ${tempC}°C waan jiruuf`,
-        });
-      } else {
-        suggestions.push({
-          type: 'sun_protection',
-          text: 'Wear sunglasses, a sun hat, and apply UV sunscreen',
-          reason: `Warm sunny conditions (${tempC}°C) with intense high-altitude sunlight in Addis Ababa`,
-        });
-      }
+    if (lower.includes('rain') || lower.includes('drizzle')) {
+      return language === 'am' ? 'ዝናባማ' : 'Rooba';
     }
-
-    // 4. Wind & Thunderstorm Cautions
-    if (windKph >= 22 || code >= 95) {
-      if (lang === 'am') {
-        suggestions.push({
-          type: 'caution',
-          text: 'ኃይለኛ ነፋስ ወይም ነጎድጓድ ስላለ ከቤት ውጭ ሲንቀሳቀሱ ጥንቃቄ ያድርጉ',
-          reason: `የነፋስ ፍጥነት ${windKph} km/h ደርሷል`,
-        });
-      } else if (lang === 'om') {
-        suggestions.push({
-          type: 'caution',
-          text: 'Qilleensi cimaa fi mandheen waan jiruuf of eeggannoo cimaa godhaa',
-          reason: `Saffisi qilleensaa km/h ${windKph} dha`,
-        });
-      } else {
-        suggestions.push({
-          type: 'caution',
-          text: 'Gusty winds or thunderstorm activity expected; plan for sheltered transit',
-          reason: `Wind speeds of ${windKph} km/h and convective weather forecasted`,
-        });
-      }
+    if (lower.includes('thunder')) {
+      return language === 'am' ? 'ነጎድጓዳማ ዝናብ' : 'Mandhee';
     }
-
-    return suggestions;
-  }
-
-  /**
-   * Fallback forecast if live API is temporarily unreachable.
-   */
-  private buildFallbackForecast(
-    lat: number,
-    lon: number,
-    arrivalTime?: string,
-    lang: SupportedLanguage = 'en'
-  ): WeatherResultItem {
-    const targetArrivalIso = arrivalTime || new Date(Date.now() + 90 * 60 * 1000).toISOString();
-    return {
-      location: { lat, lon },
-      current: {
-        temperatureC: 19,
-        condition: this.getConditionDescription(2, lang),
-        precipitationMm: 0,
-        windKph: 8,
-      },
-      forecast: [
-        {
-          date: targetArrivalIso.split('T')[0],
-          hourly: [
-            {
-              time: targetArrivalIso,
-              temperatureC: 18,
-              condition: this.getConditionDescription(2, lang),
-              precipitationProbability: 25,
-            },
-          ],
-        },
-      ],
-      arrivalAdvice: {
-        arrivalTime: targetArrivalIso,
-        suggestions: [
-          {
-            type: 'clothing',
-            text: lang === 'am' ? 'ቀለል ያለ ጃኬት ይልበሱ' : lang === 'om' ? 'Jaakkeettii salphaa uffadhaa' : 'Carry a light jacket for the cool evening',
-            reason: lang === 'am' ? 'የአዲስ አበባ ምሽት ቀዝቀዝ ያለ ነው' : lang === 'om' ? 'Qilleensi Finfinnee galgala qorra' : 'Typical cool high-altitude Addis Ababa conditions',
-          },
-        ],
-      },
-      provider: 'weatherapi',
-      retrievedAt: new Date().toISOString(),
-      cached: false,
-    };
+    return text;
   }
 }
 
-export const weatherProvider = new WeatherProvider();
+export const weatherApiProvider = new WeatherApiProvider();
