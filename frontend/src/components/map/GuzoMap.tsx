@@ -161,7 +161,11 @@ function MapEventsHandler() {
   return null;
 }
 
-export const GuzoMap: React.FC = () => {
+interface GuzoMapProps {
+  showIncidents?: boolean;
+}
+
+export const GuzoMap: React.FC<GuzoMapProps> = ({ showIncidents = true }) => {
   const userLocation = useAppStore((state) => state.userLocation);
   const mapCenter = useAppStore((state) => state.mapCenter);
   const mapZoom = useAppStore((state) => state.mapZoom);
@@ -245,7 +249,7 @@ export const GuzoMap: React.FC = () => {
         ))}
 
         {/* Incident Markers */}
-        {incidents.map((inc) => (
+        {showIncidents && incidents.map((inc) => (
           <Marker
             key={inc.id}
             position={[inc.location.lat, inc.location.lon]}
@@ -294,14 +298,16 @@ export const GuzoMap: React.FC = () => {
           className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
         />
 
-        <IconButton
-          aria-label="Report road incident"
-          icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
-          variant="glass"
-          shape="circle"
-          onClick={() => openIncidentModal()}
-          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
-        />
+        {showIncidents && (
+          <IconButton
+            aria-label="Report road incident"
+            icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
+            variant="glass"
+            shape="circle"
+            onClick={() => openIncidentModal()}
+            className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+          />
+        )}
       </div>
     </div>
   );

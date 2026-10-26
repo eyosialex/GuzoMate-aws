@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
           <motion.div
             whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
             transition={springTactile}
-            onClick={() => setPageView('landing')}
+            onClick={() => setPageView(currentUser ? 'home' : 'landing')}
             className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm cursor-pointer"
           >
             <Compass className="w-6 h-6 animate-[spin_16s_linear_infinite]" />
@@ -75,7 +75,7 @@ export const Header: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 
-                onClick={() => setPageView('landing')}
+                onClick={() => setPageView(currentUser ? 'home' : 'landing')}
                 className="text-lg font-bold text-primary tracking-tight leading-none cursor-pointer"
               >
                 GuzoMate

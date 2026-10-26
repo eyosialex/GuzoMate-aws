@@ -20,7 +20,8 @@ export const AuthModal: React.FC = () => {
     authModalTab, 
     closeAuthModal, 
     openAuthModal, 
-    setCurrentUser,
+    setCurrentUser, 
+    setPageView,
     language 
   } = useAppStore();
 
@@ -60,6 +61,7 @@ export const AuthModal: React.FC = () => {
 
     setCurrentUser(user);
     closeAuthModal();
+    setPageView('home');
 
     confetti({
       particleCount: 70,

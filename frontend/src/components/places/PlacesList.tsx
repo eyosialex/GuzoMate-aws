@@ -60,9 +60,9 @@ export const PlacesList: React.FC = () => {
                 whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
                 transition={springTactile}
                 onClick={() => setCategory(cat.id)}
-                className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-semibold leading-none whitespace-nowrap transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 select-none ${
+                className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-semibold leading-none whitespace-nowrap transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary select-none ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm'
+                    ? 'bg-primary text-white shadow-sm font-bold'
                     : 'bg-gray-100/80 text-gray-700 hover:bg-gray-200/80'
                 }`}
                 aria-pressed={isActive}

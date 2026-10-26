@@ -41,7 +41,7 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({
       onClick={() => onSelect?.(place)}
       className={`group relative bg-white rounded-2xl p-4 border transition-colors duration-150 cursor-pointer shadow-sm hover:shadow-md ${
         isSelected
-          ? 'border-indigo-600 ring-2 ring-indigo-500/20'
+          ? 'border-primary ring-2 ring-primary/20'
           : 'border-gray-100 hover:border-gray-200'
       }`}
       role="button"
