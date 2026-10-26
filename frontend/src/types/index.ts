@@ -220,3 +220,15 @@ export interface UserPreferences {
 }
 
 export type ActiveTab = 'assistant' | 'places' | 'routes' | 'weather' | 'incidents';
+
+export type PageView = 'landing' | 'app' | 'about' | 'contact';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  preferredLanguage: Language;
+  isGuildVerified?: boolean;
+  avatarUrl?: string;
+}
