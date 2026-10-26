@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-import 'dotenv/config';
->>>>>>> feature/db-schema
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 

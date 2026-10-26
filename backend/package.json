@@ -14,10 +14,6 @@
     "db:studio": "prisma studio"
   },
   "prisma": {
-<<<<<<< HEAD
-=======
-    "schema": "./prisma/schema.prisma",
->>>>>>> feature/db-schema
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
@@ -33,11 +29,7 @@
     "@types/node": "^22.13.1",
     "@types/pg": "^8.11.11",
     "prisma": "^6.19.3",
-<<<<<<< HEAD
     "tsx": "^4.19.2",
-=======
-    "tsx": "^4.23.15",
->>>>>>> feature/db-schema
     "typescript": "^5.7.3"
   }
 }

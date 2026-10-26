@@ -1,10 +1,7 @@
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-<<<<<<< HEAD
-=======
   directUrl  = env("DIRECT_URL")
->>>>>>> feature/db-schema
   extensions = [postgis, vector, uuidOssp(map: "uuid-ossp")]
 }
 
