@@ -58,6 +58,19 @@ export default {
           DEFAULT: '#717973',
           variant: '#c1c8c2',
         },
+        forest: {
+          50: '#f0f7f3',
+          100: '#dceee3',
+          200: '#bcdcc9',
+          300: '#94c4a9',
+          400: '#67a683',
+          500: '#438763',
+          600: '#2f6c4d',
+          700: '#25563e',
+          800: '#183a2b',
+          900: '#0f2b1d',
+          950: '#07170f',
+        },
         brand: {
           50: '#eefdf5',
           100: '#d1fae5',
@@ -83,7 +96,7 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'Noto Sans Ethiopic', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', 'Noto Sans Ethiopic', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['Plus Jakarta Sans', 'sans-serif'],
         ethiopic: ['Noto Sans Ethiopic', 'sans-serif'],
         mono: ['SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
@@ -92,6 +105,7 @@ export default {
         'stacked': '0 4px 6px -1px rgba(27, 67, 50, 0.05), 0 2px 4px -2px rgba(27, 67, 50, 0.05)',
         'floating': '0 20px 25px -5px rgba(27, 67, 50, 0.08), 0 8px 10px -6px rgba(27, 67, 50, 0.04)',
         'highland': '0 12px 24px -6px rgba(27, 67, 50, 0.08), 0 4px 8px -2px rgba(27, 67, 50, 0.04)',
+        'glow': '0 0 20px rgba(24, 58, 43, 0.15)',
         'glow-amber': '0 0 20px rgba(217, 119, 6, 0.35)',
         'glow-emerald': '0 0 20px rgba(27, 67, 50, 0.35)',
       },
