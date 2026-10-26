@@ -38,12 +38,12 @@ export const PlacesList: React.FC = () => {
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-white">
+    <div className="flex flex-col h-full overflow-hidden bg-surface-low/30">
       {/* Search Header */}
-      <div className="p-4 border-b border-gray-100 flex flex-col gap-3 shrink-0">
+      <div className="p-4 border-b border-outline-variant/30 flex flex-col gap-3 shrink-0 bg-white/90 backdrop-blur-md">
         <Input
           shape="pill"
-          leftIcon={<Search className="w-5 h-5 text-gray-400" />}
+          leftIcon={<Search className="w-5 h-5 text-on-surface-variant/50" />}
           placeholder={t('places.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -62,8 +62,8 @@ export const PlacesList: React.FC = () => {
                 onClick={() => setCategory(cat.id)}
                 className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-semibold leading-none whitespace-nowrap transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary select-none ${
                   isActive
-                    ? 'bg-primary text-white shadow-sm font-bold'
-                    : 'bg-gray-100/80 text-gray-700 hover:bg-gray-200/80'
+                    ? 'bg-primary text-white shadow-xs font-bold'
+                    : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-container'
                 }`}
                 aria-pressed={isActive}
               >
@@ -74,9 +74,9 @@ export const PlacesList: React.FC = () => {
         </div>
 
         {/* Results Count Banner with Inverse Leading */}
-        <div className="flex items-center justify-between text-xs font-medium text-gray-500 px-1 leading-none">
+        <div className="flex items-center justify-between text-xs font-medium text-on-surface-variant px-1 leading-none">
           <span>{t('places.resultsFound', { count: places.length })}</span>
-          <span className="text-[11px] text-gray-400 font-normal">Addis Ababa • OSM</span>
+          <span className="text-[11px] text-on-surface-variant/60 font-normal">Addis Ababa • OSM</span>
         </div>
       </div>
 
@@ -87,15 +87,15 @@ export const PlacesList: React.FC = () => {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="bg-gray-50 rounded-2xl p-4 border border-gray-100 animate-pulse h-28"
+                className="bg-white rounded-2xl p-4 border border-outline-variant/30 animate-pulse h-28"
               />
             ))}
           </div>
         ) : places.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400">
-            <MapPinOff className="w-10 h-10 mb-3 text-gray-300" />
-            <p className="text-sm font-semibold text-gray-600 leading-tight">{t('places.noResults')}</p>
-            <p className="text-xs text-gray-400 mt-1 leading-relaxed">Try another category or broaden your search.</p>
+          <div className="flex flex-col items-center justify-center py-12 text-center text-on-surface-variant/50">
+            <MapPinOff className="w-10 h-10 mb-3 text-primary/30" />
+            <p className="text-sm font-semibold text-on-surface leading-tight">{t('places.noResults')}</p>
+            <p className="text-xs text-on-surface-variant/70 mt-1 leading-relaxed">Try another category or broaden your search.</p>
           </div>
         ) : (
           <motion.div

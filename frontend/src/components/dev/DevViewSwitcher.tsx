@@ -12,6 +12,8 @@ export const DevViewSwitcher: React.FC = () => {
       nextView = 'home';
     } else if (pageView === 'home') {
       nextView = 'explore';
+    } else if (pageView === 'explore' || pageView === 'app') {
+      nextView = 'incidents';
     } else {
       nextView = 'landing';
     }
@@ -29,16 +31,22 @@ export const DevViewSwitcher: React.FC = () => {
     setPageView(nextView);
   };
 
-  const currentLabel = pageView === 'explore' || pageView === 'app' 
+  const currentLabel = 
+    pageView === 'incidents'
+    ? 'Incidents'
+    : pageView === 'explore' || pageView === 'app' 
     ? 'Explore' 
     : pageView === 'home' 
     ? 'Home' 
     : 'Landing';
 
-  const nextLabel = currentLabel === 'Landing' 
+  const nextLabel = 
+    currentLabel === 'Landing' 
     ? 'Home' 
     : currentLabel === 'Home' 
     ? 'Explore' 
+    : currentLabel === 'Explore'
+    ? 'Incidents'
     : 'Landing';
 
   return (

@@ -9,10 +9,8 @@ import {
   useMapEvents 
 } from 'react-leaflet';
 import L from 'leaflet';
-import { 
-  Crosshair, 
-  AlertTriangle 
-} from 'lucide-react';
+import { Crosshair, AlertTriangle } from 'lucide-react';
+import { GeoLocation } from '../../types';
 import { useAppStore } from '../../features/useAppStore';
 import { usePlaces } from '../../hooks/usePlaces';
 import { useIncidents } from '../../hooks/useIncidents';
@@ -63,13 +61,8 @@ function createPlaceIcon(category: string, isSelected: boolean) {
   });
 }
 
-function createIncidentIcon(status: string, _type: string, isSelected: boolean) {
-  const colorMap: Record<string, string> = {
-    PENDING: '#f59e0b', // Amber
-    ACTIVE: '#ef4444',  // Red
-    RESOLVED: '#10b981', // Green
-  };
-  const bg = colorMap[status] || '#ef4444';
+function createIncidentIcon(_type: string, isSelected: boolean) {
+  const bg = '#dc2626';
 
   return L.divIcon({
     className: 'custom-incident-pin',
@@ -92,7 +85,7 @@ function createIncidentIcon(status: string, _type: string, isSelected: boolean) 
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.22);
+          box-shadow: 0 4px 10px rgba(220,38,38,0.35);
           font-size: 14px;
           transform: scale(${isSelected ? 1.2 : 1});
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -145,16 +138,48 @@ function MapViewController() {
   return null;
 }
 
+const draftLocationIcon = L.divIcon({
+  className: 'custom-draft-pin',
+  html: `
+    <div style="
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div style="
+        background-color: #d97706;
+        color: #ffffff;
+        border: 3px solid #ffffff;
+        border-radius: 9999px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+        font-size: 15px;
+      ">
+        📍
+      </div>
+    </div>
+  `,
+  iconSize: [44, 44],
+  iconAnchor: [22, 22],
+});
+
 /**
  * Handle map click to drop pin or select coordinates
  */
-function MapEventsHandler() {
+function MapEventsHandler({ onMapClick }: { onMapClick?: (loc: GeoLocation) => void }) {
   const setIncidentDraftLocation = useAppStore((state) => state.setIncidentDraftLocation);
 
   useMapEvents({
     click(e) {
       const loc = { lat: e.latlng.lat, lon: e.latlng.lng };
       setIncidentDraftLocation(loc);
+      onMapClick?.(loc);
     },
   });
 
@@ -163,9 +188,15 @@ function MapEventsHandler() {
 
 interface GuzoMapProps {
   showIncidents?: boolean;
+  draftLocation?: GeoLocation | null;
+  onMapClick?: (loc: GeoLocation) => void;
 }
 
-export const GuzoMap: React.FC<GuzoMapProps> = ({ showIncidents = true }) => {
+export const GuzoMap: React.FC<GuzoMapProps> = ({ 
+  showIncidents = true,
+  draftLocation,
+  onMapClick,
+}) => {
   const userLocation = useAppStore((state) => state.userLocation);
   const mapCenter = useAppStore((state) => state.mapCenter);
   const mapZoom = useAppStore((state) => state.mapZoom);
@@ -204,7 +235,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({ showIncidents = true }) => {
         className="w-full h-full z-0"
       >
         <MapViewController />
-        <MapEventsHandler />
+        <MapEventsHandler onMapClick={onMapClick} />
 
         {/* OpenStreetMap Tiles with strict ODbL attribution */}
         <TileLayer
@@ -212,6 +243,21 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({ showIncidents = true }) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
         />
+
+        {/* Draft / Pinned Location Marker (When selecting location on map) */}
+        {draftLocation && (
+          <Marker
+            position={[draftLocation.lat, draftLocation.lon]}
+            icon={draftLocationIcon}
+          >
+            <Popup className="rounded-xl font-bold text-xs">
+              <span className="text-secondary font-bold block">Pinned Incident Location</span>
+              <span className="text-gray-600 text-[11px] block mt-0.5">
+                {draftLocation.lat.toFixed(4)}, {draftLocation.lon.toFixed(4)}
+              </span>
+            </Popup>
+          </Marker>
+        )}
 
         {/* User Location Marker */}
         <Marker
@@ -253,20 +299,22 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({ showIncidents = true }) => {
           <Marker
             key={inc.id}
             position={[inc.location.lat, inc.location.lon]}
-            icon={createIncidentIcon(inc.status, inc.type, selectedIncident?.id === inc.id)}
+            icon={createIncidentIcon(inc.type, selectedIncident?.id === inc.id)}
             eventHandlers={{
               click: () => setSelectedIncident(inc),
             }}
           >
             <Popup className="rounded-2xl p-1 text-xs">
               <div className="space-y-1">
-                <span className="font-semibold text-red-600 block leading-tight">
-                  ⚠️ {inc.type}
+                <span className="font-bold text-red-600 block leading-tight">
+                  ⚠️ {inc.title || inc.type.replace('_', ' ')}
                 </span>
                 <p className="text-gray-700 leading-relaxed">{inc.description}</p>
-                <span className="text-gray-400 text-[10px] block leading-none">
-                  Status: {inc.status}
-                </span>
+                {inc.locationName && (
+                  <span className="text-primary font-semibold text-[11px] block leading-none">
+                    📍 {inc.locationName}
+                  </span>
+                )}
               </div>
             </Popup>
           </Marker>

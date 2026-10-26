@@ -49,10 +49,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ hideIncidents = false }) => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-full md:w-[420px] lg:w-[460px] h-full bg-white/95 backdrop-blur-xl border-r border-gray-200/70 shrink-0 z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] overflow-hidden">
+    <aside className="hidden md:flex flex-col w-full md:w-[420px] lg:w-[460px] h-full bg-white/95 backdrop-blur-xl border-r border-outline-variant/30 shrink-0 z-20 shadow-[4px_0_24px_rgba(27,67,50,0.03)] overflow-hidden">
       {/* Frosted Glass Sub-navigation Bar */}
-      <div className="p-3 border-b border-gray-100/80 bg-gray-50/70 backdrop-blur-md shrink-0">
-        <div className={`grid ${tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5'} gap-1 bg-gray-200/60 p-1 rounded-xl`}>
+      <div className="p-3 border-b border-outline-variant/30 bg-surface-low/80 backdrop-blur-md shrink-0">
+        <div className={`grid ${tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5'} gap-1 bg-surface-container p-1 rounded-xl`}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -63,8 +63,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ hideIncidents = false }) => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`min-h-[44px] px-1 py-1.5 rounded-lg text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary ${
                   isActive
-                    ? 'bg-white text-primary font-bold shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                    ? 'bg-white text-primary font-bold shadow-xs'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-white/50'
                 }`}
                 aria-label={t(tab.labelKey)}
                 title={t(tab.labelKey)}

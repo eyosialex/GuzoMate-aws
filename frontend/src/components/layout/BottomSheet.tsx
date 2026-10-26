@@ -114,7 +114,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ hideIncidents = false 
         </motion.div>
 
         {/* Mobile Sub-Tab Bar */}
-        <div className="px-3 py-1.5 border-b border-gray-100 bg-gray-50/70 flex items-center justify-around gap-1 shrink-0">
+        <div className="px-3 py-1.5 border-b border-outline-variant/30 bg-surface-low/80 flex items-center justify-around gap-1 shrink-0">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -127,7 +127,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ hideIncidents = false 
                 className={`py-1.5 px-2.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
                   isActive
                     ? 'bg-white text-primary shadow-xs'
-                    : 'text-gray-500 hover:text-gray-900'
+                    : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 {tab.icon}

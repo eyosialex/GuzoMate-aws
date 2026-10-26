@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { 
   Send, 
   Mic, 
-  MicOff, 
+  Square,
   Sparkles, 
   Bot, 
   User, 
@@ -13,10 +13,13 @@ import {
 import { ChatMessage } from '../../types';
 import { useAppStore } from '../../features/useAppStore';
 import { useI18n } from '../../hooks/useI18n';
-import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { assistantService } from '../../services/assistantService';
+import { voiceChatService } from '../../services/voiceChatService';
 import { PlaceCard } from '../places/PlaceCard';
 import { IconButton } from '../common/IconButton';
+import { SoundWaveVisualizer } from './SoundWaveVisualizer';
+import { AudioMessagePlayer } from './AudioMessagePlayer';
+import { warmUpAudio } from '../../lib/audioManager';
 import { springGentle, springTactile, tactilePress, cardEnter } from '../../lib/motion';
 
 export const ChatInterface: React.FC = () => {
@@ -33,12 +36,21 @@ export const ChatInterface: React.FC = () => {
   const [inputQuery, setInputQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleVoiceResult = (spokenText: string) => {
-    setInputQuery(spokenText);
-  };
+  // Integrated Voice Chat state
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [silenceSeconds, setSilenceSeconds] = useState<number | null>(null);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  // Track only the freshly returned assistant response to auto-play once
+  const [autoPlayAudioId, setAutoPlayAudioId] = useState<string | null>(null);
 
-  const { isListening, startListening, stopListening, hasSupport } =
-    useSpeechRecognition(language, handleVoiceResult);
+  const voiceTranscriptRef = useRef('');
+  const lastSpokeTimeRef = useRef<number>(Date.now());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+  const silenceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,12 +60,217 @@ export const ChatInterface: React.FC = () => {
     scrollToBottom();
   }, [messages, isAssistantLoading]);
 
+  // Clean up audio streams and timers on unmount
+  useEffect(() => {
+    return () => {
+      if (silenceIntervalRef.current) clearInterval(silenceIntervalRef.current);
+      if (mediaStream) {
+        mediaStream.getTracks().forEach((track) => track.stop());
+      }
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        try {
+          audioContextRef.current.close();
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, [mediaStream]);
+
+  const cancelVoiceMode = () => {
+    if (silenceIntervalRef.current) {
+      clearInterval(silenceIntervalRef.current);
+      silenceIntervalRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {
+        // ignore
+      }
+      recognitionRef.current = null;
+    }
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+      setMediaStream(null);
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      try {
+        audioContextRef.current.close();
+      } catch {
+        // ignore
+      }
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+    setIsVoiceActive(false);
+    setIsSpeaking(false);
+    setSilenceSeconds(null);
+    voiceTranscriptRef.current = '';
+  };
+
+  const handleSendVoice = async () => {
+    const transcriptToSend = voiceTranscriptRef.current;
+    cancelVoiceMode();
+
+    setAssistantLoading(true);
+
+    try {
+      const response = await voiceChatService.sendVoiceRecording({
+        recognizedTranscript: transcriptToSend,
+        language,
+      });
+
+      // 1. Display user message in chat section as if user texted it
+      const userMsg: ChatMessage = {
+        id: `usr-${Date.now()}`,
+        sender: 'user',
+        content: response.transcript,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      addMessage(userMsg);
+
+      // 2. Display assistant message with audioUrl (which automatically plays only for this fresh response)
+      const assistantMsgId = `asst-${Date.now()}`;
+      if (response.audioUrl) {
+        setAutoPlayAudioId(assistantMsgId);
+      }
+
+      const assistantMsg: ChatMessage = {
+        id: assistantMsgId,
+        sender: 'assistant',
+        content: response.answer,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        audioUrl: response.audioUrl,
+        audioDurationSeconds: response.audioDurationSeconds,
+        places: response.places,
+        weather: response.weather,
+        sources: response.sources,
+      };
+      addMessage(assistantMsg);
+    } catch {
+      const fallbackMsg: ChatMessage = {
+        id: `asst-err-${Date.now()}`,
+        sender: 'assistant',
+        content: 'Unable to process voice recording right now. Please verify your connection.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      addMessage(fallbackMsg);
+    } finally {
+      setAssistantLoading(false);
+    }
+  };
+
+  const startVoiceMode = async () => {
+    if (isAssistantLoading) return;
+    warmUpAudio();
+    setIsVoiceActive(true);
+    setIsSpeaking(true);
+    setSilenceSeconds(null);
+    voiceTranscriptRef.current = '';
+    lastSpokeTimeRef.current = Date.now();
+
+    // 1. Request microphone stream
+    let stream: MediaStream | null = null;
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setMediaStream(stream);
+
+        // Connect audio analyser to detect user voice volume
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const audioCtx = new AudioCtx();
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64;
+          const source = audioCtx.createMediaStreamSource(stream);
+          source.connect(analyser);
+          audioContextRef.current = audioCtx;
+          analyserRef.current = analyser;
+        }
+      }
+    } catch (err) {
+      console.warn('Microphone permission blocked or unavailable:', err);
+    }
+
+    // 2. Initialize Speech Recognition if supported
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const win = window as any;
+    const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
+    if (SpeechRecognitionClass) {
+      try {
+        const recognition = new SpeechRecognitionClass();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = language === 'am' ? 'am-ET' : language === 'om' ? 'om-ET' : 'en-US';
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        recognition.onresult = (event: any) => {
+          let text = '';
+          for (let i = 0; i < event.results.length; i++) {
+            text += event.results[i][0].transcript;
+          }
+          voiceTranscriptRef.current = text;
+          lastSpokeTimeRef.current = Date.now();
+          setIsSpeaking(true);
+          setSilenceSeconds(null);
+        };
+
+        recognition.onerror = () => {};
+        recognition.onend = () => {};
+        recognition.start();
+        recognitionRef.current = recognition;
+      } catch (err) {
+        console.warn('SpeechRecognition start failed:', err);
+      }
+    }
+
+    // 3. Monitor for 3 to 4 seconds of silence
+    if (silenceIntervalRef.current) clearInterval(silenceIntervalRef.current);
+
+    silenceIntervalRef.current = setInterval(() => {
+      const analyser = analyserRef.current;
+      let isLoud = false;
+
+      if (analyser) {
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        const avg = sum / dataArray.length;
+        if (avg > 14) {
+          isLoud = true;
+        }
+      }
+
+      const now = Date.now();
+      if (isLoud) {
+        lastSpokeTimeRef.current = now;
+        setIsSpeaking(true);
+        setSilenceSeconds(null);
+      } else {
+        const quietMs = now - lastSpokeTimeRef.current;
+        // User has been quiet for more than 1 second
+        if (quietMs >= 1000) {
+          setIsSpeaking(false);
+          const remainingSecs = Math.max(0, Math.ceil((3600 - quietMs) / 1000));
+          setSilenceSeconds(remainingSecs);
+
+          // 3.5 seconds silence elapsed -> automatically send to backend!
+          if (quietMs >= 3500) {
+            handleSendVoice();
+          }
+        }
+      }
+    }, 150);
+  };
+
   const handleSendMessage = async (queryText?: string) => {
     const textToSend = queryText || inputQuery;
     if (!textToSend.trim() || isAssistantLoading) return;
 
-    if (isListening) {
-      stopListening();
+    if (isVoiceActive) {
+      cancelVoiceMode();
     }
 
     const userMsg: ChatMessage = {
@@ -106,24 +323,24 @@ export const ChatInterface: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-white overflow-hidden">
+    <div className="flex flex-col h-full bg-surface-low/30 overflow-hidden">
       {/* Frosted Glass Header */}
-      <div className="px-4 py-3 border-b border-gray-100/80 backdrop-blur-md bg-white/85 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+      <div className="px-4 py-3 border-b border-outline-variant/30 backdrop-blur-md bg-white/90 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-xs">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-gray-900 leading-tight">
+            <h2 className="text-sm font-bold text-on-surface leading-tight">
               {t('assistant.title')}
             </h2>
-            <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
+            <p className="text-[11px] text-on-surface-variant font-medium leading-relaxed">
               {t('assistant.subtitle')}
             </p>
           </div>
         </div>
 
-        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50/90 border border-indigo-100/80 px-2.5 py-0.5 rounded-full leading-none">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full leading-none">
           Gemini RAG
         </span>
       </div>
@@ -142,7 +359,7 @@ export const ChatInterface: React.FC = () => {
             }`}
           >
             {msg.sender === 'assistant' && (
-              <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                 <Bot className="w-4 h-4" />
               </div>
             )}
@@ -156,14 +373,24 @@ export const ChatInterface: React.FC = () => {
               <div
                 className={`p-3.5 rounded-2xl text-sm leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-indigo-600 text-white font-medium rounded-tr-none shadow-sm'
-                    : 'bg-gray-50/90 text-gray-900 font-medium border border-gray-200/70 rounded-tl-none shadow-sm'
+                    ? 'bg-primary text-white font-medium rounded-tr-none shadow-xs'
+                    : 'bg-white text-on-surface font-medium border border-outline-variant/40 rounded-tl-none shadow-xs'
                 }`}
               >
                 <p className="whitespace-pre-wrap">{msg.content}</p>
+
+                {/* Voice audio response played automatically ONLY when freshly returned */}
+                {msg.audioUrl && (
+                  <AudioMessagePlayer
+                    audioUrl={msg.audioUrl}
+                    autoPlay={msg.id === autoPlayAudioId}
+                    onPlaybackEnd={() => setAutoPlayAudioId(null)}
+                  />
+                )}
+
                 <span
                   className={`block text-[10px] mt-1.5 leading-none ${
-                    msg.sender === 'user' ? 'text-indigo-200 text-right' : 'text-gray-400'
+                    msg.sender === 'user' ? 'text-white/70 text-right' : 'text-on-surface-variant/70'
                   }`}
                 >
                   {msg.timestamp}
@@ -173,13 +400,13 @@ export const ChatInterface: React.FC = () => {
               {/* Rich Embedded UI: Grounded Sources Badge */}
               {msg.sources && msg.sources.length > 0 && (
                 <div className="flex items-center gap-1.5 flex-wrap px-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase leading-none">
+                  <span className="text-[10px] font-bold text-on-surface-variant/70 uppercase leading-none">
                     {t('assistant.sourcesLabel')}:
                   </span>
                   {msg.sources.map((s, idx) => (
                     <span
                       key={idx}
-                      className="text-[10px] font-medium bg-gray-100/80 text-gray-600 px-2 py-0.5 rounded-full inline-flex items-center gap-1 leading-none"
+                      className="text-[10px] font-medium bg-surface-container text-on-surface-variant border border-outline-variant/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1 leading-none"
                     >
                       <ExternalLink className="w-2.5 h-2.5" />
                       {s.type}
@@ -190,26 +417,26 @@ export const ChatInterface: React.FC = () => {
 
               {/* Rich Embedded UI: Weather card in chat */}
               {msg.weather && (
-                <div className="bg-gradient-to-r from-indigo-50/90 to-indigo-100/50 rounded-2xl p-3 border border-indigo-100 shadow-sm flex items-center justify-between">
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-surface-low rounded-2xl p-3 border border-primary/20 shadow-xs flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block leading-none">
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider block leading-none">
                       Forecast at Arrival
                     </span>
-                    <span className="text-xl font-bold text-gray-900 leading-tight">
+                    <span className="text-xl font-bold text-on-surface font-display leading-tight">
                       {msg.weather.current.temperatureC}°C
                     </span>
-                    <span className="text-xs font-medium text-gray-600 ml-2">
+                    <span className="text-xs font-medium text-on-surface-variant ml-2">
                       {msg.weather.current.condition}
                     </span>
                   </div>
-                  <CloudSun className="w-8 h-8 text-indigo-600" />
+                  <CloudSun className="w-8 h-8 text-primary" />
                 </div>
               )}
 
               {/* Rich Embedded UI: Place cards directly in chat flow */}
               {msg.places && msg.places.length > 0 && (
                 <div className="space-y-2 pt-1">
-                  <span className="text-xs font-bold text-gray-700 block px-1 leading-none">
+                  <span className="text-xs font-bold text-on-surface block px-1 leading-none">
                     Mapped Places ({msg.places.length})
                   </span>
                   {msg.places.map((place) => (
@@ -225,7 +452,7 @@ export const ChatInterface: React.FC = () => {
             </div>
 
             {msg.sender === 'user' && (
-              <div className="h-8 w-8 rounded-full bg-gray-200/80 text-gray-700 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+              <div className="h-8 w-8 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant/30 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                 <User className="w-4 h-4" />
               </div>
             )}
@@ -241,14 +468,14 @@ export const ChatInterface: React.FC = () => {
             transition={springGentle}
             className="flex gap-3 justify-start items-center"
           >
-            <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 shadow-sm">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 shadow-xs">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="bg-gray-50/90 border border-gray-200/70 rounded-2xl rounded-tl-none p-3.5 shadow-sm flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-indigo-600 animate-bounce" />
-              <span className="h-2 w-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.2s]" />
-              <span className="h-2 w-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.4s]" />
-              <span className="text-xs font-medium text-gray-500 ml-2">Retrieving Addis knowledge...</span>
+            <div className="bg-white border border-outline-variant/40 rounded-2xl rounded-tl-none p-3.5 shadow-xs flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce" />
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.4s]" />
+              <span className="text-xs font-medium text-on-surface-variant ml-2">GuzoMate is responding...</span>
             </div>
           </motion.div>
         )}
@@ -257,15 +484,15 @@ export const ChatInterface: React.FC = () => {
       </div>
 
       {/* Suggested prompts carousel chips with tactile springs */}
-      {messages.length < 3 && (
-        <div className="px-4 py-2 border-t border-gray-50 bg-gray-50/60 backdrop-blur-sm flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+      {messages.length < 3 && !isVoiceActive && (
+        <div className="px-4 py-2 border-t border-outline-variant/20 bg-surface-low/70 backdrop-blur-sm flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
           {suggestions.map((sug, i) => (
             <motion.button
               key={i}
               whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
               transition={springTactile}
               onClick={() => handleSendMessage(sug)}
-              className="min-h-[44px] px-3.5 py-2 rounded-full text-xs font-semibold leading-none text-gray-700 bg-white border border-gray-200/80 hover:border-indigo-300 hover:text-indigo-600 transition-colors whitespace-nowrap shadow-sm select-none"
+              className="min-h-[44px] px-3.5 py-2 rounded-full text-xs font-semibold leading-none text-on-surface bg-white border border-outline-variant/50 hover:border-primary hover:text-primary transition-colors whitespace-nowrap shadow-xs select-none"
             >
               {sug}
             </motion.button>
@@ -273,32 +500,8 @@ export const ChatInterface: React.FC = () => {
         </div>
       )}
 
-      {/* Voice Listening indicator banner */}
-      <AnimatePresence>
-        {isListening && (
-          <motion.div
-            initial={shouldReduceMotion ? undefined : { opacity: 0, height: 0 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, height: 'auto' }}
-            exit={shouldReduceMotion ? undefined : { opacity: 0, height: 0 }}
-            transition={springGentle}
-            className="px-4 py-2 bg-indigo-50 border-t border-indigo-100 flex items-center justify-between text-xs text-indigo-700 font-semibold"
-          >
-            <span className="flex items-center gap-2">
-              <Mic className="w-4 h-4 text-indigo-600 animate-bounce" />
-              {t('assistant.listening')}
-            </span>
-            <button
-              onClick={stopListening}
-              className="text-xs text-indigo-800 underline font-semibold min-h-[44px] px-2 flex items-center"
-            >
-              Done
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Input area with frosted glass */}
-      <div className="p-3 border-t border-gray-100/80 backdrop-blur-md bg-white/90 shrink-0">
+      <div className="p-3 border-t border-outline-variant/30 backdrop-blur-md bg-white/95 shrink-0">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -306,41 +509,58 @@ export const ChatInterface: React.FC = () => {
           }}
           className="flex items-center gap-2"
         >
-          {/* Mic Button with 44px tap target */}
-          {hasSupport && (
-            <IconButton
-              type="button"
-              aria-label={isListening ? 'Stop listening' : 'Start speech recognition'}
-              icon={
-                isListening ? (
-                  <MicOff className="w-5 h-5 text-red-600" />
-                ) : (
-                  <Mic className="w-5 h-5 text-gray-600" />
-                )
-              }
-              onClick={() => (isListening ? stopListening() : startListening())}
-              variant={isListening ? 'secondary' : 'ghost'}
-              className="h-11 w-11 rounded-full shrink-0"
+          {/* Dynamic Text Input OR Real-time Sound Wave Indicator */}
+          {isVoiceActive ? (
+            <SoundWaveVisualizer
+              stream={mediaStream}
+              silenceSeconds={silenceSeconds}
+              isSpeaking={isSpeaking}
+              onCancel={cancelVoiceMode}
+              onSendNow={handleSendVoice}
+            />
+          ) : (
+            <input
+              type="text"
+              value={inputQuery}
+              onChange={(e) => setInputQuery(e.target.value)}
+              placeholder={t('assistant.inputPlaceholder')}
+              className="flex-1 min-h-[44px] px-4 py-2 bg-surface-low border border-outline-variant/50 rounded-full text-sm font-medium text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all shadow-xs leading-normal"
+              disabled={isAssistantLoading}
             />
           )}
 
-          {/* Text input with pill styling */}
-          <input
-            type="text"
-            value={inputQuery}
-            onChange={(e) => setInputQuery(e.target.value)}
-            placeholder={t('assistant.inputPlaceholder')}
-            className="flex-1 min-h-[44px] px-4 py-2 bg-gray-50/80 border border-gray-200 rounded-full text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all shadow-sm leading-normal"
+          {/* Mic Button (Right next to Send icon) */}
+          <IconButton
+            type="button"
+            aria-label={isVoiceActive ? 'Stop voice recording' : 'Start voice chat'}
+            icon={
+              isVoiceActive ? (
+                <span className="relative flex h-5 w-5 items-center justify-center">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <Square className="w-3.5 h-3.5 fill-white text-white relative" />
+                </span>
+              ) : (
+                <Mic className="w-5 h-5 text-on-surface-variant hover:text-primary transition-colors" />
+              )
+            }
+            onClick={isVoiceActive ? cancelVoiceMode : startVoiceMode}
+            variant={isVoiceActive ? 'primary' : 'outline'}
+            shape="circle"
+            className={
+              isVoiceActive
+                ? 'h-11 w-11 !bg-red-600 !hover:bg-red-700 !text-white rounded-full shrink-0 shadow-sm border-transparent'
+                : 'h-11 w-11 rounded-full shrink-0 border-outline-variant/40 hover:border-primary'
+            }
           />
 
-          {/* Send Button with 44px tap target */}
+          {/* Send Button */}
           <IconButton
             type="submit"
             aria-label="Send message to assistant"
             icon={<Send className="w-5 h-5 text-white" />}
             variant="primary"
             shape="circle"
-            disabled={!inputQuery.trim() || isAssistantLoading}
+            disabled={(!inputQuery.trim() && !isVoiceActive) || isAssistantLoading}
             className="h-11 w-11 shrink-0"
           />
         </form>

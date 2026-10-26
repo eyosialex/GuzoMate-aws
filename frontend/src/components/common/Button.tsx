@@ -24,7 +24,7 @@ export const Button: React.FC<ButtonProps> = ({
   const shouldReduceMotion = useReducedMotion();
 
   const baseStyles =
-    'inline-flex items-center justify-center font-semibold transition-colors duration-150 min-h-[44px] min-w-[44px] select-none leading-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center font-semibold transition-colors duration-150 min-h-[44px] min-w-[44px] select-none leading-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const sizeStyles = {
     sm: 'text-xs px-3 py-2 rounded-lg gap-1.5',
@@ -34,13 +34,13 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-sm border border-transparent',
+      'bg-primary text-white hover:bg-primary-dark active:bg-primary-dark shadow-sm border border-transparent',
     secondary:
-      'bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 border border-transparent',
+      'bg-surface-container text-on-surface hover:bg-surface-high active:bg-surface-highest border border-transparent',
     outline:
-      'bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 active:bg-gray-100 shadow-sm',
+      'bg-white text-on-surface border border-outline-variant/60 hover:bg-surface-low active:bg-surface-container shadow-sm',
     ghost:
-      'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 border border-transparent',
+      'bg-transparent text-on-surface-variant hover:bg-surface-low active:bg-surface-container border border-transparent',
   };
 
   const isDisabled = disabled || isLoading;

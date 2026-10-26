@@ -78,11 +78,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
   };
 
   const handleIncidentsClick = () => {
-    if (pageView === 'home') {
-      document.getElementById('road-incidents')?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      setPageView('incidents');
-    }
+    setPageView('incidents');
     setMobileMenuOpen(false);
   };
 

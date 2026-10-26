@@ -4,6 +4,7 @@ import { LandingHeader } from '../components/landing/LandingHeader';
 import { LandingPage } from '../components/landing/LandingPage';
 import { HomePage } from '../components/home/HomePage';
 import { ExplorePage } from '../components/explore/ExplorePage';
+import { IncidentsPage } from '../components/incidents/IncidentsPage';
 import { AboutUsPage } from '../components/pages/AboutUsPage';
 import { ContactUsPage } from '../components/pages/ContactUsPage';
 import { LandingFooter } from '../components/landing/LandingFooter';
@@ -34,6 +35,10 @@ export const App: React.FC = () => {
 
       {(pageView === 'app' || pageView === 'explore') && (
         <ExplorePage />
+      )}
+
+      {pageView === 'incidents' && (
+        <IncidentsPage />
       )}
 
       {pageView === 'about' && (

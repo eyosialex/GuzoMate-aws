@@ -33,8 +33,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={`w-full min-h-[44px] h-11 bg-white border text-gray-900 text-sm placeholder-gray-400 font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm disabled:bg-gray-50 disabled:text-gray-400 ${
-              error ? 'border-red-400' : 'border-gray-200'
+            className={`w-full min-h-[44px] h-11 bg-white border text-on-surface text-sm placeholder:text-on-surface-variant/50 font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-xs disabled:bg-surface-low disabled:text-on-surface-variant/40 ${
+              error ? 'border-red-400' : 'border-outline-variant/60'
             } ${shapeStyles[shape]} ${leftIcon ? 'pl-11' : 'pl-4'} ${
               rightIcon ? 'pr-11' : 'pr-4'
             } ${className}`}
