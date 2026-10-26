@@ -1,0 +1,356 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GuzoMate — Emergency &amp; First Responder Dispatch HUB</title>
+<!-- Fonts: Plus Jakarta Sans & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+Ethiopic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-high": "#e8e8e3",
+            "on-error": "#ffffff",
+            "secondary-container": "#fe932c",
+            "tertiary-container": "#004254",
+            "on-secondary-container": "#663500",
+            "outline-variant": "#c1c8c2",
+            "on-tertiary": "#ffffff",
+            "error": "#ba1a1a",
+            "tertiary-fixed": "#b9eaff",
+            "primary-container": "#1b4332",
+            "on-secondary-fixed-variant": "#6e3900",
+            "primary-fixed-dim": "#a5d0b9",
+            "surface-container-highest": "#e3e3de",
+            "on-primary-fixed-variant": "#274e3d",
+            "on-tertiary-container": "#60b1cf",
+            "on-tertiary-fixed-variant": "#004d62",
+            "on-background": "#1a1c19",
+            "tertiary": "#002b37",
+            "surface-container-lowest": "#ffffff",
+            "surface-variant": "#e3e3de",
+            "on-tertiary-fixed": "#001f29",
+            "inverse-primary": "#a5d0b9",
+            "surface-dim": "#dadad5",
+            "on-primary-container": "#86af99",
+            "on-error-container": "#93000a",
+            "secondary-fixed": "#ffdcc3",
+            "surface-bright": "#fafaf4",
+            "surface-container": "#eeeee9",
+            "inverse-on-surface": "#f1f1ec",
+            "on-primary": "#ffffff",
+            "on-secondary-fixed": "#2f1500",
+            "on-surface": "#1a1c19",
+            "error-container": "#ffdad6",
+            "on-secondary": "#ffffff",
+            "tertiary-fixed-dim": "#81d1f0",
+            "surface-tint": "#3f6653",
+            "inverse-surface": "#2f312e",
+            "primary-fixed": "#c1ecd4",
+            "surface": "#fafaf4",
+            "secondary": "#904d00",
+            "on-primary-fixed": "#002114",
+            "background": "#fafaf4",
+            "surface-container-low": "#f4f4ef",
+            "outline": "#717973",
+            "secondary-fixed-dim": "#ffb77d",
+            "on-surface-variant": "#414844",
+            "primary": "#012d1d"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2.5rem",
+            "margin": "2rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "gutter-sm": "1rem",
+            "gutter": "1.5rem",
+            "margin-sm": "1rem",
+            "space-md": "1rem",
+            "margin-lg": "3.5rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "title-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "label-md": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-lg-mobile": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "label-lg": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "title-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "label-sm": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "title-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-md": ["15px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "title-md": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "display-lg": ["44px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @keyframes radar-pulse {
+      0% { transform: scale(0.95); opacity: 0.9; }
+      50% { transform: scale(1.3); opacity: 0.2; }
+      100% { transform: scale(0.95); opacity: 0.9; }
+    }
+    .radar-beacon {
+      animation: radar-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .hud-grid {
+      background-size: 24px 24px;
+      background-image: 
+        linear-gradient(to right, rgba(27, 67, 50, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(27, 67, 50, 0.05) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-error selection:text-white">
+<!-- TopNavBar (Shared Component from JSON) -->
+<header class="bg-surface dark:bg-surface text-primary dark:text-primary-fixed docked full-width top-0 sticky z-50 border-b border-outline-variant/30 dark:border-outline/20 shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center w-full px-4 lg:px-8 max-w-7xl mx-auto h-16">
+<!-- Brand Logo / Product Anchor -->
+<a class="text-headline-sm font-headline-sm font-bold text-primary dark:text-primary-fixed flex items-center gap-2 group" href="#">
+<!-- Brand Emblem Vector based on Provided Logo -->
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center p-1.5 shadow-sm">
+<svg class="w-full h-full text-white fill-current" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="38" stroke="#fe932c" stroke-dasharray="6 7" stroke-linecap="round" stroke-width="6"></circle>
+<path d="M50 15 L56 42 L83 50 L56 58 L50 85 L44 58 L17 50 L44 42 Z" fill="#ffffff"></path>
+<circle cx="50" cy="50" fill="#fe932c" r="6.5"></circle>
+</svg>
+</div>
+<div class="flex flex-col">
+<span class="leading-none tracking-tight font-extrabold text-primary">GuzoMate</span>
+<span class="text-label-sm font-label-sm text-secondary tracking-wider font-semibold">ጉዞሜት • DISPATCH</span>
+</div>
+</a>
+<!-- Desktop Navigation Links (From JSON) -->
+<nav class="hidden lg:flex items-center gap-7">
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed text-label-md font-label-md" href="#">Home</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed text-label-md font-label-md" href="#">Explore Map</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed text-label-md font-label-md" href="#">Routes</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed text-label-md font-label-md" href="#">Road Incidents</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed text-label-md font-label-md flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px] text-secondary">smart_toy</span>
+          AI Assistant
+        </a>
+</nav>
+<!-- Trailing Cluster -->
+<div class="flex items-center gap-3">
+<!-- Language Switcher Pill -->
+<div class="bg-surface-container-low px-1.5 py-1 rounded-full border border-outline-variant/50 flex items-center gap-1 text-label-sm font-label-sm shadow-inner">
+<button class="bg-surface-container-lowest text-primary font-bold px-2 py-0.5 rounded-full shadow-sm">EN</button>
+<button class="px-1.5 py-0.5 text-on-surface-variant hover:text-primary transition-colors">አማ</button>
+<button class="px-1.5 py-0.5 text-on-surface-variant hover:text-primary transition-colors">OM</button>
+</div>
+<!-- Trailing Primary Action: Emergency Contacts (Active Destination) -->
+<button class="bg-primary-container hover:bg-primary text-white px-3.5 py-2 rounded-full font-label-md text-label-md flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"><span class="material-symbols-outlined text-[18px] text-white" style="font-variation-settings: 'FILL' 1;">emergency</span><span class="font-bold tracking-tight text-white">Emergency Contacts</span></button>
+<!-- Notification Bell Action -->
+<button aria-label="Notifications" class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary-container"></span>
+</button>
+<!-- User Profile Avatar -->
+<div class="flex items-center gap-2 pl-1 border-l border-outline-variant/40">
+<img class="w-9 h-9 rounded-full object-cover border border-outline-variant" data-alt="Portrait photo of Dawit A., an Ethiopian highway traveler wearing a warm highland gabi scarf and fleece jacket, looking confident and focused with the sunlit Entoto mountain ridge softly blurred behind him." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6VkmGXm6VdAKa2tPDM_298NbdHRbUwDsw1GPoWVRj7_ULlkaJM_LJij01M-5gsnr26Y-bpZ0pS1lkEXXvuYmakxoXLHCY5j62KVTQfPmiseGRCPcX_N6R0uIVM5logb8OA9Ue4piMmJsjB8AiQN9liOTioyl6OxjhphOZ3WvvJa1eCO0l4zt_9X9hQdz0J7KWfwz9C2Qw3_-KM4o4Vm4eU61R4DVS1jAR-LwWWDAQr6LVjnBDjkiXgA">
+<div class="hidden xl:flex flex-col text-left">
+<span class="text-label-sm font-label-sm font-bold text-on-surface leading-tight">Dawit A.</span>
+<span class="text-label-sm font-label-sm text-outline leading-tight">Verified Driver</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- SUB-HEADER: Urgent Emergency Telemetry & Global SOS Transmit Strip -->
+<section class="bg-surface-container-low border-b border-primary/20 py-3 px-4 lg:px-8"><div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3"><div class="flex flex-wrap items-center gap-2 text-label-sm font-label-sm"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container text-white font-bold"><span class="w-2 h-2 rounded-full bg-white animate-ping"></span>HIGH DISPATCH ALERT</span><span class="text-on-surface font-semibold">Highland Crisis &amp; Emergency Responder Dispatch Network (የአደጋ ጊዜ ፈጣን ምላሽ ማዕከል)</span><span class="hidden xl:inline text-outline">•</span><span class="hidden xl:inline text-on-surface-variant">Active Escarpment Patrols: <strong>14 Units</strong></span><span class="hidden xl:inline text-outline">•</span><span class="hidden xl:inline text-on-surface-variant">Medevac Helipads: <strong>3 Standby</strong></span><span class="hidden lg:inline text-outline">•</span><span class="hidden lg:inline font-mono bg-surface-container-highest px-2 py-0.5 rounded text-primary">VHF: 156.800 MHz (Amhara Relay)</span></div><div class="flex items-center gap-2 shrink-0"><div class="flex items-center gap-1.5 bg-surface-container-lowest px-3 py-1 rounded-lg border border-outline-variant/50 text-label-sm font-label-sm text-on-surface"><span class="material-symbols-outlined text-primary text-[16px]">my_location</span><span class="font-mono font-medium">9.0478° N, 38.7492° E</span><span class="text-outline font-sans">|</span><span class="text-primary font-bold">2,540m Alt</span><span class="text-outline text-[10px]">±3m</span></div></div></div></section>
+<!-- GLOBAL CRITICAL SOS BEACON HERO BANNER -->
+<section class="bg-primary text-white py-4 px-4 lg:px-8 shadow-md border-b border-primary-container"><div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4"><div class="flex items-center gap-4 text-center lg:text-left"><div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center shrink-0 shadow-lg border border-white/20"><span class="material-symbols-outlined text-[28px] text-white" style="font-variation-settings: 'FILL' 1;">e911_emergency</span></div><div><h1 class="text-title-md font-headline-sm lg:text-headline-md font-bold tracking-tight text-white flex items-center gap-2 justify-center lg:justify-start">Emergency Dispatch &amp; Mountain Rescue HUB<span class="text-surface-container-highest text-title-sm font-normal">| የኢትዮጵያ አደጋ ጊዜ ድጋፍ</span></h1><p class="text-body-sm font-body-sm text-surface-container-highest opacity-90">Immediate military-grade satellite coordination across Addis-Dessie-Mekelle Highway (A2) and mountain escarpments.</p></div></div><div class="flex items-center gap-3 shrink-0 w-full sm:w-auto"><button class="w-full sm:w-auto px-6 py-3.5 rounded-full bg-primary-container hover:bg-primary active:scale-95 transition-all text-white font-title-sm font-headline-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-xl border-2 border-white/30" id="sosTriggerBtn"><span class="material-symbols-outlined text-[22px] text-white animate-pulse" style="font-variation-settings: 'FILL' 1;">crisis_alert</span><span class="text-white font-bold">TRANSMIT LIVE SOS BEACON</span><span class="text-xs font-normal opacity-90 hidden sm:inline text-white">(አፋጣኝ የድረሱልኝ ምልክት)</span></button></div></div></section>
+<!-- MAIN CANVAS: 2-COLUMN SPLIT (60% Dispatch Directory & Triage / 40% Tactical Radar & Altitude Safety) -->
+<main class="max-w-7xl mx-auto w-full px-4 lg:px-8 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- LEFT COLUMN: ~60% (Columns 1 to 7) -->
+<div class="lg:col-span-7 space-y-8">
+<!-- SECTION: Primary Direct Emergency Hotline Dialers (4 Tactical High-Contrast Cards) -->
+<section aria-labelledby="emergency-dial-heading">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h2 class="text-title-md font-headline-sm font-bold text-primary flex items-center gap-2" id="emergency-dial-heading">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">phone_in_talk</span>
+              Priority Direct Dial Directory
+            </h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Toll-free emergency dispatch channels with instant operator localization</p>
+</div>
+<span class="text-label-sm font-label-sm px-2.5 py-1 rounded bg-surface-container-high text-primary font-bold">24/7 Monitored</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Card 1: Federal Police & Escarpment Patrol -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-5 shadow-sm hover:border-primary/50 transition-all flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none"></div>
+<div>
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-primary/10 text-primary font-bold">Escarpment Highway Police</span>
+<span class="text-label-sm font-label-sm text-secondary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">near_me</span> 4.8 km (6m ETA)
+                </span>
+</div>
+<h3 class="text-title-sm font-title-sm font-bold text-on-surface mt-2.5">Federal Highway Police</h3>
+<p class="text-label-sm font-label-sm text-outline">የፌደራል ፖሊስ ፈጣን አደጋ መከላከያ</p>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="text-headline-md font-headline-md font-extrabold text-primary tracking-tight">991</span>
+<span class="text-body-sm font-body-sm text-outline font-mono">+251 11 551 2700</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Assigned: Cruiser Unit 04 • Patrol Sector A2 Legetafo</p>
+</div>
+<a class="mt-5 w-full py-2.5 px-4 rounded-full bg-primary hover:bg-primary-container text-white text-label-md font-label-md font-bold flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-sm" href="tel:991">
+<span class="material-symbols-outlined text-[18px]">call</span>
+              Direct Call 991 (Police)
+            </a>
+</div>
+<!-- Card 2: Ethiopian Red Cross Society -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-5 shadow-sm hover:border-primary/50 transition-all flex flex-col justify-between relative overflow-hidden group"><div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none"></div><div><div class="flex items-center justify-between"><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-primary-container text-white font-bold">Mountain Trauma</span><span class="text-label-sm font-label-sm text-primary font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">local_hospital</span> Alpine Spec</span></div><h3 class="text-title-sm font-title-sm font-bold text-on-surface mt-2.5">Ethiopian Red Cross Society</h3><p class="text-label-sm font-label-sm text-outline">የኢትዮጵያ ቀይ መስቀል ማህበር</p><div class="mt-3 flex items-baseline gap-2"><span class="text-headline-md font-headline-md font-extrabold text-primary-container tracking-tight">922</span><span class="text-body-sm font-body-sm text-outline font-mono">+251 11 515 9074</span></div><p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Severe hypothermia, high-altitude extraction &amp; trauma blood</p></div><a class="mt-5 w-full py-2.5 px-4 rounded-full bg-primary-container hover:bg-primary text-white text-label-md font-label-md font-bold flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-sm" href="tel:922"><span class="material-symbols-outlined text-[18px] text-white">call</span><span class="text-white">Direct Call 922 (Red Cross)</span></a></div>
+<!-- Card 3: National Emergency Medical Ambulance Service -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-5 shadow-sm hover:border-tertiary-container/50 transition-all flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-tertiary-fixed/20 rounded-bl-full pointer-events-none"></div>
+<div>
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-tertiary-fixed text-on-tertiary-fixed font-bold">Level 1 Trauma EMT</span>
+<span class="text-label-sm font-label-sm text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">medical_services</span> O2 Equipped
+                </span>
+</div>
+<h3 class="text-title-sm font-title-sm font-bold text-on-surface mt-2.5">National Ambulance Service</h3>
+<p class="text-label-sm font-label-sm text-outline">የአደጋ ጊዜ ህክምና አምቡላንስ</p>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="text-headline-md font-headline-md font-extrabold text-tertiary tracking-tight">907</span>
+<span class="text-body-sm font-body-sm text-outline font-mono">St. Paul's &amp; Black Lion</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Direct linked ICU transfer for Tikur Anbessa Hospital</p>
+</div>
+<a class="mt-5 w-full py-2.5 px-4 rounded-full bg-tertiary hover:bg-tertiary-container text-white text-label-md font-label-md font-bold flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-sm" href="tel:907">
+<span class="material-symbols-outlined text-[18px]">call</span>
+              Direct Call 907 (Medical)
+            </a>
+</div>
+<!-- Card 4: Heavy Escarpment Winch & Tow Recovery -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-5 shadow-sm hover:border-primary/50 transition-all flex flex-col justify-between relative overflow-hidden group"><div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none"></div><div><div class="flex items-center justify-between"><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-primary/10 text-primary font-bold">Ravine Winch Crew</span><span class="text-label-sm font-label-sm text-primary font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">car_crash</span> Guild 8821</span></div><h3 class="text-title-sm font-title-sm font-bold text-on-surface mt-2.5">Mountain Escarpment Recovery</h3><p class="text-label-sm font-label-sm text-outline">የከባድ መኪና መጎተቻ እና ዊንች</p><div class="mt-3 flex items-baseline gap-2"><span class="text-headline-md font-headline-md font-extrabold text-primary-container tracking-tight">8821</span><span class="text-body-sm font-body-sm text-outline font-mono">+251 91 123 4567</span></div><p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Steep gorge recovery cranes &amp; hydraulic towing rigs</p></div><a class="mt-5 w-full py-2.5 px-4 rounded-full bg-primary-container hover:bg-primary text-white text-label-md font-label-md font-bold flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-sm" href="tel:8821"><span class="material-symbols-outlined text-[18px] text-white">call</span><span class="text-white">Dispatch Tow Rig (8821)</span></a></div>
+</div>
+</section>
+<!-- SECTION: Interactive Emergency Triage & SOS Broadcast Form -->
+<section class="bg-surface-container-lowest border border-outline-variant/70 rounded-2xl p-6 shadow-sm"><div class="flex items-center justify-between border-b border-outline-variant/40 pb-4 mb-5"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined text-[24px]">satellite_alt</span></div><div><h3 class="text-title-md font-title-md font-bold text-on-surface">Live Telemetry &amp; Triage Broadcaster</h3><p class="text-body-sm font-body-sm text-on-surface-variant">Encrypted burst transmission directly to regional highland dispatch hubs</p></div></div><span class="text-label-sm font-label-sm px-2.5 py-1 rounded-full bg-surface-container-high text-primary font-mono">AES-256</span></div><form class="space-y-5" onsubmit="event.preventDefault(); triggerBroadcast();"><div><label class="block text-label-md font-label-md font-bold text-on-surface mb-2">Select Incident Severity / የክስተቱ አሳሳቢነት</label><div class="grid grid-cols-1 md:grid-cols-3 gap-3"><label class="relative flex flex-col p-3.5 border-2 border-primary-container bg-primary/5 rounded-xl cursor-pointer hover:bg-primary/10 transition-all"><div class="flex items-center justify-between mb-1"><span class="text-label-sm font-label-sm font-bold text-primary uppercase tracking-wider">Level 1: Critical</span><input checked="" class="text-primary-container focus:ring-primary" name="triageLevel" type="radio" value="L1"></div><span class="text-title-sm font-title-sm font-bold text-on-surface">Medical / Rollover</span><span class="text-body-sm font-body-sm text-outline">Severe injury, hypothermia, or vehicular cliff hazard</span></label><label class="relative flex flex-col p-3.5 border border-outline-variant/80 bg-surface-container-low rounded-xl cursor-pointer hover:bg-surface-container transition-all"><div class="flex items-center justify-between mb-1"><span class="text-label-sm font-label-sm font-bold text-on-surface uppercase tracking-wider">Level 2: Urgent</span><input class="text-primary-container focus:ring-primary" name="triageLevel" type="radio" value="L2"></div><span class="text-title-sm font-title-sm font-bold text-on-surface">Stranded / Pass Outage</span><span class="text-body-sm font-body-sm text-outline">Mechanical stall at altitude, frozen fuel lines, no heat</span></label><label class="relative flex flex-col p-3.5 border border-outline-variant/80 bg-surface-container-low rounded-xl cursor-pointer hover:bg-surface-container transition-all"><div class="flex items-center justify-between mb-1"><span class="text-label-sm font-label-sm font-bold text-primary uppercase tracking-wider">Level 3: Impasse</span><input class="text-primary focus:ring-primary" name="triageLevel" type="radio" value="L3"></div><span class="text-title-sm font-title-sm font-bold text-on-surface">Landslide / Blockade</span><span class="text-body-sm font-body-sm text-outline">Boulders across roadway, zero bypass available</span></label></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-label-sm font-label-sm font-semibold text-on-surface mb-1">Active Corridor (መተላለፊያ መስመር)</label><div class="relative"><span class="material-symbols-outlined absolute left-3 top-3 text-[20px] text-outline">alt_route</span><input class="w-full pl-10 pr-3 py-2.5 rounded-lg border-outline-variant focus:border-primary focus:ring-primary text-body-sm font-body-sm bg-surface-container-low text-on-surface" readonly="" type="text" value="Addis Ababa - Debre Birhan (A2 Corridor)"></div></div><div><label class="block text-label-sm font-label-sm font-semibold text-on-surface mb-1">Vehicle Specification (ተሽከርካሪ ዓይነት)</label><div class="relative"><span class="material-symbols-outlined absolute left-3 top-3 text-[20px] text-outline">directions_car</span><input class="w-full pl-10 pr-3 py-2.5 rounded-lg border-outline-variant focus:border-primary focus:ring-primary text-body-sm font-body-sm bg-surface-container-low text-on-surface" type="text" value="Toyota Land Cruiser 4WD (Plate AA 3-B9201)"></div></div><div class="md:col-span-2"><label class="block text-label-sm font-label-sm font-semibold text-on-surface mb-1">Occupant Status &amp; Health Telemetry (የተጓዦች ሁኔታ)</label><div class="relative"><span class="material-symbols-outlined absolute left-3 top-3 text-[20px] text-outline">group</span><input class="w-full pl-10 pr-3 py-2.5 rounded-lg border-outline-variant focus:border-primary focus:ring-primary text-body-sm font-body-sm bg-white text-on-surface" type="text" value="4 Occupants (1 elderly with early Acute Mountain Sickness symptoms, conscious, resting in cabin)"></div></div></div><div class="pt-2 flex flex-col sm:flex-row gap-3"><button class="flex-1 py-3 px-6 rounded-full bg-primary-container hover:bg-primary text-white font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all" type="submit"><span class="material-symbols-outlined text-[20px] text-white">cell_tower</span><span class="text-white font-bold">Broadcast Live Coordinates &amp; Telemetry</span></button><button class="py-3 px-5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-primary font-label-md text-label-md flex items-center justify-center gap-2 border border-outline-variant transition-all font-semibold" onclick="alert('SMS coordinates packaged for Ethio Telecom / Telebirr zero-rated bypass!');" type="button"><span class="material-symbols-outlined text-[18px] text-primary">sms</span><span class="text-primary">Zero-Rated SMS Fallback</span></button></div></form></section>
+<!-- SECTION: Offline Highland First Aid & Acute Mountain Sickness (AMS) Protocol -->
+<section class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 shadow-sm"><div class="flex items-center justify-between mb-4"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[24px]">health_and_safety</span><h3 class="text-title-md font-title-md font-bold text-primary">Highland Emergency Protocols (የከፍታና ብርድ የመጀመሪያ እርዳታ)</h3></div><span class="px-2.5 py-1 rounded-full bg-surface-container text-outline text-label-sm font-label-sm font-medium">Cached Offline</span></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col justify-between"><div><div class="flex items-center gap-2 text-primary mb-2"><span class="material-symbols-outlined text-[20px] text-primary">ac_unit</span><span class="font-bold text-label-md font-label-md text-primary">Severe Cold Exposure</span></div><h4 class="font-title-sm text-title-sm font-bold text-on-surface">Highland Thermal Shield</h4><p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Wrap traveler in traditional woolen Gabi or space blanket. Never massage frostbitten limbs; keep cabin ventilated if heater runs.</p></div><div class="mt-3 pt-2 border-t border-outline-variant/30 text-label-sm font-label-sm text-primary font-bold">Target Temp: &gt;35.5°C</div></div><div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col justify-between"><div><div class="flex items-center gap-2 text-primary mb-2"><span class="material-symbols-outlined text-[20px] text-primary">pulmonology</span><span class="font-bold text-label-md font-label-md text-primary">AMS / HAPE Treatment</span></div><h4 class="font-title-sm text-title-sm font-bold text-on-surface">Rapid Descent Rule</h4><p class="text-body-sm font-body-sm text-on-surface-variant mt-1">If shortness of breath occurs at rest, immediately descend at least 500m toward Sheno or Addis. Administer portable O2 canister at 4L/min.</p></div><div class="mt-3 pt-2 border-t border-outline-variant/30 text-label-sm font-label-sm text-primary font-bold">Descent &gt; Altitude Medication</div></div><div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col justify-between"><div><div class="flex items-center gap-2 text-primary mb-2"><span class="material-symbols-outlined text-[20px] text-primary">warning</span><span class="font-bold text-label-md font-label-md text-primary">Curvature Safety</span></div><h4 class="font-title-sm text-title-sm font-bold text-on-surface">Escarpment Triangles</h4><p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Place dual reflective warning triangles at least 100m prior to your stalled vehicle on blind highland mountain corners to prevent freight collisions.</p></div><div class="mt-3 pt-2 border-t border-outline-variant/30 text-label-sm font-label-sm text-primary font-bold">100m Offset Distance</div></div></div></section>
+<!-- SECTION: Verified Highland First-Responder Testimonial & Guild Verification -->
+<div class="bg-surface-container-low border border-outline-variant/50 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4">
+<img class="w-16 h-16 rounded-full object-cover border-2 border-primary shrink-0" data-alt="Close up photograph of a veteran Ethiopian paramedic sergeant from the Ethiopian Red Cross in reflective emergency tactical uniform, holding a high-frequency field radio handset against the backdrop of the misty Semien escarpment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzrFCW80qB9oG27-jnOCGp9R6r9CuV42-XyBJcQpTVfYnmhsD6yRsZQlUAbP0P0oZw8gMxZ9k2OyoE0VBiKb4z5Lsba3oZqQpgdVlEuvflv0ryU7uZ99wrg0mKo6xd8bV69refUKq7lNPPWKM2ZjQDldfirYvp4XWk3x3-jjlindlmVHoPO0PEmdGNxsP4vggGPD4tpzYlBO-DGMrJndoPuKPpXyJS87DjnbAYmOx2x_O7ZiwZlhUsYg">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-title-sm text-title-sm font-bold text-primary">Lt. Fikru Tadesse</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-label-sm font-label-sm font-bold">Sheno Sector Commander</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant italic">
+            "Every second saved on the Debre Birhan escarpment saves lives when mountain fog rolls in. Broadcasting your precise telemetry through GuzoMate allows our 4WD patrol rigs to bring oxygen vaults directly to your bumper."
+          </p>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: ~40% (Columns 8 to 12) -->
+<div class="lg:col-span-5 space-y-6">
+<!-- TACTICAL LIVE RESPONDER RADAR HUD MAP -->
+<section class="bg-surface-container-lowest border border-outline-variant/70 rounded-2xl p-5 shadow-sm overflow-hidden flex flex-col"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[22px]">radar</span><h3 class="text-title-md font-title-md font-bold text-primary">Live Responder Radar</h3></div><div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span><span class="text-label-sm font-label-sm font-mono text-outline font-medium">GPS LOCK</span></div></div><div class="relative w-full h-80 rounded-xl bg-surface-container border border-outline-variant overflow-hidden hud-grid flex items-center justify-center"><div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-multiply" data-alt="Topographic satellite view of the Ethiopian highlands along the winding Addis Ababa to Debre Birhan mountain corridor, showing rugged mountain ridges, canyon gorges, highway ribbon lines, and elevation contours under bright daylight." data-location="Ethiopia" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAJRMUCGGEEs6XlVjhtta_XJuyfn_T1IbAzLU8KbP6m7ukmOUAWnCKJAFIO2oL5p-oqF_zNKyH-cz2Z8OqKH6t2QDKuHt9vCvS3wjSO2gwm43CRt5VlcozB9-efbZVOz5na7C1hRidX0dj8OUdjinOrtLU3exhOufmmu2vjaz2fEi_wWdk5gMptZ6AzMJZ3lVKzf_uFKC5AgCWCVOWuL_cXhgLH9vzUf016nlu1-ootuPWEsN1MiwGsvw')"></div><div class="absolute w-64 h-64 rounded-full border border-primary/20 pointer-events-none"></div><div class="absolute w-44 h-44 rounded-full border border-primary/30 pointer-events-none"></div><div class="absolute w-24 h-24 rounded-full border border-primary/40 pointer-events-none"></div><span class="absolute top-2 font-mono text-[10px] text-outline font-bold">N (38.7492° E)</span><span class="absolute bottom-2 font-mono text-[10px] text-outline font-bold">S</span><span class="absolute left-2 font-mono text-[10px] text-outline font-bold">W</span><span class="absolute right-2 font-mono text-[10px] text-outline font-bold">E</span><div class="relative z-10 flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center shadow-lg relative"><span class="material-symbols-outlined text-[18px] text-white" style="font-variation-settings: 'FILL' 1;">person_pin_circle</span><span class="absolute -inset-2 rounded-full border-2 border-primary-container radar-beacon"></span></div><div class="mt-1 bg-surface-container-lowest/95 backdrop-blur-sm border border-outline-variant px-2 py-0.5 rounded shadow text-center"><p class="text-label-sm font-label-sm font-bold text-primary">YOU (Km 42.6)</p><p class="text-[10px] font-mono text-on-surface">2,540m • Legetafo Pass</p></div></div><div class="absolute top-10 right-12 flex flex-col items-center z-10"><div class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow"><span class="material-symbols-outlined text-[14px]">ambulance</span></div><div class="bg-surface-container-lowest/90 px-1.5 py-0.5 rounded shadow text-[10px] font-bold text-primary mt-0.5">EMT #12 (11m ETA)</div></div><div class="absolute bottom-12 left-16 flex flex-col items-center z-10"><div class="w-7 h-7 rounded-full bg-primary-container text-white flex items-center justify-center shadow"><span class="material-symbols-outlined text-[14px]">local_police</span></div><div class="bg-surface-container-lowest/90 px-1.5 py-0.5 rounded shadow text-[10px] font-bold text-primary mt-0.5">Patrol 04 (6m ETA)</div></div><div class="absolute top-20 left-10 flex flex-col items-center z-10"><div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow"><span class="material-symbols-outlined text-[12px]">add</span></div><div class="bg-surface-container-lowest/90 px-1.5 py-0.5 rounded shadow text-[9px] font-bold text-primary mt-0.5">Sheno Rescue Base</div></div><div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-sm border border-outline-variant/60 rounded px-2.5 py-1 text-label-sm font-label-sm font-mono text-on-surface shadow-sm">Zoom: 1:25,000 | Grid: UTM 37P</div></div><div class="mt-3 flex items-center gap-2 overflow-x-auto pb-1 text-label-sm font-label-sm"><button class="px-2.5 py-1 rounded-full bg-primary-container text-white font-medium flex items-center gap-1 shrink-0"><span class="material-symbols-outlined text-[14px]">check</span> Helipads (3)</button><button class="px-2.5 py-1 rounded-full bg-surface-container-high hover:bg-surface-container text-on-surface font-medium flex items-center gap-1 shrink-0"><span class="material-symbols-outlined text-[14px]">air</span> Oxygen Vaults</button><button class="px-2.5 py-1 rounded-full bg-surface-container-high hover:bg-surface-container text-on-surface font-medium flex items-center gap-1 shrink-0"><span class="material-symbols-outlined text-[14px]">build</span> Guild Depots</button></div><div class="mt-4 border-t border-outline-variant/40 pt-3 space-y-2"><div class="flex items-center justify-between text-body-sm font-body-sm p-2 rounded-lg bg-surface-container-low"><div class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-container"></span><div><p class="font-bold text-on-surface leading-tight">Highway Patrol 4WD Cruiser 04</p><p class="text-label-sm font-label-sm text-outline">Equipped: Heavy winch, first aid, Satcom</p></div></div><span class="text-label-sm font-label-sm font-bold text-primary font-mono">6 min ETA</span></div><div class="flex items-center justify-between text-body-sm font-body-sm p-2 rounded-lg bg-surface-container-low"><div class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary"></span><div><p class="font-bold text-on-surface leading-tight">Ambulance Unit #12 (Highland EMT)</p><p class="text-label-sm font-label-sm text-outline">Equipped: 2,000L O2, portable defibrillator</p></div></div><span class="text-label-sm font-label-sm font-bold text-primary font-mono">11 min ETA</span></div></div></section>
+<!-- AIR AMBULANCE & MEDEVAC HELIPAD NETWORK -->
+<section class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-5 shadow-sm"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[22px]">flight_takeoff</span><h3 class="text-title-sm font-title-sm font-bold text-primary">Air Ambulance / Helipad Network</h3></div><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-primary-container text-white font-bold">VFR Clear</span></div><p class="text-body-sm font-body-sm text-on-surface-variant mb-3">Certified mountain extraction pads with all-weather lighting and immediate trauma transfer to Addis Ababa.</p><div class="space-y-2.5"><div class="flex items-center justify-between p-2.5 rounded-lg border border-outline-variant/40 bg-surface-container-low"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-[20px]">helicopter</span><div><p class="font-bold text-body-sm font-body-sm text-on-surface">Entoto Natural Park Helipad (ENT-01)</p><p class="text-label-sm font-label-sm text-outline">14 km Southwest • 2,900m MSL</p></div></div><span class="text-label-sm font-label-sm font-bold text-primary">Standby</span></div><div class="flex items-center justify-between p-2.5 rounded-lg border border-outline-variant/40 bg-surface-container-low"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-[20px]">helicopter</span><div><p class="font-bold text-body-sm font-body-sm text-on-surface">Debre Birhan Referral Hospital Helipad (DBH)</p><p class="text-label-sm font-label-sm text-outline">48 km Northeast • 2,840m MSL</p></div></div><span class="text-label-sm font-label-sm font-bold text-primary">Standby</span></div></div></section>
+<!-- IMMEDIATE VERBAL EMERGENCY TRANSLATION CARD (TRILINGUAL PARITY) -->
+<section class="bg-primary text-white rounded-2xl p-5 shadow-sm relative overflow-hidden"><div class="flex items-center justify-between mb-3 border-b border-primary-container pb-2"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-surface-container-highest text-[20px]">translate</span><h3 class="text-title-sm font-title-sm font-bold text-white">Emergency Flashcards (የድንገተኛ ቋንቋ ካርድ)</h3></div><span class="text-label-sm font-label-sm bg-primary-container px-2 py-0.5 rounded text-white font-semibold">Show to First Responders</span></div><div class="space-y-3"><div class="bg-primary-container/80 p-3 rounded-xl border border-white/10"><span class="text-label-sm font-label-sm uppercase tracking-wider text-surface-container-highest font-bold">English</span><p class="text-body-md font-body-md font-semibold text-white mt-0.5">"I need immediate emergency medical oxygen and heavy tow assistance."</p></div><div class="bg-primary-container/80 p-3 rounded-xl border border-white/10"><span class="text-label-sm font-label-sm uppercase tracking-wider text-surface-container-highest font-bold">አማርኛ (Amharic)</span><p class="text-body-lg font-body-lg font-bold text-white mt-0.5">"አፋጣኝ የህክምና ኦክስጅን እና የመኪና መጎተቻ እርዳታ እፈልጋለሁ።"</p></div><div class="bg-primary-container/80 p-3 rounded-xl border border-white/10"><span class="text-label-sm font-label-sm uppercase tracking-wider text-surface-container-highest font-bold">Afaan Oromoo</span><p class="text-body-md font-body-md font-semibold text-white mt-0.5">"Gargaarsa oksijiinii yaalaa fi konkolaataa harkisuu hatattamaa nan barbaada."</p></div></div><button class="mt-4 w-full py-2.5 rounded-full bg-primary-container hover:bg-white hover:text-primary text-white font-label-md text-label-md font-bold flex items-center justify-center gap-2 transition-colors border border-white/20" onclick="playEmergencyAudio()"><span class="material-symbols-outlined text-[18px]">volume_up</span><span class="">Play Verbal Highland Distress Audio Loop</span></button></section>
+<!-- WEATHER & ALTITUDE WIDGET -->
+<section class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-4 shadow-sm flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[28px] text-primary">airware</span></div><div><div class="flex items-center gap-1.5"><span class="text-headline-sm font-headline-sm font-bold text-on-surface">11°C</span><span class="text-label-sm font-label-sm text-outline">Highland Chill</span></div><p class="text-label-sm font-label-sm text-on-surface-variant font-mono">Dew point 4°C • Baro: 746 hPa</p></div></div><div class="text-right max-w-[170px]"><span class="px-2 py-0.5 rounded-full bg-primary-container text-white text-[10px] font-bold uppercase">Apparel Alert</span><p class="text-body-sm font-body-sm text-on-surface mt-1 leading-tight font-medium">Gabi / warm woolen shawl strictly recommended for evening chill.</p></div></section>
+</div>
+</main>
+<!-- SOS Confirmation Modal / Overlay -->
+<div class="hidden fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center p-4" id="sosModal"><div class="bg-surface-container-lowest border border-primary-container/50 max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4"><div class="w-14 h-14 rounded-full bg-primary-container text-white flex items-center justify-center mx-auto radar-beacon"><span class="material-symbols-outlined text-[32px] text-white">crisis_alert</span></div><div class="text-center"><h3 class="text-headline-sm font-headline-sm font-bold text-on-surface">Emergency Beacon Transmitted</h3><p class="text-label-sm font-label-sm text-primary font-semibold uppercase tracking-wider mt-0.5">የአደጋ ጊዜ ጥሪ ተልኳል</p><p class="text-body-sm font-body-sm text-on-surface-variant mt-2">Your precise coordinate <strong class="font-mono text-primary">9.0478° N, 38.7492° E</strong> has been acknowledged by Federal Highway Patrol Unit 04 and Sheno Red Cross Dispatch. Maintain cabin heat and place warning triangles.</p></div><div class="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/40 space-y-1.5 text-body-sm font-body-sm"><div class="flex justify-between"><span class="text-outline">Assigned Lead:</span><span class="font-bold text-primary">Patrol Unit 04 (4.8 km away)</span></div><div class="flex justify-between"><span class="text-outline">Estimated Intercept:</span><span class="font-bold text-primary font-mono">5 - 7 Minutes</span></div><div class="flex justify-between"><span class="text-outline">Radio Frequency:</span><span class="font-mono text-on-surface font-semibold">156.800 MHz</span></div></div><div class="pt-2 flex gap-3"><a class="flex-1 py-3 rounded-full bg-primary-container text-white text-center font-label-md text-label-md font-bold hover:bg-primary transition-colors" href="tel:991">Direct Call 991</a><button class="py-3 px-5 rounded-full bg-surface-container-high hover:bg-surface-container text-primary font-label-md text-label-md font-bold transition-colors" onclick="closeSosModal()">Close Window</button></div></div></div>
+<!-- Footer (Shared Component from JSON) -->
+<footer class="bg-surface-container-low dark:bg-surface-container-lowest text-primary dark:text-primary-fixed w-full mt-auto border-t border-outline-variant/40 dark:border-outline/20">
+<div class="max-w-7xl mx-auto px-4 lg:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
+<!-- Brand Logo / Copyright Column -->
+<div class="flex flex-col items-center md:items-start text-center md:text-left gap-1">
+<div class="text-title-md font-title-md font-bold text-primary dark:text-primary-fixed flex items-center gap-2">
+<div class="w-6 h-6 rounded-md bg-primary flex items-center justify-center p-0.5">
+<svg class="w-full h-full text-white fill-current" viewBox="0 0 100 100">
+<path d="M50 15 L56 42 L83 50 L56 58 L50 85 L44 58 L17 50 L44 42 Z" fill="#ffffff"></path>
+</svg>
+</div>
+          GuzoMate
+        </div>
+<p class="text-body-sm font-body-sm text-on-surface-variant max-w-md">
+          © 2024 GuzoMate Ethiopia — Verified Highland Travel Intelligence. Latin, አማርኛ &amp; Afaan Oromo parity.
+        </p>
+</div>
+<!-- Links Cluster (from JSON) -->
+<nav class="flex flex-wrap items-center justify-center md:justify-end gap-x-6 gap-y-2 text-label-sm font-label-sm"><a class="text-on-surface-variant hover:text-primary transition-colors font-bold text-primary" href="tel:991">Police 991</a><a class="text-on-surface-variant hover:text-primary transition-colors font-bold text-primary" href="tel:907">Medical 907</a><a class="text-on-surface-variant hover:text-primary transition-colors font-bold text-primary" href="tel:922">Red Cross 922</a><a class="text-primary underline font-semibold" href="#">Emergency Dial</a><a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Road Verification Guild</a><a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a></nav>
+</div>
+</footer>
+<!-- Micro-Interactions Script -->
+<script>
+    const sosTriggerBtn = document.getElementById('sosTriggerBtn');
+    const sosModal = document.getElementById('sosModal');
+
+    function openSosModal() {
+      if (sosModal) sosModal.classList.remove('hidden');
+    }
+
+    function closeSosModal() {
+      if (sosModal) sosModal.classList.add('hidden');
+    }
+
+    function triggerBroadcast() {
+      openSosModal();
+    }
+
+    if (sosTriggerBtn) {
+      sosTriggerBtn.addEventListener('click', () => {
+        openSosModal();
+      });
+    }
+
+    function playEmergencyAudio() {
+      if ('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance("Emergency request transmitted. Highland patrol unit is en route. Remain inside vehicle.");
+        msg.rate = 0.9;
+        window.speechSynthesis.speak(msg);
+      } else {
+        alert("Audio prompt: 'Emergency assist dispatched to 9.0478° N, 38.7492° E.'");
+      }
+    }
+  </script>
+
+
+</body></html>

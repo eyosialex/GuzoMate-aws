@@ -1,0 +1,544 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GuzoMate — Verified Highland Travel Intelligence</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary": "#ffffff",
+            "on-surface": "#1a1c19",
+            "on-primary-fixed-variant": "#274e3d",
+            "outline": "#717973",
+            "error": "#ba1a1a",
+            "surface-variant": "#e3e3de",
+            "surface-tint": "#3f6653",
+            "on-primary-fixed": "#002114",
+            "on-primary-container": "#86af99",
+            "tertiary-fixed": "#b9eaff",
+            "on-primary": "#ffffff",
+            "surface-container-highest": "#e3e3de",
+            "primary-container": "#1b4332",
+            "secondary-container": "#fe932c",
+            "surface": "#fafaf4",
+            "outline-variant": "#c1c8c2",
+            "on-tertiary-fixed-variant": "#004d62",
+            "on-tertiary-container": "#60b1cf",
+            "secondary-fixed": "#ffdcc3",
+            "tertiary-fixed-dim": "#81d1f0",
+            "primary-fixed": "#c1ecd4",
+            "surface-dim": "#dadad5",
+            "tertiary-container": "#004254",
+            "inverse-surface": "#2f312e",
+            "background": "#fafaf4",
+            "on-tertiary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-surface-variant": "#414844",
+            "on-tertiary-fixed": "#001f29",
+            "on-secondary-container": "#663500",
+            "on-secondary-fixed-variant": "#6e3900",
+            "surface-container-lowest": "#ffffff",
+            "tertiary": "#002b37",
+            "surface-container-high": "#e8e8e3",
+            "on-error-container": "#93000a",
+            "on-background": "#1a1c19",
+            "on-secondary-fixed": "#2f1500",
+            "primary": "#012d1d",
+            "surface-container": "#eeeee9",
+            "primary-fixed-dim": "#a5d0b9",
+            "secondary-fixed-dim": "#ffb77d",
+            "inverse-on-surface": "#f1f1ec",
+            "inverse-primary": "#a5d0b9",
+            "on-error": "#ffffff",
+            "secondary": "#904d00",
+            "surface-container-low": "#f4f4ef",
+            "surface-bright": "#fafaf4"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "margin-lg": "3.5rem",
+            "space-xl": "2.5rem",
+            "space-xs": "0.25rem",
+            "gutter": "1.5rem",
+            "gutter-sm": "1rem",
+            "space-lg": "1.5rem",
+            "margin-sm": "1rem",
+            "margin": "2rem"
+          },
+          "fontFamily": {
+            "title-md": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "display-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "label-sm": ["Inter", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "sans-serif"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "sans-serif"],
+            "title-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "label-lg": ["Inter", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-lg-mobile": ["Plus Jakarta Sans", "sans-serif"],
+            "label-md": ["Inter", "sans-serif"]
+          },
+          "fontSize": {
+            "title-md": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "display-lg": ["44px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "title-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "body-sm": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["15px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    
+    /* Keyframe Animations for Ethiopian Highlands Modern Organic Motion */
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.15); opacity: 0.4; }
+    }
+    @keyframes radarSweep {
+      0% { stroke-dashoffset: 240; }
+      100% { stroke-dashoffset: 0; }
+    }
+    @keyframes routeFlow {
+      0% { stroke-dashoffset: 100; }
+      100% { stroke-dashoffset: 0; }
+    }
+    @keyframes floatGentle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    
+    .animate-radar-dot {
+      animation: pulseGlow 2.8s ease-in-out infinite;
+    }
+    .animate-route-path {
+      stroke-dasharray: 8 6;
+      animation: routeFlow 12s linear infinite;
+    }
+    .animate-float-card {
+      animation: floatGentle 5s ease-in-out infinite;
+    }
+    
+    /* Custom Scrollbar for verified places */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TOP APP BAR (Shared Components JSON Anchor) -->
+<header class="bg-surface dark:bg-surface border-b border-outline-variant/30 dark:border-outline/20 shadow-sm dark:shadow-none docked full-width top-0 sticky z-50 backdrop-blur-md bg-opacity-95">
+<div class="flex justify-between items-center w-full px-4 lg:px-8 max-w-7xl mx-auto h-16">
+<!-- Brand Logo & Identity -->
+<a class="text-headline-sm font-headline-sm font-bold text-primary dark:text-primary-fixed flex items-center gap-2.5 group" href="#">
+<img alt="GuzoMate Brand Logo" class="w-9 h-9 object-contain rounded-lg transition-transform duration-200 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AEtjO1VcEfUYE5mxHAzav0ixks-O6oRd7oESuXBrZn4cd4KPtZqiyRR8MI8YhTO9rwbYc_piP86jVO1cd6rd7oF8wWlrdBaXKgN7guiILIAkMfW0mp_3SG-lJmXKYIvH2gu0TRhIUa0P7lbetnCh64pycmXjhGbuhXZWA4Yv-uhPpd8r71qxwjqxahev6I1oF8U6-5zq4gBmExcV7nxKVyK249hUJnnZTa4714vvhRluezP0RjQjdb3nzwxl9SkH">
+<span class="tracking-tight text-primary font-extrabold">GuzoMate</span>
+<span class="hidden sm:inline-flex items-center px-2 py-0.5 text-label-sm font-label-sm bg-primary-container/10 text-primary-container border border-primary-container/20 rounded-md">
+          Ethiopia
+        </span>
+</a>
+<!-- Desktop Navigation Links -->
+<nav class="hidden md:flex items-center space-x-7 text-label-md font-label-md">
+<!-- Exact match for Home (Active item) -->
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1 active:scale-95 transition-transform duration-100 flex items-center gap-1" href="#">
+<span class="">Home</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed duration-150 flex items-center gap-1" href="#explore-map">
+<span class="">Explore Map</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed duration-150 flex items-center gap-1" href="#transit-routes">
+<span class="">Routes</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed duration-150 flex items-center gap-1.5" href="#road-incidents">
+<span class="">Road Incidents</span>
+<span class="bg-primary-container text-white text-[10px] font-bold px-1.5 py-0.2 border border-primary rounded">3 new</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed duration-150 flex items-center gap-1" href="#ai-assistant">
+<span class="material-symbols-outlined text-sm text-primary" style="font-size: 16px;">auto_awesome</span>
+<span class="">AI Assistant</span>
+</a>
+</nav>
+<!-- Trailing Action Hub: Language Switcher, Emergency, Notifications & Profile Avatar -->
+<div class="flex items-center space-x-3">
+<!-- Multilingual Equality Selector (EN / አማ / OM) -->
+<div class="hidden lg:flex items-center bg-surface-container p-1 border border-outline-variant/40 rounded-lg" id="lang-selector">
+<button class="px-2.5 py-1 text-label-sm font-label-sm bg-surface-container-lowest text-primary font-bold shadow-sm transition-all rounded-md" title="English">EN</button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm text-on-surface-variant hover:text-primary transition-all rounded-md" title="Amharic">አማ</button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm text-on-surface-variant hover:text-primary transition-all rounded-md" title="Afaan Oromo">OM</button>
+</div>
+<!-- Emergency Contacts Quick Pill -->
+<a class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm bg-primary-container text-white hover:bg-primary transition-colors duration-150 border border-primary rounded-lg" href="#emergency-section"><span class="material-symbols-outlined text-[16px] text-white">emergency</span><span class="font-semibold">Emergency Contacts</span></a>
+<!-- Notification Bell with Ping -->
+<button aria-label="Notifications" class="relative p-2 hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors focus:outline-none rounded-lg">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary-container ring-2 ring-surface"></span>
+</button>
+<!-- User Profile Avatar -->
+<button class="flex items-center gap-2 p-1 pl-1.5 pr-2.5 hover:bg-surface-container border border-outline-variant/40 transition-colors rounded-lg">
+<img alt="User traveler profile avatar" class="w-7 h-7 object-cover border border-primary-container/30 rounded-md" data-alt="Highland Ethiopian traveler portrait wearing modern adventure attire and warm cotton scarf, smiling gently with soft outdoor natural mountain sunlight and green backdrop in high-end editorial photo style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaPROeZ_vUvdDzkgPlJlrCnSYv07o5xvS8VwrlWnXymhc3ncP8PQHpOGdHGANXP1sUqzXTNg5vYUO5tqUjS4lnjEgJrslSEz8_L_-QG_TK7OsO25IvSRZR-T-mxSb1ISAzU_Zqr30E914pzOWrfz5t3CDB1M03dVVCgKRgcc01VOg-tO3GID-VNgJ6F4gj2os6AHGuQu2J24KBNzByjNtb_zh2OuOGn0medJhh6pwMhf7VtTANBz61OQ">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="flex-grow">
+<!-- 1. HERO SECTION WITH CINEMATIC BACKDROP & REAL-TIME SEARCH COMPONENT -->
+<section class="relative min-h-[640px] lg:min-h-[720px] flex items-center justify-center overflow-hidden">
+<!-- Highland Landscape Hero Visual https://lh3.googleusercontent.com/aida-public/AB6AXuAgT8lH_YSBARG0TTQDz0uk-0V6M16Y8ascQrxzoCcCkGLX4QCHcDN98jWIk0yNUg2huOef4O-iXhnrqIz1QsVBcryqmUbOBa-aE_1EEU7WcX-0YAnKapMtDS2eILfW6Vwlp5IxCEWClzZSs2ahH-Ai2QqCyQOgLTDljfWNdVY03v7MC0Ky0RcFqBH5wk3_aXC4yDlFtRjQCg9rndxoJQzD_fguLTIeAIM15TMFnNd8pjBY7el9MNBSxA -->
+<div class="absolute inset-0 z-0">
+<img alt="Cinematic panoramic view of the Ethiopian highlands with winding asphalt mountain pass, green forested hills, misty morning light, and distant Simien-style rock formations." class="w-full h-full object-cover object-center scale-105 filter brightness-[0.92] transition-transform duration-1000 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgT8lH_YSBARG0TTQDz0uk-0V6M16Y8ascQrxzoCcCkGLX4QCHcDN98jWIk0yNUg2huOef4O-iXhnrqIz1QsVBcryqmUbOBa-aE_1EEU7WcX-0YAnKapMtDS2eILfW6Vwlp5IxCEWClzZSs2ahH-Ai2QqCyQOgLTDljfWNdVY03v7MC0Ky0RcFqBH5wk3_aXC4yDlFtRjQCg9rndxoJQzD_fguLTIeAIM15TMFnNd8pjBY7el9MNBSxA">
+<!-- Gradient Overlay: Deep forest green (#1B4332) to warm amber (#fe932c) atmospheric balance -->
+<div class="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/60 to-primary/30 mix-blend-multiply"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-primary-container/85 via-transparent to-secondary-container/20"></div>
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-100/10 via-transparent to-black/40"></div>
+</div>
+<!-- Hero Atmospheric Content Container -->
+<div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center flex flex-col items-center">
+<!-- Verified Travel Intelligence Badge -->
+<div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-surface-container-lowest/90 backdrop-blur-md border border-white/20 text-primary mb-6 shadow-md animate-fade-in rounded-lg"><span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span><span class="text-label-sm font-label-sm uppercase tracking-wider text-primary font-bold">Verified Highland Travel Intelligence</span><span class="text-outline-variant">•</span><span class="text-label-sm font-label-sm text-primary font-semibold">Live Route Radar Active</span></div>
+<!-- Main Headlines -->
+<h1 class="text-display-lg-mobile md:text-display-lg font-display-lg text-white mb-4 tracking-tight drop-shadow-sm font-extrabold max-w-4xl">
+          Explore with confidence.
+        </h1>
+<p class="text-body-md md:text-body-lg font-body-lg text-white/90 max-w-2xl mb-8 leading-relaxed font-normal drop-shadow">
+          Discover places nearby, plan your journey, and get trusted travel guidance in your language.
+        </p>
+<!-- Primary & Secondary Interactive Action CTAs -->
+<div class="flex flex-wrap items-center justify-center gap-4 mb-10">
+<a class="inline-flex items-center gap-2.5 px-6 py-3.5 bg-primary-container text-white font-title-sm text-title-sm hover:bg-[#133E2C] transition-all duration-200 shadow-lg hover:shadow-primary/30 active:scale-95 border border-white/10 group rounded-xl" href="#explore-map">
+<span class="material-symbols-outlined text-secondary-fixed transition-transform group-hover:rotate-45" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="">Explore nearby</span>
+</a>
+<a class="inline-flex items-center gap-2.5 px-6 py-3.5 bg-surface-container-lowest/95 backdrop-blur-md text-primary font-title-sm text-title-sm hover:bg-white transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 border border-outline-variant/30 group rounded-xl" href="#ai-assistant">
+<span class="material-symbols-outlined text-secondary transition-transform group-hover:scale-110" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="">Ask GuzoMate</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant font-medium bg-surface-container px-2 py-0.5 ml-1 rounded-md">AI</span>
+</a>
+</div>
+<!-- Prominent Floating Search Hub (Tier 2 Elevation) -->
+<div class="w-full max-w-3xl bg-surface-container-lowest/98 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-2xl border border-white/40 text-left transition-all">
+<!-- Search Header with Geolocation Trigger -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-outline-variant/20">
+<label class="text-label-md font-label-md text-primary font-bold flex items-center gap-1.5" for="destination-search">
+<span class="material-symbols-outlined text-primary text-[18px]">near_me</span>
+<span class="">Where do you want to go?</span>
+</label>
+<button class="inline-flex items-center gap-1.5 text-label-sm font-label-sm text-white hover:bg-primary transition-colors bg-primary-container px-2.5 py-1 group rounded-lg"><span class="material-symbols-outlined text-[15px] group-hover:animate-spin text-white">my_location</span><span class="">Use current location — Bole, Addis Ababa</span></button>
+</div>
+<!-- Input Bar with Search Action Button -->
+<div class="relative flex items-center mb-4">
+<span class="material-symbols-outlined absolute left-4 text-outline text-[22px]">search</span>
+<input class="w-full pl-12 pr-32 py-3.5 bg-surface-container-low text-on-surface placeholder:text-outline rounded-xl border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md font-body-md" id="destination-search" placeholder="Search towns, mountain passes, medical centers, rest stops..." type="text">
+<button class="absolute right-2 px-5 py-2 rounded-lg bg-primary text-white font-title-sm text-title-sm hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="">Find</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<!-- Instant Category Filter Chips -->
+<div class="flex items-center gap-2 overflow-x-auto hide-scrollbar pt-1 pb-1"><span class="text-label-sm font-label-sm text-on-surface-variant font-medium whitespace-nowrap mr-1">Quick Filters:</span><button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm bg-surface-container text-on-surface hover:bg-primary hover:text-white transition-all whitespace-nowrap border border-outline-variant/40 rounded-lg"><span class="material-symbols-outlined text-[16px] text-primary-container">local_hospital</span><span class="">Hospitals</span></button><button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm bg-surface-container text-on-surface hover:bg-primary hover:text-white transition-all whitespace-nowrap border border-outline-variant/40 rounded-lg"><span class="material-symbols-outlined text-[16px] text-primary-container">restaurant</span><span class="">Restaurants</span></button><button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm bg-surface-container text-on-surface hover:bg-primary hover:text-white transition-all whitespace-nowrap border border-outline-variant/40 rounded-lg"><span class="material-symbols-outlined text-[16px] text-primary-container">hotel</span><span class="">Hotels</span></button><button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm bg-surface-container text-on-surface hover:bg-primary hover:text-white transition-all whitespace-nowrap border border-outline-variant/40 rounded-lg"><span class="material-symbols-outlined text-[16px] text-primary-container">local_gas_station</span><span class="">Fuel stations</span></button><button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm bg-surface-container text-on-surface hover:bg-primary hover:text-white transition-all whitespace-nowrap border border-outline-variant/40 rounded-lg"><span class="material-symbols-outlined text-[16px] text-primary-container">medication</span><span class="">Pharmacies</span></button><button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm bg-surface-container text-on-surface hover:bg-primary hover:text-white transition-all whitespace-nowrap border border-outline-variant/40 rounded-lg"><span class="material-symbols-outlined text-[16px] text-primary-container">atm</span><span class="">ATM / Banks</span></button></div>
+</div>
+</div>
+<!-- Subtle Bottom Transition Wave to Organic Canvas -->
+<div class="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-surface to-transparent pointer-events-none"></div>
+</section>
+<!-- 2. QUICK ACTIONS HUB (Bento Grid Style - 4 Distinct Cards) -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 -mt-8 relative z-20 mb-16">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"><a class="group bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between" href="#explore-map"><div><div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary-container group-hover:text-white transition-colors duration-200"><span class="material-symbols-outlined text-2xl">local_convenience_store</span></div><h2 class="text-title-md font-title-md text-on-surface font-bold mb-1 group-hover:text-primary transition-colors">Find Nearby Services</h2><p class="text-body-sm font-body-sm text-on-surface-variant leading-relaxed">Verified emergency health facilities, roadside dining, highland lodges, and guaranteed fuel points.</p></div><div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-label-sm font-label-sm font-bold text-primary"><span class="">Scan 15km perimeter</span><span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">chevron_right</span></div></a><a class="group bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between" href="#transit-routes"><div><div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary-container group-hover:text-white transition-colors duration-200"><span class="material-symbols-outlined text-2xl">alt_route</span></div><h2 class="text-title-md font-title-md text-on-surface font-bold mb-1 group-hover:text-primary transition-colors">Plan Route &amp; Transit</h2><p class="text-body-sm font-body-sm text-on-surface-variant leading-relaxed">Addis Ababa Sheger &amp; Anbessa bus corridors, Sheger train links, plus national toll highway updates.</p></div><div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-label-sm font-label-sm font-bold text-primary"><span class="">View transit timelines</span><span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">chevron_right</span></div></a><a class="group bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between" href="#ai-assistant"><div><div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary-container group-hover:text-white transition-colors duration-200"><span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">smart_toy</span></div><h2 class="text-title-md font-title-md text-on-surface font-bold mb-1 group-hover:text-primary transition-colors flex items-center gap-1.5"><span class="">Ask GuzoMate AI</span><span class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">Multilingual</span></h2><p class="text-body-sm font-body-sm text-on-surface-variant leading-relaxed">Multilingual real-time assistant fluent in Latin, አማርኛ, and Afaan Oromo with offline cached answers.</p></div><div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-label-sm font-label-sm font-bold text-primary"><span class="">Start conversation</span><span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">chevron_right</span></div></a><a class="group bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between" href="#road-incidents"><div><div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary-container group-hover:text-white transition-colors duration-200"><span class="material-symbols-outlined text-2xl">traffic_jam</span></div><h2 class="text-title-md font-title-md text-on-surface font-bold mb-1 group-hover:text-primary transition-colors">Report Road Incident</h2><p class="text-body-sm font-body-sm text-on-surface-variant leading-relaxed">Crowdsource highland hazard verification: fog alerts, landslide alerts, mountain pass repairs.</p></div><div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-label-sm font-label-sm font-bold text-primary"><span class="">Contribute report</span><span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">chevron_right</span></div></a></div>
+</section>
+<!-- 3. NEARBY VERIFIED PLACES (Highland Hospitality & Utility Cards) -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="explore-map">
+<!-- Section Header with Category Chips -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<div class="flex items-center gap-2 text-primary font-bold text-label-md font-label-md mb-1">
+<span class="material-symbols-outlined text-base">verified</span>
+<span class="">Locally Audited Directory</span>
+</div>
+<h2 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-primary tracking-tight">
+            Nearby Verified Places
+          </h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">
+            Essential destinations around your current radius in Addis Ababa and surrounding ridges.
+          </p>
+</div>
+<div class="flex items-center space-x-2">
+<button class="p-2 border border-outline-variant/50 hover:bg-surface-container text-on-surface transition-colors rounded-lg" title="Previous items">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="p-2 border border-outline-variant/50 hover:bg-surface-container text-on-surface transition-colors rounded-lg" title="Next items">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<a class="ml-2 text-label-md font-label-md font-bold text-primary hover:underline flex items-center gap-1" href="#">
+<span class="">View all 48 locations</span>
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+</a>
+</div>
+</div>
+<!-- Places Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"><article class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/40 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col group"><div class="relative h-44 overflow-hidden bg-surface-container"><img alt="St. Paul's Hospital Millennium Medical College" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Modern medical center building exterior with clean architectural signage, ambulance parking bay, and tall eucalyptus trees on a clear bright day in Addis Ababa, realistic light photo." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa1aOt_57kVyjMN9eVj5cZoqMfHTXMNXl63qyheCKx_LrMFEvHdxtUBiMz0rVJoWLBWWMr5lSayfQ4VSDnh9t6B2J2wSi1KI4mqQ0E6Lc0Bh3Bp2CLxbVF6X0eL6mUqZTf1PLWY3nf0ftfkeqgwZUFv1tZq80a1l15CqGq8Eh1SaPNrUvq4-XzmCyngufuQ5RyILgDttp9nEUapCd8wgjO2Tgh9rZ4x0Ja_WH1JQ_RpXz0UAkR7pq8dA"><div class="absolute top-3 left-3 bg-primary-container text-white text-[11px] font-bold px-2.5 py-1 flex items-center gap-1 shadow-sm rounded-md"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span><span class="">Open 24/7 • Emergency Ready</span></div><div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface text-label-sm font-label-sm px-2 py-0.5 rounded-md font-semibold border border-outline-variant/30">2.4 km away</div></div><div class="p-5 flex-1 flex flex-col justify-between"><div><div class="text-label-sm font-label-sm text-outline font-semibold mb-1">Gulele Subcity, Addis Ababa</div><h3 class="text-title-sm font-title-sm text-primary font-bold group-hover:text-primary-container transition-colors mb-2">St. Paul's Hospital Millennium Medical College</h3><p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-4">Full trauma response unit, multilingual medical staff, modern diagnostics, and dedicated blood bank.</p></div><div class="pt-3 border-t border-outline-variant/30 flex items-center justify-between"><span class="text-label-sm font-label-sm text-primary-container bg-primary/10 px-2 py-0.5 rounded font-medium flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Guild Verified</span><button class="text-label-sm font-label-sm font-bold text-primary hover:text-primary-container flex items-center gap-0.5"><span class="">View on Map</span><span class="material-symbols-outlined text-[16px]">location_on</span></button></div></div></article><article class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/40 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col group"><div class="relative h-44 overflow-hidden bg-surface-container"><img alt="Entoto Park Viewpoint Lodge &amp; Cafe" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Charming wooden and stone mountain cafe lodge nestled among dense misty highland eucalyptus trees with outdoor viewing deck overlooking panoramic valley view in warm morning sunlight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOshreuH-1X7l-3JcFA-gQX5_NStci-V-4oIyhodYUYE_GuvKXrJP9pd-QH40GMUi1QGlLIZkIiQwLSE8QQSgBL3wn66F7URECBMgLHdRcMTCXfpdgIAU1FYTeZFCU-WWRMZdILr41KL6zJgtV-A92p9ZE7ltR-YnifghegYMX6P0PtnslD2Tg1voEG3OzFvfh_zGN-P4SNF5gD468E4CsGtgXGzxeOS4PhaoYr5VNBJzPKO_XuM7dlA"><div class="absolute top-3 left-3 bg-primary-container text-white text-[11px] font-bold px-2.5 py-1 flex items-center gap-1 shadow-sm rounded-md"><span class="material-symbols-outlined text-[13px]">schedule</span><span class="">Open now • Scenic view</span></div><div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface text-label-sm font-label-sm px-2 py-0.5 rounded-md font-semibold border border-outline-variant/30">7.8 km away</div></div><div class="p-5 flex-1 flex flex-col justify-between"><div><div class="text-label-sm font-label-sm text-outline font-semibold mb-1">Entoto Mountain Ridges</div><h3 class="text-title-sm font-title-sm text-primary font-bold group-hover:text-primary-container transition-colors mb-2">Entoto Park Viewpoint Lodge &amp; Cafe</h3><p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-4">Fresh organic highland herbal teas, artisan coffee roasting ceremonies, and elevated city vistas.</p></div><div class="pt-3 border-t border-outline-variant/30 flex items-center justify-between"><span class="text-label-sm font-label-sm text-primary bg-primary/10 px-2 py-0.5 rounded font-medium flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">landscape</span> Highland Haven</span><button class="text-label-sm font-label-sm font-bold text-primary hover:text-primary-container flex items-center gap-0.5"><span class="">View on Map</span><span class="material-symbols-outlined text-[16px]">location_on</span></button></div></div></article><article class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/40 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col group"><div class="relative h-44 overflow-hidden bg-surface-container"><img alt="TotalEnergies Station &amp; Supermarket" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Well-lit modern service station and convenience mart with electric vehicle chargers and clean paved forecourt in the center of an urban African capital city with sunny daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVg78mM7bDXhOqTriFnw_adQkeTi_TYEat8Jv4JQOIg3q26361RwFWxYgOy2m0HaUY6vbjze_apk-KRKA81e5U-63UTRPYl7ph2cdDcOZRho417_5WUlnpTvm-LAx3xmUco1BRahNx4VibI0q5Uugqh5nqzfjQfID9PZXMLBLPwTxBt6TufML5J8VOBnnfUaS767KMl8v2m2HxnZxYKqYpxzoBcSI9_TeXS6micAW0mo96v9c83yngTw"><div class="absolute top-3 left-3 bg-primary-container text-white text-[11px] font-bold px-2.5 py-1 flex items-center gap-1 shadow-sm rounded-md"><span class="material-symbols-outlined text-[13px]">bolt</span><span class="">Open 24/7 • EV &amp; Diesel</span></div><div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface text-label-sm font-label-sm px-2 py-0.5 rounded-md font-semibold border border-outline-variant/30">1.1 km away</div></div><div class="p-5 flex-1 flex flex-col justify-between"><div><div class="text-label-sm font-label-sm text-outline font-semibold mb-1">Meskel Square Corridor</div><h3 class="text-title-sm font-title-sm text-primary font-bold group-hover:text-primary-container transition-colors mb-2">TotalEnergies Station &amp; Supermarket</h3><p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-4">Reliable diesel and petrol supplies, tire pressure services, 24/7 grocery mart, and verified ATM kiosk.</p></div><div class="pt-3 border-t border-outline-variant/30 flex items-center justify-between"><span class="text-label-sm font-label-sm text-primary bg-primary/10 px-2 py-0.5 rounded font-medium flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">local_gas_station</span> Fuel In Stock</span><button class="text-label-sm font-label-sm font-bold text-primary hover:text-primary-container flex items-center gap-0.5"><span class="">View on Map</span><span class="material-symbols-outlined text-[16px]">location_on</span></button></div></div></article><article class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/40 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col group"><div class="relative h-44 overflow-hidden bg-surface-container"><img alt="Lucy Gazebo Traditional Cultural Restaurant" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Traditional Ethiopian garden restaurant with open wooden gazebo, woven bamboo lamps, clay coffee pots, and lush green highland flora under warm filtered afternoon sunlight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeVNx3zWMYWG6bOgb9XUAeDJchkXshjLHT0KF1LASm9GlDvTGW6u2x3ddGjaDpxmvyxC6l5p3ZBla-VdeL2JHTZ7VcMv13iUpPGF8dlPn6fCQ9DyHJcUwaoTA1WmZaOK1fU0DWLvuk55WztaxHAf1w0vTaz98RvK6UO31819L1FT4qzDcaldAtsyTfok4jBqxsoaVnjFoR3KUw_6yuNbYVRTxazvpc8NrQqeAHkBs7RkuXmrKBVZigbg"><div class="absolute top-3 left-3 bg-primary-container text-white text-[11px] font-bold px-2.5 py-1 flex items-center gap-1 shadow-sm rounded-md"><span class="material-symbols-outlined text-[13px]">restaurant</span><span class="">Authentic dining</span></div><div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface text-label-sm font-label-sm px-2 py-0.5 rounded-md font-semibold border border-outline-variant/30">3.2 km away</div></div><div class="p-5 flex-1 flex flex-col justify-between"><div><div class="text-label-sm font-label-sm text-outline font-semibold mb-1">National Museum Precinct</div><h3 class="text-title-sm font-title-sm text-primary font-bold group-hover:text-primary-container transition-colors mb-2">Lucy Gazebo Cultural Restaurant</h3><p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mb-4">Fresh sourdough injera, clay pot stews, traditional honey wine, and soothing live krar music recitals.</p></div><div class="pt-3 border-t border-outline-variant/30 flex items-center justify-between"><span class="text-label-sm font-label-sm text-primary bg-primary/10 px-2 py-0.5 rounded font-medium flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">star</span> 4.9 Travelers Pick</span><button class="text-label-sm font-label-sm font-bold text-primary hover:text-primary-container flex items-center gap-0.5"><span class="">View on Map</span><span class="material-symbols-outlined text-[16px]">location_on</span></button></div></div></article></div>
+</section>
+<!-- 4. WEATHER & ARRIVAL ADVICE + LIVE ROAD INCIDENTS (Asymmetric 2-Column Split) -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="road-incidents">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"><div class="lg:col-span-5 bg-surface-container-lowest p-6 sm:p-7 rounded-3xl border border-outline-variant/40 shadow-sm relative overflow-hidden"><div class="flex items-center justify-between mb-5"><span class="text-label-sm font-label-sm uppercase tracking-wider font-bold text-white bg-primary-container px-2.5 py-1 rounded-md">Highland Microclimate</span><span class="text-label-sm font-label-sm text-outline flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary-container"></span> Updated 12 mins ago</span></div><div class="mb-6"><h3 class="text-title-md font-title-md text-primary font-bold">Addis Ababa &amp; Debre Birhan Corridor</h3><p class="text-body-sm font-body-sm text-on-surface-variant">Elevation: 2,355 m — 2,840 m above sea level</p></div><div class="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl mb-5 border border-outline-variant/30"><div class="flex items-center gap-3"><div class="w-14 h-14 rounded-xl bg-surface-container-lowest flex items-center justify-center text-primary-container shadow-sm"><span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">partly_cloudy_day</span></div><div><div class="text-3xl font-display-lg font-bold text-primary">21°C <span class="text-base font-normal text-on-surface-variant">/ 70°F</span></div><div class="text-body-sm font-body-sm text-on-surface-variant font-medium">Partly Cloudy • Fresh mountain breeze</div></div></div></div><div class="p-4 rounded-xl bg-primary/5 border border-primary/15 mb-6 flex items-start gap-3"><span class="material-symbols-outlined text-primary text-xl mt-0.5">dry_cleaning</span><div><h4 class="text-label-md font-label-md font-bold text-primary mb-0.5">Highland Travel Clothing Advice</h4><p class="text-body-sm font-body-sm text-on-surface leading-snug">"Chilly highland evening ahead. Bring a lightweight traditional <strong class="text-primary font-semibold">Gabi</strong> or windbreaker jacket as temperatures dip to 11°C after sunset."</p></div></div><div class="grid grid-cols-3 gap-3 text-center border-t border-outline-variant/20 pt-4"><div class="p-2.5 rounded-lg bg-surface-container-low/60"><div class="text-label-sm font-label-sm text-outline">Rain Probability</div><div class="text-title-sm font-title-sm font-bold text-primary mt-0.5">15%</div></div><div class="p-2.5 rounded-lg bg-surface-container-low/60"><div class="text-label-sm font-label-sm text-outline">Ridge Visibility</div><div class="text-title-sm font-title-sm font-bold text-primary mt-0.5">12 km</div></div><div class="p-2.5 rounded-lg bg-surface-container-low/60"><div class="text-label-sm font-label-sm text-outline">UV Index</div><div class="text-title-sm font-title-sm font-bold text-primary mt-0.5">6 (Moderate)</div></div></div></div><div class="lg:col-span-7 bg-surface-container-lowest p-6 sm:p-7 rounded-3xl border border-outline-variant/40 shadow-sm flex flex-col justify-between"><div><div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-outline-variant/30 gap-2 mb-5"><div><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-radar-dot"></span><h3 class="text-title-md font-title-md text-primary font-bold">Live Road Alerts Nearby (Incident Radar)</h3></div><p class="text-body-sm font-body-sm text-on-surface-variant">Real-time crowdsourced reports verified by local transportation unions</p></div><button class="inline-flex items-center gap-1 text-label-sm font-label-sm font-bold text-primary hover:text-primary-container self-start sm:self-auto"><span class="material-symbols-outlined text-[16px]">add_alert</span><span class="">Report new hazard</span></button></div><div class="p-4 rounded-xl bg-surface-container-low/80 border border-outline-variant/30 mb-3 hover:border-primary/40 transition-colors"><div class="flex items-start justify-between gap-3 mb-1.5"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary-container text-[20px]">construction</span><span class="text-title-sm font-title-sm font-bold text-on-surface">Minor road resurfacing near Gotera Interchange</span></div><span class="inline-flex items-center gap-1 text-label-sm font-label-sm px-2.5 py-0.5 bg-primary-container text-white font-bold whitespace-nowrap rounded-md"><span class="material-symbols-outlined text-[14px]">verified</span> Verified by Traffic Guild</span></div><div class="flex items-center gap-4 text-body-sm font-body-sm text-on-surface-variant"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">straighten</span> 3.4 km from your position</span><span class="">•</span><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">timer</span> 18 min ago</span><span class="">•</span><span class="text-on-surface font-medium">1 lane reduced; traffic flowing smoothly</span></div></div><div class="p-4 rounded-xl bg-surface-container-low/80 border border-outline-variant/30 mb-3 hover:border-primary/40 transition-colors"><div class="flex items-start justify-between gap-3 mb-1.5"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary-container text-[20px]">foggy</span><span class="text-title-sm font-title-sm font-bold text-on-surface">Heavy fog advisory along Entoto Pass highway</span></div><span class="inline-flex items-center gap-1 text-label-sm font-label-sm px-2.5 py-0.5 bg-primary/10 text-primary font-bold whitespace-nowrap rounded-md"><span class="material-symbols-outlined text-[14px]">sync</span> Under Review</span></div><div class="flex items-center gap-4 text-body-sm font-body-sm text-on-surface-variant"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">straighten</span> 8.1 km from your position</span><span class="">•</span><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">timer</span> 42 min ago</span><span class="">•</span><span class="text-on-surface font-medium">Low visibility under 40 meters</span></div></div><div class="p-4 rounded-xl bg-surface-container-low/80 border border-outline-variant/30 mb-4 hover:border-primary/40 transition-colors"><div class="flex items-start justify-between gap-3 mb-1.5"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary-container text-[20px]">toll</span><span class="text-title-sm font-title-sm font-bold text-on-surface">Expressway toll lane maintenance near Modjo exit</span></div><span class="inline-flex items-center gap-1 text-label-sm font-label-sm px-2.5 py-0.5 bg-primary-container text-white font-bold whitespace-nowrap rounded-md"><span class="material-symbols-outlined text-[14px]">done_all</span> Resolved</span></div><div class="flex items-center gap-4 text-body-sm font-body-sm text-on-surface-variant"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">straighten</span> 45 km from your position</span><span class="">•</span><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">timer</span> 1 hr ago</span><span class="">•</span><span class="text-on-surface font-medium">All automatic payment lanes operational</span></div></div></div><div class="p-3 bg-surface-container rounded-xl flex items-center gap-2.5 text-label-sm font-label-sm text-on-surface-variant border border-outline-variant/30"><span class="material-symbols-outlined text-primary text-[18px]">verified_user</span><span class="">Community reports undergo dual-verification by local transport guilds and verified highland contributors.</span></div></div></div>
+</section>
+<!-- 5. 'ASK GUZOMATE' AI TRAVEL ASSISTANT SHOWCASE -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="ai-assistant">
+<div class="bg-gradient-to-br from-primary-container via-primary to-[#001f14] rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+<!-- Background Mountain Topo Contour Accent -->
+<svg class="absolute right-0 bottom-0 opacity-10 pointer-events-none w-96 h-96" fill="none" viewBox="0 0 200 200">
+<circle cx="100" cy="100" r="90" stroke="white" stroke-dasharray="4 4" stroke-width="1.5"></circle>
+<circle cx="100" cy="100" r="70" stroke="white" stroke-width="1.5"></circle>
+<circle cx="100" cy="100" r="50" stroke="white" stroke-dasharray="2 2" stroke-width="1.5"></circle>
+<circle cx="100" cy="100" r="30" stroke="white" stroke-width="1.5"></circle>
+</svg>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+<!-- Left Info & Prompt Starters (6 Columns) -->
+<div class="lg:col-span-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md text-secondary-fixed text-label-sm font-label-sm mb-4 border border-white/20 rounded-lg">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="">Gemini-Powered Highland Travel Intelligence</span>
+</div>
+<h2 class="text-headline-lg-mobile md:text-headline-lg font-display-lg text-white font-bold mb-3 tracking-tight">
+              Instant answers in Latin, አማርኛ, or Afaan Oromoo.
+            </h2>
+<p class="text-body-md font-body-md text-white/80 mb-6 leading-relaxed">
+              Ask about road blockages, minibus taxi rates, hotel bookings, mountain weather, or traditional customs. GuzoMate combines satellite feeds with local elder and guild knowledge.
+            </p>
+<div class="space-y-2 mb-6">
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-white/60 font-semibold">Try asking:</span>
+<button class="w-full text-left p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-body-sm font-body-sm text-white flex items-center justify-between transition-colors">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-300 text-sm">chat_bubble</span>
+                  "Find a 24-hour pharmacy near Bole Medhane Alem"
+                </span>
+<span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+<button class="w-full text-left p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-body-sm font-body-sm text-white flex items-center justify-between transition-colors">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-300 text-sm">chat_bubble</span>
+                  "What are the current road conditions between Addis and Hawassa?"
+                </span>
+<span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+<button class="w-full text-left p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-body-sm font-body-sm text-white flex items-center justify-between transition-colors">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-300 text-sm">chat_bubble</span>
+                  "Where can I taste authentic freshly roasted Sidama coffee nearby?"
+                </span>
+<span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Right: Interactive Multilingual Chat Preview Card (6 Columns) -->
+<div class="lg:col-span-6 bg-surface-container-lowest text-on-surface rounded-2xl p-5 sm:p-6 shadow-2xl border border-white/30">
+<!-- Chat Card Header with Bilingual Toggle -->
+<div class="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/30">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 bg-primary-container text-white flex items-center justify-center font-bold text-xs rounded-lg">
+                  GM
+                </div>
+<div>
+<div class="text-title-sm font-title-sm text-primary font-bold">GuzoMate Travel Assistant</div>
+<div class="text-[11px] text-emerald-700 flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Online • Local transport guild verified
+                  </div>
+</div>
+</div>
+<!-- Language toggle preview -->
+<div class="flex items-center bg-surface-container p-0.5 rounded-lg border border-outline-variant/40 text-[11px] font-bold">
+<span class="px-2 py-0.5 bg-surface-container-lowest text-primary rounded shadow-sm">EN</span>
+<span class="px-2 py-0.5 text-on-surface-variant">አማ</span>
+</div>
+</div>
+<!-- Simulated Conversation Thread -->
+<div class="space-y-4 mb-4 text-body-sm font-body-sm">
+<!-- User Question -->
+<div class="flex justify-end">
+<div class="bg-primary-container text-white p-3.5 rounded-2xl rounded-tr-sm max-w-[85%] shadow-sm">
+                  Find a 24-hour pharmacy near Bole Medhane Alem and check if pain relievers and altitude remedies are stocked.
+                </div>
+</div>
+<!-- Assistant Response (Side-by-side English & Amharic snippet) -->
+<div class="flex justify-start">
+<div class="bg-surface-container p-4 rounded-2xl rounded-tl-sm max-w-[92%] border border-outline-variant/40">
+<div class="text-primary font-bold mb-1 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[16px]">local_pharmacy</span>
+<span class="">Lion Pharmacy (Bole Branch) • 450 meters away</span>
+</div>
+<p class="text-on-surface mb-2 leading-relaxed">
+                    Open 24/7. Verified in stock: Paracetamol, Ibuprofen, and Diamox for highland acclimatization.
+                  </p>
+<!-- Amharic Parity Snippet -->
+<div class="p-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant/30 text-on-surface-variant font-medium">
+<span class="text-primary font-bold text-[12px] block mb-0.5">የአማርኛ ትርጉም:</span>
+                    "አንበሳ ፋርማሲ (ቦሌ ቅርንጫፍ) ለ24 ሰዓት ክፍት ነው። ራስ ምታት እና የከፍታ ማስታገሻ መድኃኒቶች ተረጋግጠው ይገኛሉ።"
+                  </div>
+<div class="mt-2.5 flex items-center justify-between text-label-sm font-label-sm text-outline">
+<span class="">Guild check: 5 mins ago</span>
+<button class="text-primary font-bold hover:underline flex items-center gap-0.5">
+<span class="">Navigate</span>
+<span class="material-symbols-outlined text-[14px]">turn_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Input Box -->
+<div class="relative flex items-center">
+<input class="w-full pl-3.5 pr-20 py-2.5 bg-surface-container-low rounded-xl text-body-sm font-body-sm border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Ask GuzoMate in English, አማርኛ, or Afaan Oromoo..." type="text">
+<button class="absolute right-1.5 px-3 py-1.5 bg-primary text-white rounded-lg text-label-sm font-label-sm font-bold flex items-center gap-1">
+<span class="">Send</span>
+<span class="material-symbols-outlined text-[14px]">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. ETHIOPIAN LINGUISTIC PARITY & EMERGENCY SECTION -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="emergency-section">
+<!-- Multilingual Parity Banner -->
+<div class="bg-surface-container-low rounded-3xl p-6 sm:p-8 border border-outline-variant/40 mb-8">
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+<div class="max-w-2xl">
+<div class="flex items-center gap-2 text-secondary font-bold text-label-sm font-label-sm uppercase tracking-wider mb-1">
+<span class="material-symbols-outlined text-base">translate</span>
+<span class="">National Language Parity</span>
+</div>
+<h3 class="text-headline-md font-headline-md text-primary font-bold mb-2">
+              Three Official Languages, One Trusted Highland Journey.
+            </h3>
+<p class="text-body-md font-body-md text-on-surface-variant">
+              GuzoMate does not rely on mechanical word-for-word translation. Every routing step, hazard advisory, and medical recommendation is checked with optical metric harmony for Latin, Ge'ez (Amharic), and Qubee (Afaan Oromo) typography.
+            </p>
+</div>
+<!-- Language Badges Array -->
+<div class="flex flex-wrap items-center gap-3">
+<div class="px-4 py-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/40 text-center shadow-sm">
+<div class="text-title-sm font-title-sm font-bold text-primary">English</div>
+<div class="text-label-sm font-label-sm text-outline">Full Latin Support</div>
+</div>
+<div class="px-4 py-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/40 text-center shadow-sm">
+<div class="text-title-sm font-title-sm font-bold text-primary">አማርኛ</div>
+<div class="text-label-sm font-label-sm text-outline">ግዕዝ ፊደላት</div>
+</div>
+<div class="px-4 py-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/40 text-center shadow-sm">
+<div class="text-title-sm font-title-sm font-bold text-primary">Afaan Oromoo</div>
+<div class="text-label-sm font-label-sm text-outline">Sirna Qubee</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Emergency Hotline Callout Grid -->
+<div class="bg-surface-container-lowest border-2 border-primary-container rounded-3xl p-6 sm:p-8 shadow-sm"><div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"><div><div class="flex items-center gap-2 text-primary-container font-bold text-label-md font-label-md"><span class="material-symbols-outlined text-xl text-primary-container">fmd_bad</span><span class="">Emergency Hotlines — Direct Dial</span></div><h3 class="text-title-md font-title-md text-primary font-bold">Instant contact with Ethiopian emergency responders</h3></div><span class="text-label-sm font-label-sm text-primary bg-primary/10 px-3 py-1 font-bold self-start sm:self-auto border border-primary/20 rounded-md">Available toll-free 24/7 across Ethiopia</span></div><div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><a class="flex items-center justify-between p-4 rounded-2xl bg-surface-container-low border border-outline-variant/40 shadow-sm hover:border-primary-container transition-all group" href="tel:991"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-primary-container flex items-center justify-center text-white rounded-xl"><span class="material-symbols-outlined">local_police</span></div><div><div class="text-label-sm font-label-sm text-outline font-medium">Federal &amp; Traffic Police</div><div class="text-title-md font-title-md font-extrabold text-primary group-hover:text-primary-container transition-colors">991</div></div></div><span class="material-symbols-outlined text-primary-container">call</span></a><a class="flex items-center justify-between p-4 rounded-2xl bg-surface-container-low border border-outline-variant/40 shadow-sm hover:border-primary-container transition-all group" href="tel:907"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-primary-container flex items-center justify-center text-white rounded-xl"><span class="material-symbols-outlined">emergency</span></div><div><div class="text-label-sm font-label-sm text-outline font-medium">Medical Emergency Ambulance</div><div class="text-title-md font-title-md font-extrabold text-primary group-hover:text-primary-container transition-colors">907</div></div></div><span class="material-symbols-outlined text-primary-container">call</span></a><a class="flex items-center justify-between p-4 rounded-2xl bg-surface-container-low border border-outline-variant/40 shadow-sm hover:border-primary-container transition-all group" href="tel:922"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-primary-container flex items-center justify-center text-white rounded-xl"><span class="material-symbols-outlined">health_and_safety</span></div><div><div class="text-label-sm font-label-sm text-outline font-medium">Ethiopian Red Cross Society</div><div class="text-title-md font-title-md font-extrabold text-primary group-hover:text-primary-container transition-colors">922</div></div></div><span class="material-symbols-outlined text-primary-container">call</span></a></div></div>
+</section>
+</main>
+<!-- FOOTER (Shared Components JSON Anchor) -->
+<footer class="bg-surface-container-low dark:bg-surface-container-lowest border-t border-outline-variant/40 dark:border-outline/20 w-full mt-auto">
+<div class="max-w-7xl mx-auto px-4 lg:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
+<!-- Brand & Parity Copyright Info -->
+<div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+<a class="text-title-md font-title-md font-bold text-primary dark:text-primary-fixed flex items-center gap-2" href="#">
+<img alt="GuzoMate Brand Logo" class="w-6 h-6 object-contain rounded" src="https://lh3.googleusercontent.com/aida/AEtjO1VcEfUYE5mxHAzav0ixks-O6oRd7oESuXBrZn4cd4KPtZqiyRR8MI8YhTO9rwbYc_piP86jVO1cd6rd7oF8wWlrdBaXKgN7guiILIAkMfW0mp_3SG-lJmXKYIvH2gu0TRhIUa0P7lbetnCh64pycmXjhGbuhXZWA4Yv-uhPpd8r71qxwjqxahev6I1oF8U6-5zq4gBmExcV7nxKVyK249hUJnnZTa4714vvhRluezP0RjQjdb3nzwxl9SkH">
+<span class="">GuzoMate</span>
+</a>
+<span class="hidden sm:inline text-outline-variant">|</span>
+<p class="text-body-sm font-body-sm text-on-surface-variant dark:text-on-surface-variant">
+          © 2024 GuzoMate Ethiopia — Verified Highland Travel Intelligence. Latin, አማርኛ &amp; Afaan Oromo parity.
+        </p>
+</div>
+<!-- Footer Action Links (Exact match from JSON) -->
+<nav class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-label-sm font-label-sm">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="tel:991">
+          Police 991
+        </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="tel:907">
+          Medical 907
+        </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="tel:922">
+          Red Cross 922
+        </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#emergency-section">
+          Emergency Dial
+        </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#road-incidents">
+          Road Verification Guild
+        </a>
+<a class="text-primary dark:text-primary-fixed underline hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-150" href="#">
+          Privacy Policy
+        </a>
+</nav>
+</div>
+</footer>
+<!-- Micro-interactions Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Interactive language switcher active state
+      const langButtons = document.querySelectorAll('#lang-selector button');
+      langButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          langButtons.forEach(b => {
+            b.classList.remove('bg-surface-container-lowest', 'text-primary', 'font-bold', 'shadow-sm');
+            b.classList.add('text-on-surface-variant');
+          });
+          btn.classList.add('bg-surface-container-lowest', 'text-primary', 'font-bold', 'shadow-sm');
+          btn.classList.remove('text-on-surface-variant');
+        });
+      });
+
+      // Simple filter pill toggle state
+      const filterPills = document.querySelectorAll('button[class*="Filter"]');
+      filterPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          pill.classList.toggle('ring-2');
+          pill.classList.toggle('ring-primary');
+        });
+      });
+    });
+  </script>
+
+
+
+
+</body></html>
