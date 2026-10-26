@@ -79,14 +79,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   pageView: 'landing',
   setPageView: (view: PageView) => set({ pageView: view }),
 
-  currentUser: {
-    id: 'user-01',
-    name: 'Dawit Alemayehu',
-    email: 'dawit.alemayehu@guzomate.et',
-    phone: '+251 91 123 4567',
-    preferredLanguage: 'en',
-    isGuildVerified: true,
-  },
+  currentUser: null,
   setCurrentUser: (user: UserProfile | null) => set({ currentUser: user }),
   isAuthModalOpen: false,
   authModalTab: 'login',

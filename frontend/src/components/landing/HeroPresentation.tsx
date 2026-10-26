@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppStore } from '../../features/useAppStore';
 import { 
   Compass, 
   Sparkles, 
-  Volume2, 
-  VolumeX, 
   Play, 
   Layers, 
   Zap,
@@ -16,12 +14,6 @@ import confetti from 'canvas-confetti';
 
 export const HeroPresentation: React.FC = () => {
   const { language } = useAppStore();
-  const [soundEnabled, setSoundEnabled] = useState(false);
-
-  const toggleSound = () => {
-    const isNowOn = soundFX.toggle();
-    setSoundEnabled(isNowOn);
-  };
 
   const handleLaunch3D = () => {
     soundFX.playNeuralSuccess();
@@ -41,36 +33,18 @@ export const HeroPresentation: React.FC = () => {
   return (
     <section className="relative min-h-[90vh] flex flex-col items-center justify-between pt-16 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pointer-events-none select-none">
       
-      {/* Top Floating Telemetry & Sound Bar */}
-      <div className="w-full flex items-center justify-between pointer-events-auto">
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-outline-variant/60 shadow-highland backdrop-blur-md">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-[11px] font-mono font-bold tracking-wider text-primary uppercase">
-              3D WebGL Engine Active
-            </span>
-            <span className="text-outline-variant">•</span>
-            <span className="text-[10px] font-mono text-secondary font-bold">
-              60 FPS // TERRAIN MESH
-            </span>
-          </div>
+      {/* Top Floating Telemetry Bar */}
+      <div className="w-full flex items-center justify-start pointer-events-auto">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-outline-variant/60 shadow-highland backdrop-blur-md">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+          <span className="text-[11px] font-mono font-bold tracking-wider text-primary uppercase">
+            3D WebGL Engine Active
+          </span>
+          <span className="text-outline-variant">•</span>
+          <span className="text-[10px] font-mono text-secondary font-bold">
+            60 FPS // TERRAIN MESH
+          </span>
         </div>
-
-        {/* Audio FX Synthesizer Toggle */}
-        <button
-          onClick={toggleSound}
-          data-interactive="true"
-          data-cursor-text="AUDIO"
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-bold transition-all shadow-sm ${
-            soundEnabled
-              ? 'bg-primary text-white border-primary shadow-glow-emerald'
-              : 'bg-white/80 text-ash hover:text-primary border-outline-variant/50 backdrop-blur-md'
-          }`}
-          title="Toggle procedural UI audio effects"
-        >
-          {soundEnabled ? <Volume2 className="w-4 h-4 animate-pulse" /> : <VolumeX className="w-4 h-4" />}
-          <span>{soundEnabled ? 'Sound FX: ON' : 'Sound FX: MUTE'}</span>
-        </button>
       </div>
 
       {/* Main Center Presentation Title */}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../features/useAppStore';
 import { Language, PageView } from '../../types';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Volume2, VolumeX } from 'lucide-react';
+import { soundFX } from '../../lib/audioEffects';
 
 export const LandingHeader: React.FC = () => {
   const { 
@@ -15,6 +16,12 @@ export const LandingHeader: React.FC = () => {
   } = useAppStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(soundFX.enabled);
+
+  const toggleSound = () => {
+    const nextState = soundFX.toggle();
+    setSoundEnabled(nextState);
+  };
 
   const handleNavClick = (view: PageView) => {
     setPageView(view);
@@ -40,8 +47,28 @@ export const LandingHeader: React.FC = () => {
             </span>
           </div>
 
-          {/* Far Top Right Side: Language Switcher, Log In & Sign Up Buttons */}
-          <div className="hidden md:flex items-center gap-3.5">
+          {/* Far Top Right Side: Sound Toggle, Language Switcher, Log In & Sign Up Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Sound Icon Button (No Text Label) */}
+            <button
+              onClick={toggleSound}
+              data-interactive="true"
+              data-cursor-text="AUDIO"
+              className={`w-9 h-9 rounded-full border transition-all duration-200 flex items-center justify-center shadow-sm ${
+                soundEnabled
+                  ? 'bg-primary text-white border-primary shadow-glow-emerald'
+                  : 'bg-surface-low text-ash hover:text-primary hover:bg-surface-high border-outline-variant/40'
+              }`}
+              aria-label={soundEnabled ? 'Mute audio FX' : 'Enable audio FX'}
+              title={soundEnabled ? 'Audio FX Enabled' : 'Audio FX Muted'}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-4 h-4 animate-pulse" />
+              ) : (
+                <VolumeX className="w-4 h-4" />
+              )}
+            </button>
+
             {/* Trilingual Segmented Switcher */}
             <div className="flex items-center p-1 bg-surface-low rounded-full border border-outline-variant/40 text-xs font-bold">
               {(['en', 'am', 'om'] as Language[]).map((lang) => (
@@ -77,7 +104,7 @@ export const LandingHeader: React.FC = () => {
                 </button>
                 <button
                   onClick={() => openAuthModal('signup')}
-                  className="px-4.5 py-2 rounded-full bg-primary hover:bg-primary-dark text-white text-xs font-bold shadow-highland transition-all duration-200 transform hover:-translate-y-0.5"
+                  className="px-6 py-2 rounded-full bg-primary hover:bg-primary-dark text-white text-xs font-bold shadow-highland transition-all duration-200 transform hover:-translate-y-0.5"
                 >
                   {language === 'am' ? 'ይመዝገቡ' : language === 'om' ? 'Galmaa\'aa' : 'Sign Up'}
                 </button>
@@ -85,8 +112,26 @@ export const LandingHeader: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Actions: Language & Hamburger */}
+          {/* Mobile Actions: Sound, Language & Hamburger */}
           <div className="flex md:hidden items-center gap-2">
+            {/* Mobile Sound Icon (No Text Label) */}
+            <button
+              onClick={toggleSound}
+              className={`w-8 h-8 rounded-full border transition-all duration-200 flex items-center justify-center ${
+                soundEnabled
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-surface-low text-ash border-outline-variant/40'
+              }`}
+              aria-label={soundEnabled ? 'Mute audio FX' : 'Enable audio FX'}
+              title={soundEnabled ? 'Audio FX Enabled' : 'Audio FX Muted'}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-3.5 h-3.5" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5" />
+              )}
+            </button>
+
             <div className="flex items-center p-1 bg-surface-low rounded-full border border-outline-variant/40 text-[11px] font-bold">
               {(['en', 'am', 'om'] as Language[]).map((lang) => (
                 <button

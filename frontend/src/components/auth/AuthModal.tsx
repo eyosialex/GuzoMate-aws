@@ -6,7 +6,6 @@ import {
   Lock, 
   User, 
   Phone, 
-  Sparkles, 
   ShieldCheck, 
   Eye, 
   EyeOff,
@@ -36,21 +35,25 @@ export const AuthModal: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (authModalTab === 'signup' && !name) {
+    if (authModalTab === 'signup' && !name.trim()) {
       setErrorMsg('Please enter your full name.');
       return;
     }
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       setErrorMsg('Please enter your email and password.');
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters.');
       return;
     }
 
     // Success login/signup
     const user = {
       id: `user-${Date.now()}`,
-      name: name || (email.split('@')[0].toUpperCase()),
-      email,
-      phone: phone || '+251 91 123 4567',
+      name: name.trim() || email.split('@')[0],
+      email: email.trim(),
+      phone: phone.trim() || '',
       preferredLanguage: language,
       isGuildVerified: true,
     };
@@ -61,27 +64,6 @@ export const AuthModal: React.FC = () => {
     confetti({
       particleCount: 70,
       spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#1b4332', '#d97706', '#0e7490'],
-    });
-  };
-
-  const handleQuickDemoLogin = () => {
-    const demoUser = {
-      id: 'user-dawit-01',
-      name: 'Dawit Alemayehu',
-      email: 'dawit.alemayehu@guzomate.et',
-      phone: '+251 91 123 4567',
-      preferredLanguage: 'en' as const,
-      isGuildVerified: true,
-    };
-
-    setCurrentUser(demoUser);
-    closeAuthModal();
-
-    confetti({
-      particleCount: 60,
-      spread: 60,
       origin: { y: 0.6 },
       colors: ['#1b4332', '#d97706', '#0e7490'],
     });
@@ -116,24 +98,6 @@ export const AuthModal: React.FC = () => {
           <p className="text-xs text-on-surface-variant mt-1">
             Access verified highland routes, saved places, and live hazard alerts.
           </p>
-        </div>
-
-        {/* 1-Click Instant Demo Login Option */}
-        <div className="mb-5">
-          <button
-            type="button"
-            onClick={handleQuickDemoLogin}
-            className="w-full py-2.5 px-4 rounded-2xl bg-secondary/15 hover:bg-secondary/25 text-secondary-dark font-bold text-xs border border-secondary/30 flex items-center justify-center gap-2 transition-all group"
-          >
-            <Sparkles className="w-4 h-4 text-secondary group-hover:scale-110 transition-transform" />
-            <span>⚡ 1-Click Instant Demo Login (Dawit A.)</span>
-          </button>
-        </div>
-
-        <div className="relative flex py-2 items-center mb-4">
-          <div className="flex-grow border-t border-outline-variant/30"></div>
-          <span className="flex-shrink mx-3 text-[11px] font-bold text-ash uppercase">Or with credentials</span>
-          <div className="flex-grow border-t border-outline-variant/30"></div>
         </div>
 
         {/* Tab Toggle: Sign In vs Sign Up */}
@@ -188,7 +152,7 @@ export const AuthModal: React.FC = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Dawit Alemayehu"
+                  placeholder="Enter your name"
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-surface-low border border-transparent focus:border-primary focus:bg-white text-xs font-medium text-on-surface outline-none transition-all"
                 />
               </div>
@@ -205,7 +169,7 @@ export const AuthModal: React.FC = () => {
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@guzomate.et or +251..."
+                placeholder="Enter your email or phone"
                 className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-surface-low border border-transparent focus:border-primary focus:bg-white text-xs font-medium text-on-surface outline-none transition-all"
               />
             </div>
@@ -245,7 +209,7 @@ export const AuthModal: React.FC = () => {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+251 91 123 4567"
+                  placeholder="+251 9... or +251 7..."
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-surface-low border border-transparent focus:border-primary focus:bg-white text-xs font-medium text-on-surface outline-none transition-all"
                 />
               </div>
