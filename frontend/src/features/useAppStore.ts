@@ -51,6 +51,8 @@ interface AppState {
   setSelectedRoute: (route: RouteOption | null) => void;
 
   // Incident Modal & Draft
+  incidentSubpage: 'list' | 'submit';
+  setIncidentSubpage: (sub: 'list' | 'submit') => void;
   isReportingIncident: boolean;
   incidentDraftLocation: GeoLocation | null;
   openIncidentModal: (loc?: GeoLocation) => void;
@@ -147,6 +149,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     }
   },
+
+  incidentSubpage: 'list',
+  setIncidentSubpage: (sub: 'list' | 'submit') => set({ incidentSubpage: sub }),
 
   isReportingIncident: false,
   incidentDraftLocation: null,

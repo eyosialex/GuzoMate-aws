@@ -313,7 +313,7 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
       {/* Map Picking Active Callout */}
       {isMapPickingActive && (
         <div className="p-3 rounded-xl bg-secondary/10 border border-secondary/30 text-secondary-dark flex items-center gap-2 text-xs font-semibold">
-          <Crosshair className="w-4 h-4 text-secondary shrink-0 animate-pulse" />
+          <Crosshair className="w-4 h-4 text-secondary shrink-0" />
           <span>Click anywhere on the map on the right to set the pin.</span>
         </div>
       )}

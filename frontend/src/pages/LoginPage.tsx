@@ -106,7 +106,7 @@ export const LoginPage: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-1 max-w-xs">
-            Enter your credentials to access verified transit routing, live hazards, and travel reports.
+            Enter your credentials to access verified transit routing, hazard alerts, and travel reports.
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export const LoginPage: React.FC = () => {
         {/* Rate limit warning banner */}
         {rateLimitSeconds > 0 && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-xs text-amber-800">
-            <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
+            <Clock className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
               Cooldown active: {Math.floor(rateLimitSeconds / 60)}:{(rateLimitSeconds % 60).toString().padStart(2, '0')} remaining.
             </span>

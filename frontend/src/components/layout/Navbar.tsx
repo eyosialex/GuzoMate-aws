@@ -33,7 +33,7 @@ export const Navbar: React.FC = () => {
         { path: '/app', label: 'Dashboard' },
         { path: '/explore', label: 'Explore Map' },
         { path: '/routes', label: 'Routes' },
-        { path: '/incidents', label: 'Road Incidents', hasBadge: true },
+        { path: '/incidents', label: 'Road Incidents' },
         { path: '/assistant', label: 'AI Assistant' },
         { path: '/about', label: 'About GuzoMate' },
       ]
@@ -41,7 +41,7 @@ export const Navbar: React.FC = () => {
         { path: '/', label: 'Overview' },
         { path: '/explore', label: 'Explore Map' },
         { path: '/routes', label: 'Routes' },
-        { path: '/incidents', label: 'Road Incidents', hasBadge: true },
+        { path: '/incidents', label: 'Road Incidents' },
         { path: '/emergency', label: 'Emergency 991' },
       ];
 
@@ -98,9 +98,6 @@ export const Navbar: React.FC = () => {
                 }`}
               >
                 <span>{link.label}</span>
-                {link.hasBadge && (
-                  <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                )}
                 {isActive && (
                   <motion.div
                     layoutId="activeNavIndicator"

@@ -136,7 +136,7 @@ export const ReportHazardPage: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-3 text-[11px]">
             <div className="flex items-center gap-1.5 font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>Scout GPS Lock: <strong>9.0478° N, 38.7492° E (±3m)</strong></span>
             </div>
             <span className="font-bold text-[#183a2b] bg-[#f0f7f3] border border-[#d1e2d8] px-2 py-0.5 rounded">
@@ -169,7 +169,7 @@ export const ReportHazardPage: React.FC = () => {
               onClick={() => setIsRecordingMemo(!isRecordingMemo)}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
                 isRecordingMemo
-                  ? 'bg-red-50 text-red-700 border-red-300 animate-pulse'
+                  ? 'bg-red-50 text-red-700 border-red-300'
                   : 'bg-white hover:bg-gray-50 text-gray-800 border-gray-200'
               }`}
             >
@@ -565,12 +565,12 @@ export const ReportHazardPage: React.FC = () => {
 
           {/* Right 5 Columns: Radar, Feed Preview & Standards */}
           <div className="lg:col-span-5 space-y-5">
-            {/* Live Highland Topo Radar mini card matching Screen-7 */}
+            {/* Highland Topo Radar mini card matching Screen-7 */}
             <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
                   <Compass className="w-3.5 h-3.5 text-[#183a2b]" />
-                  Live Highland Topo Radar
+                  Highland Topo Radar
                 </span>
               </div>
 
@@ -585,7 +585,6 @@ export const ReportHazardPage: React.FC = () => {
                     </div>
                     {/* Simulated hairpin marker */}
                     <div className="flex items-center justify-center">
-                      <div className="h-6 w-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg animate-ping absolute" />
                       <div className="h-6 w-6 rounded-full bg-red-700 text-white flex items-center justify-center shadow-lg relative font-bold text-[10px]">
                         !
                       </div>

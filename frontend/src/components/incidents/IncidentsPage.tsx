@@ -8,13 +8,15 @@ import { IncidentSubmitForm } from './IncidentSubmitForm';
 import { useIncidents } from '../../hooks/useIncidents';
 import { GeoLocation, IncidentSubmissionPayload } from '../../types';
 import { springGentle } from '../../lib/motion';
+import { useAppStore } from '../../features/useAppStore';
 
 export const IncidentsPage: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
   const { incidents, reportIncident, isSubmitting } = useIncidents();
 
-  // Subpage switcher state: 'list' (default) | 'submit'
-  const [subpage, setSubpage] = useState<'list' | 'submit'>('list');
+  // Subpage switcher state synced with store: 'list' (default) | 'submit'
+  const subpage = useAppStore((state) => state.incidentSubpage);
+  const setSubpage = useAppStore((state) => state.setIncidentSubpage);
 
   // Map picking state
   const [draftLocation, setDraftLocation] = useState<GeoLocation | null>(null);
@@ -145,6 +147,7 @@ export const IncidentsPage: React.FC = () => {
             showIncidents={true}
             draftLocation={draftLocation}
             onMapClick={handleMapClick}
+            onReportIncidentClick={() => setSubpage('submit')}
           />
         </section>
       </main>

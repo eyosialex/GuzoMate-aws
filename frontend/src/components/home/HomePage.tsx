@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../../features/useAppStore';
 import { StaticHighlandBackground } from './StaticHighlandBackground';
 import { AppNavbar } from '../layout/AppNavbar';
+import { weatherService } from '../../services/weatherService';
+import { incidentsService } from '../../services/incidentsService';
+import { placesService } from '../../services/placesService';
+import { assistantService } from '../../services/assistantService';
+import { Place, Incident, WeatherData } from '../../types';
 import { 
   Compass, 
   MapPin, 
@@ -9,132 +15,202 @@ import {
   AlertTriangle, 
   ChevronRight, 
   PhoneCall, 
-  ArrowRight, 
   CheckCircle2, 
   Navigation, 
   Clock, 
-  Send,
-  CloudSun,
-  ShieldCheck,
+  CloudSun, 
+  ShieldCheck, 
   Building2,
-  ExternalLink
+  Bookmark,
+  Trash2,
+  Droplets,
+  Eye,
+  Sun,
+  Wind,
+  Send,
+  Loader2,
+  X,
+  Bot
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const { 
-    setPageView 
+    setPageView,
+    setActiveTab,
+    savedPlaceIds,
+    toggleSavePlace,
+    setSelectedPlace,
+    language,
+    userLocation,
+    addMessage
   } = useAppStore();
 
-  // Chat Interactive Simulator State
-  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'assistant'; text: string; amharic?: string }>>([
-    {
-      sender: 'user',
-      text: 'Find a 24-hour pharmacy near Bole Medhane Alem and check if pain relievers and altitude remedies are stocked.',
-    },
-    {
-      sender: 'assistant',
-      text: 'Lion Pharmacy (Bole Branch) is 450 meters away and open 24/7. Verified in stock: Paracetamol, Ibuprofen, and Diamox for highland acclimatization.',
-      amharic: 'አንበሳ ፋርማሲ (ቦሌ ቅርንጫፍ) ለ24 ሰዓት ክፍት ነው። ራስ ምታት እና የከፍታ ማስታገሻ መድኃኒቶች ተረጋግጠው ይገኛሉ።',
+  // Ask GuzoMate pull-down state
+  const [isAskOpen, setIsAskOpen] = useState(false);
+  const [askQuery, setAskQuery] = useState('');
+  const [isAsking, setIsAsking] = useState(false);
+  const [assistantAnswer, setAssistantAnswer] = useState<string | null>(null);
+  const [assistantPlaces, setAssistantPlaces] = useState<Place[]>([]);
+  const [assistantError, setAssistantError] = useState<string | null>(null);
+  const askInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isAskOpen) {
+      const timer = setTimeout(() => {
+        askInputRef.current?.focus();
+      }, 80);
+      return () => clearTimeout(timer);
     }
-  ]);
-  const [chatInput, setChatInput] = useState('');
+  }, [isAskOpen]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+  const handleAssistantSubmit = async (queryText?: string) => {
+    const textToSend = (queryText || askQuery).trim();
+    if (!textToSend || isAsking) return;
 
-    const userText = chatInput.trim();
-    setChatMessages((prev) => [...prev, { sender: 'user', text: userText }]);
-    setChatInput('');
+    setIsAsking(true);
+    setAssistantError(null);
+    setAssistantAnswer(null);
+    setAssistantPlaces([]);
 
-    setTimeout(() => {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'assistant',
-          text: `Verified guidance for "${userText}": Route corridors are clear, local highland transports operating normally.`,
-          amharic: `የተረጋገጠ መረጃ: የመንገድ መስመሮች ክፍት ናቸው፣ የትራንስፖርት አገልግሎቶች በመደበኛ ሁኔታ በመስራት ላይ ይገኛሉ።`,
-        }
-      ]);
-    }, 600);
+    // Save user message to global chat history
+    addMessage({
+      id: `usr-${Date.now()}`,
+      sender: 'user',
+      content: textToSend,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
+
+    try {
+      const response = await assistantService.query({
+        query: textToSend,
+        language,
+        location: userLocation,
+      });
+
+      setAssistantAnswer(response.answer);
+      if (response.places && response.places.length > 0) {
+        setAssistantPlaces(response.places);
+      }
+
+      // Save assistant message to global chat history
+      addMessage({
+        id: `asst-${Date.now()}`,
+        sender: 'assistant',
+        content: response.answer,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        places: response.places,
+        weather: response.weather,
+        incidents: response.incidents,
+        sources: response.sources,
+      });
+      setAskQuery('');
+    } catch {
+      setAssistantError('Unable to connect to assistant service right now. Please try again.');
+    } finally {
+      setIsAsking(false);
+    }
   };
 
-  const handleStarterPrompt = (prompt: string) => {
-    setChatMessages((prev) => [...prev, { sender: 'user', text: prompt }]);
-    setTimeout(() => {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'assistant',
-          text: `Highland Intelligence check complete: Live verification confirms normal traffic and open services along this sector.`,
-          amharic: `የቀጥታ ማጣሪያ ውጤት: የተጠቀሰው አካባቢ ትራፊክ እና አገልግሎት ክፍት መሆኑ ተረጋግጧል።`,
-        }
-      ]);
-    }, 600);
-  };
+  // Saved Places state
+  const [savedPlaces, setSavedPlaces] = useState<Place[]>([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
 
-  const verifiedPlaces = [
-    {
-      id: 'p-1',
-      title: "St. Paul's Hospital Millennium Medical College",
-      location: 'Gulele Subcity, Addis Ababa',
-      distance: '2.4 km away',
-      status: 'Open 24/7 • Emergency Ready',
-      desc: 'Full trauma response unit, multilingual medical staff, modern diagnostics, and dedicated blood bank.',
-      badge: 'Guild Verified',
-      image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=600&q=80',
-    },
-    {
-      id: 'p-2',
-      title: 'Entoto Park Viewpoint Lodge & Cafe',
-      location: 'Entoto Mountain Ridges',
-      distance: '7.8 km away',
-      status: 'Open now • Scenic view',
-      desc: 'Fresh organic highland herbal teas, artisan coffee roasting ceremonies, and elevated city vistas.',
-      badge: 'Highland Haven',
-      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
-    },
-    {
-      id: 'p-3',
-      title: 'TotalEnergies Station & Supermarket',
-      location: 'Meskel Square Corridor',
-      distance: '1.1 km away',
-      status: 'Open 24/7 • EV & Diesel',
-      desc: 'Reliable diesel and petrol supplies, tire pressure services, 24/7 grocery mart, and verified ATM kiosk.',
-      badge: 'Fuel In Stock',
-      image: 'https://images.unsplash.com/photo-1545459720-aac8509eb02c?auto=format&fit=crop&w=600&q=80',
-    },
-    {
-      id: 'p-4',
-      title: 'Lucy Gazebo Traditional Cultural Restaurant',
-      location: 'National Museum Precinct',
-      distance: '3.2 km away',
-      status: 'Authentic dining',
-      desc: 'Fresh sourdough injera, clay pot stews, traditional honey wine, and soothing live krar music recitals.',
-      badge: '4.9 Travelers Pick',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-    },
-  ];
+  // Weather state (real backend data)
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+
+  // Incidents state (real backend data)
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [incidentsLoading, setIncidentsLoading] = useState(true);
+
+  // Fetch saved places
+  useEffect(() => {
+    let active = true;
+    if (savedPlaceIds.length === 0) {
+      setSavedPlaces([]);
+      return;
+    }
+
+    setLoadingSaved(true);
+    Promise.allSettled(savedPlaceIds.map((id) => placesService.getPlaceById(id))).then((results) => {
+      if (active) {
+        const places = results
+          .filter((r): r is PromiseFulfilledResult<Place> => r.status === 'fulfilled')
+          .map((r) => r.value);
+        setSavedPlaces(places);
+        setLoadingSaved(false);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [savedPlaceIds]);
+
+  // Fetch real weather
+  useEffect(() => {
+    let active = true;
+    weatherService.getFullWeather(userLocation.lat, userLocation.lon, undefined, language)
+      .then((data) => {
+        if (active) {
+          setWeatherData(data);
+          setWeatherLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setWeatherData(null);
+          setWeatherLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [userLocation.lat, userLocation.lon, language]);
+
+  // Fetch real nearby incidents
+  useEffect(() => {
+    let active = true;
+    incidentsService.getNearby({
+      lat: userLocation.lat,
+      lon: userLocation.lon,
+      radiusMeters: 15000,
+    })
+      .then((res) => {
+        if (active) {
+          setIncidents(res.items || []);
+          setIncidentsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setIncidents([]);
+          setIncidentsLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [userLocation.lat, userLocation.lon]);
 
   return (
     <div className="relative min-h-screen bg-surface text-on-surface flex flex-col font-sans selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden">
       
-      {/* 3D Static Highland Terrain & AI Core Background (Zero Animation Loop) */}
+      {/* 3D Static Highland Terrain & Core Background */}
       <StaticHighlandBackground />
 
-      {/* Reusable Application Navigation Bar */}
+      {/* Application Navigation Bar */}
       <AppNavbar activePage="home" />
 
       {/* MAIN CONTENT AREA */}
       <main className="relative z-10 flex-grow">
         
-        {/* 1. HERO SECTION WITH STATIC HIGHLAND WIREFRAME BACKDROP & REAL-TIME SEARCH */}
-        <section className="relative min-h-[560px] lg:min-h-[640px] flex items-center justify-center overflow-hidden py-16 px-4 sm:px-6 lg:px-8">
-          
-          {/* Hero Center Presentation */}
+        {/* 1. HERO SECTION */}
+        <section className="relative min-h-[460px] lg:min-h-[520px] flex items-center justify-center overflow-hidden py-14 px-4 sm:px-6 lg:px-8">
           <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">
             
-            {/* Main Headline */}
             <h1 className="text-4xl sm:text-6xl font-display font-extrabold text-primary mb-4 tracking-tight drop-shadow-sm">
               Explore with confidence.
             </h1>
@@ -142,39 +218,216 @@ export const HomePage: React.FC = () => {
               Discover places nearby, plan your journey, and get trusted travel guidance in your language.
             </p>
 
-            {/* Primary & Secondary Action CTAs */}
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
+            {/* Hero CTAs: Ask GuzoMate with Pull-Down Text Field */}
+            <div className="w-full flex flex-col items-center justify-center gap-4 mb-6">
               <button
-                onClick={() => setPageView('app')}
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-all shadow-highland hover:scale-105 active:scale-95 rounded-xl group"
+                type="button"
+                onClick={() => setIsAskOpen(!isAskOpen)}
+                className={`inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-md cursor-pointer border ${
+                  isAskOpen
+                    ? 'bg-primary text-white border-primary shadow-highland'
+                    : 'bg-surface-lowest/95 backdrop-blur-md text-primary border-outline-variant/40 hover:bg-white'
+                }`}
               >
-                <Compass className="w-4 h-4 text-secondary-light group-hover:rotate-45 transition-transform" />
-                <span>Explore nearby</span>
+                <Sparkles className="w-4 h-4 text-secondary" />
+                <span>Ask GuzoMate</span>
+                <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${isAskOpen ? 'rotate-90' : ''}`} />
               </button>
 
-              <a
-                href="#ai-assistant"
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-surface-lowest/95 backdrop-blur-md text-primary font-bold text-sm hover:bg-white transition-all shadow-sm hover:shadow-md border border-outline-variant/40 rounded-xl group"
-              >
-                <Sparkles className="w-4 h-4 text-secondary group-hover:scale-110 transition-transform" />
-                <span>Ask GuzoMate</span>
-                <span className="text-[10px] text-on-surface-variant font-bold bg-surface-low px-2 py-0.5 rounded">
-                  AI
-                </span>
-              </a>
+              {/* Pull-Down Assistant Text Field & Response Panel */}
+              <AnimatePresence>
+                {isAskOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, y: -8 }}
+                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -8 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="w-full max-w-2xl text-left overflow-hidden mt-1"
+                  >
+                    <div className="bg-surface-lowest rounded-2xl border border-outline-variant/50 p-4 sm:p-5 shadow-highland backdrop-blur-md">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleAssistantSubmit();
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <div className="relative flex-1">
+                          <Bot className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            ref={askInputRef}
+                            type="text"
+                            value={askQuery}
+                            onChange={(e) => setAskQuery(e.target.value)}
+                            placeholder="Ask GuzoMate anything about routes, places, weather, and safe travel..."
+                            className="w-full pl-10 pr-4 py-3 bg-surface-low/80 border border-outline-variant/40 rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-ash focus:outline-none focus:border-primary focus:bg-white transition-colors"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={!askQuery.trim() || isAsking}
+                          className="px-4 py-3 bg-primary text-white font-bold text-xs rounded-xl shadow-xs hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer shrink-0"
+                        >
+                          {isAsking ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
+                          <span className="hidden sm:inline">Ask</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAskOpen(false);
+                            setAssistantAnswer(null);
+                            setAssistantError(null);
+                          }}
+                          className="p-3 text-ash hover:text-on-surface rounded-xl hover:bg-surface-low transition-colors cursor-pointer"
+                          title="Close"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </form>
+
+                      {/* Quick Prompt Chips */}
+                      {!assistantAnswer && !isAsking && (
+                        <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-outline-variant/20 text-xs">
+                          <span className="text-[11px] font-semibold text-ash">Try asking:</span>
+                          {[
+                            'Safe route to Debre Birhan',
+                            'Best traditional coffee in Bole',
+                            '24/7 hospitals near me',
+                          ].map((chip) => (
+                            <button
+                              key={chip}
+                              type="button"
+                              onClick={() => {
+                                setAskQuery(chip);
+                                handleAssistantSubmit(chip);
+                              }}
+                              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-surface-low hover:bg-primary/10 text-on-surface hover:text-primary border border-outline-variant/30 transition-colors cursor-pointer"
+                            >
+                              {chip}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Loading State */}
+                      {isAsking && (
+                        <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/15 flex items-center gap-3">
+                          <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                          <span className="text-xs font-medium text-primary">
+                            GuzoMate is retrieving highland intelligence & local telemetry...
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Error State */}
+                      {assistantError && (
+                        <div className="mt-4 p-3 rounded-xl bg-red-50 text-red-700 border border-red-200 text-xs flex items-center justify-between">
+                          <span>{assistantError}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleAssistantSubmit()}
+                            className="font-bold underline hover:text-red-900 cursor-pointer"
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Assistant Answer Box */}
+                      {assistantAnswer && (
+                        <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                              <Bot className="w-4 h-4 text-secondary" />
+                              <span>GuzoMate AI Response</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveTab('assistant');
+                                setPageView('explore');
+                              }}
+                              className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>Open in Assistant</span>
+                              <ChevronRight className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          <p className="text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-wrap">
+                            {assistantAnswer}
+                          </p>
+
+                          {/* Related Places Chips */}
+                          {assistantPlaces.length > 0 && (
+                            <div className="pt-2 border-t border-primary/15 space-y-1.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-ash">
+                                Recommended Places:
+                              </span>
+                              <div className="flex flex-wrap gap-2">
+                                {assistantPlaces.slice(0, 3).map((place) => (
+                                  <button
+                                    key={place.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedPlace(place);
+                                      setActiveTab('places');
+                                      setPageView('explore');
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-lowest border border-primary/20 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <MapPin className="w-3 h-3 text-secondary" />
+                                    <span>{place.name}</span>
+                                    {place.distanceMeters !== null && place.distanceMeters !== undefined && (
+                                      <span className="text-[10px] opacity-75">
+                                        ({place.distanceMeters > 1000 ? `${(place.distanceMeters / 1000).toFixed(1)}km` : `${place.distanceMeters}m`})
+                                      </span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between pt-2 text-[11px]">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAssistantAnswer(null);
+                                setAssistantPlaces([]);
+                                setAskQuery('');
+                                setTimeout(() => askInputRef.current?.focus(), 50);
+                              }}
+                              className="text-ash hover:text-primary font-medium hover:underline cursor-pointer"
+                            >
+                              Ask another question
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
           </div>
-
         </section>
 
-        {/* 2. QUICK ACTIONS HUB (Bento Grid Style - 4 Distinct Cards) */}
+        {/* 2. QUICK ACTIONS HUB (4 CARDS MAPPING DIRECTLY TO 4 SUBPAGES) */}
         <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-16 relative z-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             
-            {/* Card 1 */}
+            {/* Card 1: Discover Places */}
             <div 
-              onClick={() => setPageView('app')}
+              onClick={() => {
+                setActiveTab('places');
+                setPageView('explore');
+              }}
               className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
             >
               <div>
@@ -182,21 +435,52 @@ export const HomePage: React.FC = () => {
                   <Building2 className="w-6 h-6" />
                 </div>
                 <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                  Find Nearby Services
+                  Discover Places
                 </h2>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Verified emergency health facilities, roadside dining, highland lodges, and guaranteed fuel points.
+                  Search nearby health facilities, cafes, dining, and guaranteed fuel points across Addis Ababa.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>Scan 15km perimeter</span>
+                <span>Open Discover</span>
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </div>
             </div>
 
-            {/* Card 2 */}
+            {/* Card 2: AI Travel Assistant */}
             <div 
-              onClick={() => setPageView('app')}
+              onClick={() => {
+                setActiveTab('assistant');
+                setPageView('explore');
+              }}
+              className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-200">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                  <span>AI Assistant</span>
+                  <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">
+                    Voice &amp; Text
+                  </span>
+                </h2>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  Real-time travel guide fluent in English, አማርኛ, and Afaan Oromoo with instant voice assistance.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
+                <span>Start Assistant</span>
+                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+
+            {/* Card 3: Route & Transit */}
+            <div 
+              onClick={() => {
+                setActiveTab('routes');
+                setPageView('explore');
+              }}
               className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
             >
               <div>
@@ -207,171 +491,169 @@ export const HomePage: React.FC = () => {
                   Plan Route &amp; Transit
                 </h2>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Addis Ababa Sheger &amp; Anbessa bus corridors, Sheger train links, plus national toll highway updates.
+                  Bus corridors, LRT train links, driving directions, and multi-modal transit timing across corridors.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>View transit timelines</span>
+                <span>Calculate Routes</span>
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </div>
             </div>
 
-            {/* Card 3 */}
-            <a 
-              href="#ai-assistant"
+            {/* Card 4: Road Incidents */}
+            <div 
+              onClick={() => {
+                setPageView('incidents');
+              }}
               className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
             >
               <div>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-200">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
-                  <span>Ask GuzoMate AI</span>
-                  <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">
-                    Multilingual
-                  </span>
-                </h2>
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Multilingual real-time assistant fluent in Latin, አማርኛ, and Afaan Oromo with offline cached answers.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>Start conversation</span>
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </a>
-
-            {/* Card 4 */}
-            <a 
-              href="#road-incidents"
-              className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-200">
-                  <AlertTriangle className="w-6 h-6" />
+                  <AlertTriangle className="w-6 h-6 text-secondary" />
                 </div>
                 <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                  Report Road Incident
+                  Report &amp; View Incidents
                 </h2>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Crowdsource highland hazard verification: fog alerts, landslide alerts, mountain pass repairs.
+                  Crowdsourced safety alerts: traffic slowdowns, road damage, flooded underpasses, and hazards.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>Contribute report</span>
+                <span>View Incident Radar</span>
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </div>
-            </a>
+            </div>
 
           </div>
         </section>
 
-        {/* 3. NEARBY VERIFIED PLACES (Locally Audited Directory) */}
-        <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="explore-map">
+        {/* 3. SAVED PLACES SECTION (SCROLLABLE LIST LAYOUT) */}
+        <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20">
           
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
             <div>
               <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-1">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Locally Audited Directory</span>
+                <Bookmark className="w-4 h-4 text-secondary" />
+                <span>Your Bookmarks</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-primary tracking-tight">
-                Nearby Verified Places
+                Saved Places
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                Essential destinations around your current radius in Addis Ababa and surrounding ridges.
+                Your quick-access locations, emergency points, and favorite highland stops.
               </p>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={() => setPageView('app')}
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+            <button 
+              type="button"
+              onClick={() => {
+                setActiveTab('places');
+                setPageView('explore');
+              }}
+              className="text-xs font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto"
+            >
+              <span>Explore more places</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* List or Empty State */}
+          {savedPlaces.length === 0 ? (
+            <div className="bg-surface-lowest rounded-2xl p-8 sm:p-10 border border-outline-variant/30 text-center flex flex-col items-center justify-center shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+                <Bookmark className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="text-base font-bold text-on-surface mb-1">
+                Save places to get them quickly
+              </h3>
+              <p className="text-xs text-on-surface-variant max-w-sm mb-5 leading-relaxed">
+                You haven't saved any locations yet. Bookmark your favorite hospitals, cafes, and fuel stops across Addis Ababa for fast one-tap access.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('places');
+                  setPageView('explore');
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-sm cursor-pointer"
               >
-                <span>View all 48 locations on map</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <Compass className="w-4 h-4 text-secondary-light" />
+                <span>Explore &amp; Save Places</span>
               </button>
             </div>
-          </div>
-
-          {/* Places Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {verifiedPlaces.map((place) => (
-              <article
-                key={place.id}
-                className="bg-surface-lowest rounded-2xl overflow-hidden border border-outline-variant/40 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col group"
-              >
-                <div className="relative h-44 overflow-hidden bg-surface-container">
-                  <img
-                    src={place.image}
-                    alt={place.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold px-2.5 py-1 flex items-center gap-1 shadow-sm rounded-md">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span>{place.status}</span>
-                  </div>
-                  <div className="absolute bottom-3 right-3 bg-surface-lowest/90 backdrop-blur-sm text-on-surface text-[11px] font-semibold px-2 py-0.5 rounded-md border border-outline-variant/30">
-                    {place.distance}
-                  </div>
-                </div>
-
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="text-[11px] text-ash font-medium mb-1">
-                      {place.location}
+          ) : (
+            <div className="bg-surface-lowest rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden">
+              <div className="max-h-80 overflow-y-auto divide-y divide-outline-variant/20 p-2 sm:p-3">
+                {savedPlaces.map((place) => (
+                  <div
+                    key={place.id}
+                    className="p-3 hover:bg-surface-low/70 rounded-xl transition-colors flex items-center justify-between gap-3 group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <MapPin className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs sm:text-sm font-bold text-on-surface truncate">
+                            {place.name}
+                          </h4>
+                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant shrink-0">
+                            {place.category}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-on-surface-variant truncate mt-0.5">
+                          {place.address || 'Addis Ababa'}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-sm font-bold text-primary group-hover:text-primary-dark transition-colors mb-2 leading-snug">
-                      {place.title}
-                    </h3>
-                    <p className="text-xs text-on-surface-variant line-clamp-2 mb-4 leading-relaxed">
-                      {place.desc}
-                    </p>
-                  </div>
 
-                  <div className="pt-3 border-t border-outline-variant/30 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-primary" />
-                      {place.badge}
-                    </span>
-                    <button
-                      onClick={() => setPageView('app')}
-                      className="text-xs font-bold text-primary hover:text-primary-dark flex items-center gap-0.5"
-                    >
-                      <span>Map</span>
-                      <MapPin className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPlace(place);
+                          setActiveTab('places');
+                          setPageView('explore');
+                        }}
+                        className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-1 shadow-sm cursor-pointer"
+                      >
+                        <span>View on Map</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleSavePlace(place.id)}
+                        className="p-1.5 text-ash hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                        title="Remove bookmark"
+                        aria-label="Remove bookmark"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </section>
 
-        {/* 4. WEATHER & MICROCLIMATE + LIVE ROAD INCIDENTS (Asymmetric 2-Column Split) */}
+        {/* 4. REAL WEATHER & MICROCLIMATE + RECENT ROAD INCIDENTS */}
         <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="road-incidents">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Weather & Microclimate (5 Cols) */}
             <div className="lg:col-span-5 bg-surface-lowest p-6 sm:p-7 rounded-3xl border border-outline-variant/40 shadow-sm relative overflow-hidden">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-[11px] uppercase tracking-wider font-bold text-white bg-primary px-2.5 py-1 rounded-md">
-                  Highland Microclimate
-                </span>
-                <span className="text-xs text-ash flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>Updated 12 mins ago</span>
-                </span>
               </div>
 
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-primary">
-                  Addis Ababa &amp; Debre Birhan Corridor
+                  Addis Ababa
                 </h3>
-                <p className="text-xs text-on-surface-variant">
-                  Elevation: 2,355 m — 2,840 m above sea level
+                <p className="text-xxs text-on-surface-variant">
+                  At Your Current Location.
                 </p>
               </div>
 
@@ -382,10 +664,19 @@ export const HomePage: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-3xl font-display font-extrabold text-primary">
-                      21°C <span className="text-sm font-normal text-on-surface-variant">/ 70°F</span>
+                      {weatherData?.current ? (
+                        <>
+                          {Math.round(weatherData.current.temperatureC)}°C{' '}
+                          <span className="text-sm font-normal text-on-surface-variant">
+                            / {Math.round((weatherData.current.temperatureC * 9) / 5 + 32)}°F
+                          </span>
+                        </>
+                      ) : (
+                        <span>--°C</span>
+                      )}
                     </div>
                     <div className="text-xs text-on-surface-variant font-medium">
-                      Partly Cloudy • Fresh mountain breeze
+                      {weatherData?.current?.condition || (weatherLoading ? 'Loading weather...' : 'Weather data unavailable')}
                     </div>
                   </div>
                 </div>
@@ -401,7 +692,11 @@ export const HomePage: React.FC = () => {
                     Highland Travel Clothing Advice
                   </h4>
                   <p className="text-xs text-on-surface leading-snug">
-                    "Chilly highland evening ahead. Bring a lightweight traditional <strong className="text-primary font-bold">Gabi</strong> or windbreaker jacket as temperatures dip to 11°C after sunset."
+                    {weatherData?.arrivalAdvice?.suggestions?.find((s) => s.type === 'clothing')?.text ||
+                     weatherData?.arrivalAdvice?.suggestions?.[0]?.text ||
+                     (weatherLoading
+                       ? 'Calculating atmospheric clothing recommendation...'
+                       : 'Weather advisories currently unavailable — please check back shortly.')}
                   </p>
                 </div>
               </div>
@@ -409,251 +704,142 @@ export const HomePage: React.FC = () => {
               {/* Climate Telemetry */}
               <div className="grid grid-cols-3 gap-3 text-center border-t border-outline-variant/20 pt-4 text-xs">
                 <div className="p-2.5 rounded-lg bg-surface-low/60">
-                  <div className="text-ash text-[10px]">Rain Probability</div>
-                  <div className="font-bold text-primary mt-0.5 text-sm">15%</div>
+                  <div className="text-ash text-[10px] flex items-center justify-center gap-1">
+                    <Droplets className="w-3 h-3 text-primary" />
+                    <span>Precipitation</span>
+                  </div>
+                  <div className="font-bold text-primary mt-0.5 text-sm">
+                    {weatherData?.arrivalAdvice?.forecast?.precipitationProbability !== undefined && weatherData?.arrivalAdvice?.forecast?.precipitationProbability !== null
+                      ? `${weatherData.arrivalAdvice.forecast.precipitationProbability}%`
+                      : weatherData?.current?.precipitationMm !== undefined && weatherData?.current?.precipitationMm !== null
+                      ? `${weatherData.current.precipitationMm} mm`
+                      : '--'}
+                  </div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-surface-low/60">
-                  <div className="text-ash text-[10px]">Ridge Visibility</div>
-                  <div className="font-bold text-primary mt-0.5 text-sm">12 km</div>
+                  <div className="text-ash text-[10px] flex items-center justify-center gap-1">
+                    <Wind className="w-3 h-3 text-primary" />
+                    <span>Wind Speed</span>
+                  </div>
+                  <div className="font-bold text-primary mt-0.5 text-sm">
+                    {weatherData?.current?.windKph !== undefined && weatherData?.current?.windKph !== null
+                      ? `${weatherData.current.windKph} km/h`
+                      : '--'}
+                  </div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-surface-low/60">
-                  <div className="text-ash text-[10px]">UV Index</div>
-                  <div className="font-bold text-primary mt-0.5 text-sm">6 (Moderate)</div>
+                  <div className="text-ash text-[10px] flex items-center justify-center gap-1">
+                    <Sun className="w-3 h-3 text-secondary" />
+                    <span>Humidity</span>
+                  </div>
+                  <div className="font-bold text-primary mt-0.5 text-sm">
+                    {weatherData?.current?.humidity !== undefined && weatherData?.current?.humidity !== null
+                      ? `${weatherData.current.humidity}%`
+                      : '--'}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Live Road Alerts Nearby (7 Cols) */}
+            {/* Recent Incidents (7 Cols) */}
             <div className="lg:col-span-7 bg-surface-lowest p-6 sm:p-7 rounded-3xl border border-outline-variant/40 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-outline-variant/30 gap-2 mb-5">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                       <h3 className="text-lg font-bold text-primary">
-                        Live Road Alerts Nearby (Incident Radar)
+                        Recent Incidents
                       </h3>
                     </div>
                     <p className="text-xs text-on-surface-variant">
-                      Real-time crowdsourced reports verified by local transportation unions
+                      Real-time crowdsourced reports verified by local travelers
                     </p>
                   </div>
-                </div>
-
-                {/* Incident 1 */}
-                <div className="p-4 rounded-xl bg-surface-low/80 border border-outline-variant/30 mb-3 hover:border-primary/40 transition-colors">
-                  <div className="flex items-start justify-between gap-3 mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-secondary" />
-                      <span className="text-xs font-bold text-on-surface">
-                        Minor road resurfacing near Gotera Interchange
-                      </span>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-primary text-white font-bold whitespace-nowrap rounded">
-                      <CheckCircle2 className="w-3 h-3 text-secondary-light" />
-                      Verified Guild
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-on-surface-variant">
-                    <span>3.4 km from position</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 18 min ago</span>
-                    <span>•</span>
-                    <span className="font-medium text-primary">1 lane reduced; traffic flowing smoothly</span>
-                  </div>
-                </div>
-
-                {/* Incident 2 */}
-                <div className="p-4 rounded-xl bg-surface-low/80 border border-outline-variant/30 mb-3 hover:border-primary/40 transition-colors">
-                  <div className="flex items-start justify-between gap-3 mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-600" />
-                      <span className="text-xs font-bold text-on-surface">
-                        Heavy fog advisory along Entoto Pass highway
-                      </span>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-amber-100 text-amber-800 font-bold whitespace-nowrap rounded">
-                      Under Review
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-on-surface-variant">
-                    <span>8.1 km from position</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 42 min ago</span>
-                    <span>•</span>
-                    <span className="font-medium text-amber-700">Low visibility under 40 meters</span>
-                  </div>
-                </div>
-
-                {/* Incident 3 */}
-                <div className="p-4 rounded-xl bg-surface-low/80 border border-outline-variant/30 mb-4 hover:border-primary/40 transition-colors">
-                  <div className="flex items-start justify-between gap-3 mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span className="text-xs font-bold text-on-surface">
-                        Expressway toll lane maintenance near Modjo exit
-                      </span>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap rounded">
-                      Resolved
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-on-surface-variant">
-                    <span>45 km from position</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 1 hr ago</span>
-                    <span>•</span>
-                    <span className="font-medium text-emerald-800">All automatic payment lanes operational</span>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Guild verification note */}
-              <div className="p-3 bg-surface-container rounded-xl flex items-center gap-2.5 text-xs text-on-surface-variant border border-outline-variant/30">
-                <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-                <span>Community reports undergo dual-verification by local transport guilds and verified highland contributors.</span>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* 5. 'ASK GUZOMATE' AI TRAVEL ASSISTANT SHOWCASE */}
-        <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="ai-assistant">
-          <div className="bg-gradient-to-br from-primary via-primary-dark to-[#001f14] rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
-            
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-              
-              {/* Left Column: Prompts & Info */}
-              <div className="lg:col-span-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md text-secondary-light text-xs font-bold mb-4 border border-white/20 rounded-lg">
-                  <Sparkles className="w-3.5 h-3.5 text-secondary-light" />
-                  <span>Gemini-Powered Highland Travel Intelligence</span>
-                </div>
-
-                <h2 className="text-2xl sm:text-3xl font-display font-bold text-white mb-3 tracking-tight">
-                  Instant answers in Latin, አማርኛ, or Afaan Oromoo.
-                </h2>
-                <p className="text-xs sm:text-sm text-white/80 mb-6 leading-relaxed">
-                  Ask about road blockages, minibus taxi rates, hotel bookings, mountain weather, or traditional customs. GuzoMate combines satellite feeds with local elder and transport guild knowledge.
-                </p>
-
-                <div className="space-y-2 mb-6">
-                  <span className="text-[11px] uppercase tracking-wider text-white/60 font-bold block">
-                    Try asking:
-                  </span>
-                  
                   <button
-                    onClick={() => handleStarterPrompt("Find a 24-hour pharmacy near Bole Medhane Alem")}
-                    className="w-full text-left p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-xs text-white flex items-center justify-between transition-colors group"
+                    type="button"
+                    onClick={() => setPageView('incidents')}
+                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-amber-300 text-sm">chat_bubble</span>
-                      <span>"Find a 24-hour pharmacy near Bole Medhane Alem"</span>
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-                  </button>
-
-                  <button
-                    onClick={() => handleStarterPrompt("What are the current road conditions between Addis and Hawassa?")}
-                    className="w-full text-left p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-xs text-white flex items-center justify-between transition-colors group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-amber-300 text-sm">chat_bubble</span>
-                      <span>"What are the current road conditions between Addis and Hawassa?"</span>
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-                  </button>
-
-                  <button
-                    onClick={() => handleStarterPrompt("Where can I taste authentic freshly roasted Sidama coffee nearby?")}
-                    className="w-full text-left p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-xs text-white flex items-center justify-between transition-colors group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-amber-300 text-sm">chat_bubble</span>
-                      <span>"Where can I taste authentic freshly roasted Sidama coffee nearby?"</span>
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <span>View all</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
 
-              {/* Right Column: Interactive Chat Box */}
-              <div className="lg:col-span-6 bg-surface-lowest text-on-surface rounded-2xl p-5 sm:p-6 shadow-2xl border border-white/30">
-                
-                {/* Chat Header */}
-                <div className="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-primary text-white flex items-center justify-center font-bold text-xs rounded-lg shadow-sm">
-                      GM
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-primary">GuzoMate Travel Assistant</div>
-                      <div className="text-[10px] text-emerald-700 flex items-center gap-1 font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                        <span>Online • Local transport guild verified</span>
-                      </div>
-                    </div>
+                {/* Real Incidents List or Empty State */}
+                {incidentsLoading ? (
+                  <div className="p-8 text-center text-xs text-on-surface-variant">
+                    Checking active road alerts nearby...
                   </div>
-                  <div className="flex items-center bg-surface-low p-0.5 rounded-lg border border-outline-variant/40 text-[10px] font-bold">
-                    <span className="px-2 py-0.5 bg-white text-primary rounded shadow-sm">EN</span>
-                    <span className="px-2 py-0.5 text-ash">አማ</span>
-                  </div>
-                </div>
-
-                {/* Chat Messages Log */}
-                <div className="space-y-3 mb-4 text-xs max-h-72 overflow-y-auto pr-1">
-                  {chatMessages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                ) : incidents.length === 0 ? (
+                  <div className="p-6 sm:p-8 text-center bg-surface-low/60 rounded-2xl border border-outline-variant/30 flex flex-col items-center justify-center mb-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mb-2.5">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-700" />
+                    </div>
+                    <h4 className="text-sm font-bold text-on-surface mb-1">
+                      No incidents reported nearby
+                    </h4>
+                    <p className="text-xs text-on-surface-variant max-w-sm mb-4">
+                      All major road corridors and transit routes in Addis Ababa are currently clear and operating normally.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setPageView('incidents')}
+                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      {msg.sender === 'user' ? (
-                        <div className="bg-primary text-white p-3 rounded-2xl rounded-tr-sm max-w-[85%] shadow-sm leading-relaxed">
-                          {msg.text}
+                      <span>Report a new hazard or incident</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3 mb-4">
+                    {incidents.slice(0, 3).map((incident) => (
+                      <div 
+                        key={incident.id}
+                        className="p-4 rounded-xl bg-surface-low/80 border border-outline-variant/30 hover:border-primary/40 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-secondary shrink-0" />
+                            <span className="text-xs font-bold text-on-surface">
+                              {incident.title || incident.type.replace(/_/g, ' ')}
+                            </span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-primary text-white font-bold whitespace-nowrap rounded">
+                            <CheckCircle2 className="w-3 h-3 text-secondary-light" />
+                            <span>{incident.verification || 'Verified'}</span>
+                          </span>
                         </div>
-                      ) : (
-                        <div className="bg-surface-low p-3.5 rounded-2xl rounded-tl-sm max-w-[92%] border border-outline-variant/40 space-y-2">
-                          <p className="text-on-surface leading-relaxed">{msg.text}</p>
-                          {msg.amharic && (
-                            <div className="p-2 rounded-lg bg-surface-lowest border border-outline-variant/30 text-on-surface-variant font-medium text-[11px]">
-                              <span className="text-primary font-bold block mb-0.5">የአማርኛ ትርጉም:</span>
-                              "{msg.amharic}"
-                            </div>
-                          )}
+                        <p className="text-xs text-on-surface-variant mb-2 line-clamp-2">
+                          {incident.description}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-on-surface-variant">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-primary" />
+                            <span>{incident.locationName || `${incident.location.lat.toFixed(3)}, ${incident.location.lon.toFixed(3)}`}</span>
+                          </span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            <span>{new Date(incident.createdAt).toLocaleDateString()}</span>
+                          </span>
+                          <span>•</span>
+                          <span className="font-medium text-primary">
+                            {incident.confirmationsCount || 1} Confirmations
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Chat Input */}
-                <form onSubmit={handleSendMessage} className="relative flex items-center">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Ask GuzoMate in English, አማርኛ, or Afaan Oromoo..."
-                    className="w-full pl-3.5 pr-20 py-2.5 bg-surface-low rounded-xl text-xs border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white font-medium"
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-1.5 px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary-dark transition-colors shadow-sm"
-                  >
-                    <span>Send</span>
-                    <Send className="w-3 h-3" />
-                  </button>
-                </form>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
               </div>
-
             </div>
 
           </div>
         </section>
 
-        {/* 6. ETHIOPIAN LINGUISTIC PARITY & EMERGENCY SECTION */}
+        {/* 5. ETHIOPIAN LINGUISTIC PARITY & EMERGENCY SECTION */}
         <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="emergency-section">
           
           {/* Parity Banner */}
@@ -695,7 +881,7 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-0.5">
-                  <PhoneCall className="w-4 h-4 text-red-600 animate-pulse" />
+                  <PhoneCall className="w-4 h-4 text-red-600" />
                   <span>Emergency Hotlines — Direct Dial</span>
                 </div>
                 <h3 className="text-lg font-bold text-primary">
@@ -782,7 +968,7 @@ export const HomePage: React.FC = () => {
             </div>
             <span className="hidden sm:inline text-outline-variant">|</span>
             <p className="text-xs text-on-surface-variant">
-              © 2026 GuzoMate Ethiopia — Verified Highland Travel Intelligence. Latin, አማርኛ &amp; Afaan Oromo parity.
+              © 2026 GuzoMate Ethiopia — Verified Highland Travel Intelligence. Latin, አማርኛ &amp; Afaan Oromoo parity.
             </p>
           </div>
 

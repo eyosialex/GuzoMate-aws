@@ -134,9 +134,6 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
             }`}
           >
             <span>{language === 'am' ? 'አደጋዎች' : language === 'om' ? 'Balaa' : 'Incidents'}</span>
-            <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.2 rounded border border-primary-light/30">
-              3
-            </span>
           </button>
         </nav>
 
@@ -155,7 +152,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
               title="Highland Travel Alerts"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface animate-pulse" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface" />
             </button>
 
             {/* Notification Popover Dropdown */}
@@ -237,7 +234,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
           <div className="flex items-center gap-2">
             {currentUser?.name && (
               <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-low border border-outline-variant/40 text-xs font-semibold text-primary">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span className="max-w-[120px] truncate">{currentUser.name}</span>
               </span>
             )}
@@ -259,7 +256,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface animate-pulse" />
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface" />
           </button>
 
           {/* Mobile Language Dropdown */}
@@ -327,12 +324,11 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
             </button>
             <button 
               onClick={handleIncidentsClick} 
-              className={`w-full py-2.5 px-3 text-left font-bold rounded-xl transition-colors flex items-center justify-between ${
+              className={`w-full py-2.5 px-3 text-left font-bold rounded-xl transition-colors ${
                 effectiveActive === 'incidents' ? 'text-primary bg-primary/10' : 'text-on-surface hover:bg-surface-low'
               }`}
             >
               <span>{language === 'am' ? 'አደጋዎች' : language === 'om' ? 'Balaa' : 'Incidents'}</span>
-              <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">3 new</span>
             </button>
           </div>
 

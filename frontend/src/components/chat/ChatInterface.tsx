@@ -536,7 +536,7 @@ export const ChatInterface: React.FC = () => {
             icon={
               isVoiceActive ? (
                 <span className="relative flex h-5 w-5 items-center justify-center">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <Square className="w-3.5 h-3.5 fill-white text-white relative" />
                 </span>
               ) : (

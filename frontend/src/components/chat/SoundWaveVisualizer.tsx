@@ -121,11 +121,6 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
       <div className="flex items-center gap-1.5 shrink-0 pl-1">
         <span className="relative flex h-2.5 w-2.5">
           <span
-            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-              silenceSeconds !== null ? 'bg-amber-400' : 'bg-primary'
-            }`}
-          />
-          <span
             className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
               silenceSeconds !== null ? 'bg-secondary' : 'bg-primary'
             }`}

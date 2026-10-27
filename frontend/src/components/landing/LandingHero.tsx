@@ -56,14 +56,14 @@ export const LandingHero: React.FC = () => {
       {/* Top Highland Status Badge */}
       <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-outline-variant/60 shadow-sm backdrop-blur-md">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
           <span className="text-xs font-bold text-primary tracking-wide">
             Verified Highland Travel Intelligence
           </span>
           <span className="text-outline-variant">•</span>
           <span className="text-[11px] font-semibold text-secondary flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-            Live Route Radar Active
+            Route Radar Active
           </span>
         </div>
       </div>
@@ -161,13 +161,13 @@ export const LandingHero: React.FC = () => {
         </div>
       </div>
 
-      {/* Live Microclimate & Clothing Advisory HUD Banner */}
+      {/* Microclimate & Clothing Advisory HUD Banner */}
       <div className="mt-10 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
         
         {/* Microclimate Card */}
         <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-outline-variant/40 shadow-sm flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-amber-50 text-secondary border border-amber-200/50 flex items-center justify-center flex-shrink-0">
-            <CloudSun className="w-6 h-6 animate-pulse" />
+            <CloudSun className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -198,7 +198,7 @@ export const LandingHero: React.FC = () => {
           </div>
         </div>
 
-        {/* Live Guild Hazard Radar */}
+        {/* Guild Hazard Radar */}
         <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-outline-variant/40 shadow-sm flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-700 border border-orange-200/50 flex items-center justify-center flex-shrink-0">
             <ShieldAlert className="w-6 h-6" />

@@ -36,7 +36,7 @@ export const HeroPresentation: React.FC = () => {
       {/* Top Floating Telemetry Bar */}
       <div className="w-full flex items-center justify-start pointer-events-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-outline-variant/60 shadow-highland backdrop-blur-md">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
           <span className="text-[11px] font-mono font-bold tracking-wider text-primary uppercase">
             3D WebGL Engine Active
           </span>
@@ -98,7 +98,7 @@ export const HeroPresentation: React.FC = () => {
 
         {/* Instruction cue for user */}
         <div className="pt-2 text-xs text-ash font-mono flex items-center justify-center gap-2 opacity-80">
-          <Maximize2 className="w-3.5 h-3.5 text-primary animate-pulse" />
+          <Maximize2 className="w-3.5 h-3.5 text-primary" />
           <span>Move mouse or click background to deform 3D terrain &amp; trigger radar shockwaves</span>
         </div>
 
