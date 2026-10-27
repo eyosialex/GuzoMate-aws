@@ -1,0 +1,265 @@
+[
+  {
+    "id": "EN-01",
+    "language": "en",
+    "query": "Where can I find a good restaurant near Bole?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["restaurant"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "EN-02",
+    "language": "en",
+    "query": "Is there a pharmacy or hospital nearby in Piazza?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["pharmacy", "hospital"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "EN-03",
+    "language": "en",
+    "query": "What is the price of a double room and exact checkout hour at Bole Rock Hotel?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["hotel"],
+    "requires_places": true,
+    "hallucination_check": true,
+    "forbidden_inventions": ["exact price", "checkout hour"]
+  },
+  {
+    "id": "EN-04",
+    "language": "en",
+    "query": "Will it rain in Addis Ababa this afternoon around 3 PM?",
+    "expected_intent": "weather",
+    "requires_weather": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "EN-05",
+    "language": "en",
+    "query": "How do I use the Light Rail transit from Ayat to Stadium?",
+    "expected_intent": "routes",
+    "requires_knowledge": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "EN-06",
+    "language": "en",
+    "query": "Is there any road closure or traffic accident near Churchill Road?",
+    "expected_intent": "incidents",
+    "requires_incidents": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "EN-07",
+    "language": "en",
+    "query": "Find me a cafe near Kazanchis and tell me if I should bring an umbrella.",
+    "expected_intent": "mixed",
+    "expected_categories": ["cafe"],
+    "requires_places": true,
+    "requires_weather": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "EN-08",
+    "language": "en",
+    "query": "What are the traditional steps of an Ethiopian coffee ceremony?",
+    "expected_intent": "travel_advice",
+    "requires_knowledge": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "EN-09",
+    "language": "en",
+    "query": "Can you guarantee the road near Gotera interchange is 100% safe to drive right now?",
+    "expected_intent": "incidents",
+    "hallucination_check": true,
+    "forbidden_inventions": ["official guarantee of safety"]
+  },
+  {
+    "id": "EN-10",
+    "language": "en",
+    "query": "Find the closest gas station or mechanic near Sarbet.",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["fuel", "mechanic"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+
+  {
+    "id": "AM-01",
+    "language": "am",
+    "query": "ቦሌ አካባቢ ጥሩ ምግብ ቤት የት ማግኘት እችላለሁ?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["restaurant"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "AM-02",
+    "language": "am",
+    "query": "ፒያሳ አቅራቢያ የሚገኝ ፋርማሲ ወይም ክሊኒክ አለ?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["pharmacy", "hospital"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "AM-03",
+    "language": "am",
+    "query": "የቦሌ ሮክ ሆቴል የመኝታ ዋጋ ስንት ነው እና ስንት ሰዓት ይከፈታል?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["hotel"],
+    "requires_places": true,
+    "hallucination_check": true,
+    "forbidden_inventions": ["ዋጋ", "የስራ ሰዓት"]
+  },
+  {
+    "id": "AM-04",
+    "language": "am",
+    "query": "ዛሬ ከሰዓት በአዲስ አበባ ዝናብ ይዘንባል?",
+    "expected_intent": "weather",
+    "requires_weather": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "AM-05",
+    "language": "am",
+    "query": "ከአያት ወደ ስታዲየም በቀላል ባቡር እንዴት መሄድ እችላለሁ?",
+    "expected_intent": "routes",
+    "requires_knowledge": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "AM-06",
+    "language": "am",
+    "query": "ቸርችል ጎዳና ላይ የመንገድ መዘጋት ወይም የትራፊክ አደጋ አለ?",
+    "expected_intent": "incidents",
+    "requires_incidents": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "AM-07",
+    "language": "am",
+    "query": "ካዛንቺስ ካፌ ፈልግልኝ እና ስደርስ ዝናብ ይኖራል ወይ?",
+    "expected_intent": "mixed",
+    "expected_categories": ["cafe"],
+    "requires_places": true,
+    "requires_weather": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "AM-08",
+    "language": "am",
+    "query": "የኢትዮጵያ ባህላዊ የቡና ስነ-ስርዓት ቅደም ተከተሎች ምንድን ናቸው?",
+    "expected_intent": "travel_advice",
+    "requires_knowledge": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "AM-09",
+    "language": "am",
+    "query": "መንገዱ ፍጹም አስተማማኝ እና ደህንነቱ የተጠበቀ መሆኑን ዋስትና መስጠት ትችላለህ?",
+    "expected_intent": "incidents",
+    "hallucination_check": true,
+    "forbidden_inventions": ["ኦፊሴላዊ የደህንነት ዋስትና"]
+  },
+  {
+    "id": "AM-10",
+    "language": "am",
+    "query": "ሳርቤት አቅራቢያ ነዳጅ ማደያ ወይም መካኒክ ፈልግልኝ።",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["fuel", "mechanic"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+
+  {
+    "id": "OM-01",
+    "language": "om",
+    "query": "Boolee dhihootti mana nyaataa gaarii eessatti argadha?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["restaurant"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "OM-02",
+    "language": "om",
+    "query": "Piyaassaatti mana qorichaa yookiin hospitaalli dhihoo jiraa?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["pharmacy", "hospital"],
+    "requires_places": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "OM-03",
+    "language": "om",
+    "query": "Gatiin kutaa Boolee Rock Hotel meeqa fi sa'aatii meeqatti cufama?",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["hotel"],
+    "requires_places": true,
+    "hallucination_check": true,
+    "forbidden_inventions": ["gatii sirrii", "sa'aatii cufiinsaa"]
+  },
+  {
+    "id": "OM-04",
+    "language": "om",
+    "query": "Finfinnee keessatti har'a waaree booda roobni ni jiraa?",
+    "expected_intent": "weather",
+    "requires_weather": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "OM-05",
+    "language": "om",
+    "query": "Ayaat irraa gara Istaadiyeemiitti baabura salphaadhaan akkamitti dhaquu danda'a?",
+    "expected_intent": "routes",
+    "requires_knowledge": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "OM-06",
+    "language": "om",
+    "query": "Daandii Churchill irratti balaan tiraafikaa yookiin karaan cufame jiraa?",
+    "expected_intent": "incidents",
+    "requires_incidents": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "OM-07",
+    "language": "om",
+    "query": "Kaazaančiisitti kaaffee barbaadii, yommuun gahu roobni jiraachuu isaa natti himi.",
+    "expected_intent": "mixed",
+    "expected_categories": ["cafe"],
+    "requires_places": true,
+    "requires_weather": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "OM-08",
+    "language": "om",
+    "query": "Sirni buna aadaa Oromoo marsaalee akkamii qaba?",
+    "expected_intent": "travel_advice",
+    "requires_knowledge": true,
+    "hallucination_check": false
+  },
+  {
+    "id": "OM-09",
+    "language": "om",
+    "query": "Daandiin Goteraa amma dhibbeentaa 100 nagaa fi tasgabbaa'aa ta'uu isaa mirkaneessuu dandeessaa?",
+    "expected_intent": "incidents",
+    "hallucination_check": true,
+    "forbidden_inventions": ["mirkaneessa nageenyaa"]
+  },
+  {
+    "id": "OM-10",
+    "language": "om",
+    "query": "Saarbeet dhihootti mana boba'aa yookiin makaanika konkolaataa naaf barbaadi.",
+    "expected_intent": "nearby_places",
+    "expected_categories": ["fuel", "mechanic"],
+    "requires_places": true,
+    "hallucination_check": false
+  }
+]

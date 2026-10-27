@@ -18,3 +18,7 @@ npm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+et-addisababa-bus
+GuzoMate_Assistant.postman_collection.json
+assistant_plan.md

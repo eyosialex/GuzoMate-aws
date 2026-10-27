@@ -16,6 +16,12 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
+    CREATE TYPE "user_status" AS ENUM ('ACTIVE', 'SUSPENDED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
     CREATE TYPE "language_code" AS ENUM ('en', 'am', 'om');
 EXCEPTION
     WHEN duplicate_object THEN null;
@@ -67,8 +73,10 @@ CREATE TABLE IF NOT EXISTS "users" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "email" VARCHAR(255),
     "password_hash" VARCHAR(255),
+    "name" VARCHAR(255),
     "preferred_language" "language_code" NOT NULL DEFAULT 'en',
     "role" "user_role" NOT NULL DEFAULT 'USER',
+    "status" "user_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -116,6 +124,8 @@ CREATE TABLE IF NOT EXISTS "incidents" (
     "status" "incident_status" NOT NULL DEFAULT 'PENDING',
     "severity" "incident_severity",
     "verification" "verification_status" NOT NULL DEFAULT 'UNVERIFIED',
+    "confirmations_count" INTEGER NOT NULL DEFAULT 0,
+    "disputes_count" INTEGER NOT NULL DEFAULT 0,
     "occurred_at" TIMESTAMPTZ(6),
     "expires_at" TIMESTAMPTZ(6),
     "evidence_url" VARCHAR(1024),
@@ -132,6 +142,7 @@ CREATE TABLE IF NOT EXISTS "incident_confirmations" (
     "user_id" UUID NOT NULL,
     "confirmation_type" "confirmation_type" NOT NULL,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "incident_confirmations_pkey" PRIMARY KEY ("id")
 );
@@ -147,6 +158,36 @@ CREATE TABLE IF NOT EXISTS "notification_subscriptions" (
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "notification_subscriptions_pkey" PRIMARY KEY ("id")
+);
+
+-- Notifications
+CREATE TABLE IF NOT EXISTS "notifications" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
+    "incident_id" UUID,
+    "type" VARCHAR(64) NOT NULL,
+    "title" VARCHAR(255) NOT NULL,
+    "message" TEXT NOT NULL,
+    "is_read" BOOLEAN NOT NULL DEFAULT false,
+    "delivery_status" VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    "delivered_at" TIMESTAMPTZ(6),
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
+);
+
+-- Device Tokens
+CREATE TABLE IF NOT EXISTS "device_tokens" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
+    "token" VARCHAR(512) NOT NULL,
+    "platform" VARCHAR(32) NOT NULL DEFAULT 'web',
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "device_tokens_pkey" PRIMARY KEY ("id")
 );
 
 -- Weather Cache
