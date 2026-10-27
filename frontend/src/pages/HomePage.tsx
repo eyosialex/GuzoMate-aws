@@ -27,6 +27,7 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const { user } = useAuth();
+  const currentUser = useAppStore((state) => state.currentUser);
 
   const savedPlaceIds = useAppStore((state) => state.savedPlaceIds);
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
@@ -106,7 +107,6 @@ export const HomePage: React.FC = () => {
             {/* GPS Telemetry Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f0f7f3] border border-[#d1e2d8] text-xs font-semibold text-[#183a2b] shadow-xs">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
               </span>
               <span>Current GPS: Bole Medhane Alem, Addis Ababa</span>
@@ -117,7 +117,7 @@ export const HomePage: React.FC = () => {
             {/* Scout Status Pill */}
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-500">
               <ShieldCheck className="w-4 h-4 text-[#183a2b]" />
-              <span>Logged as <strong className="text-gray-900">{user?.fullName || 'Dawit A.'}</strong></span>
+              <span>Logged as <strong className="text-gray-900">{currentUser?.name || user?.name || user?.fullName || 'Traveler'}</strong></span>
               <span className="bg-emerald-50 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold">
                 {user?.scoutGuildBadge || 'Selam Guild #418'}
               </span>
@@ -221,7 +221,7 @@ export const HomePage: React.FC = () => {
                   Explore Nearby Map
                 </h3>
                 <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">
-                  Discover 13,800+ OSM verified services, hospitals, pharmacies, and scenic lodges with live distance.
+                  Discover 13,800+ OSM verified services, hospitals, pharmacies, and scenic lodges with verified distance.
                 </p>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#183a2b] mt-4 pt-3 border-t border-gray-100">
@@ -360,17 +360,13 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ----------------------------------------------------------------------- */}
-      {/* 4. ACTIVE ROAD RADAR & LIVE HAZARD BROADCASTS */}
+      {/* 4. RECENT INCIDENTS */}
       {/* ----------------------------------------------------------------------- */}
       <section className="max-w-[1440px] mx-auto px-4 sm:px-6 mt-10">
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-gray-900 tracking-tight">Active Road Radar</h2>
-              <span className="flex items-center gap-1 text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse" />
-                Live Telemetry
-              </span>
+              <h2 className="text-lg font-bold text-gray-900 tracking-tight">Recent Incidents</h2>
             </div>
             <p className="text-xs text-gray-500 font-medium mt-0.5">
               Community verified alerts reported by drivers and transport scouts.

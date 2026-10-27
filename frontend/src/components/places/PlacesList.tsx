@@ -87,7 +87,7 @@ export const PlacesList: React.FC = () => {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="bg-white rounded-2xl p-4 border border-outline-variant/30 animate-pulse h-28"
+                className="bg-surface-low/60 rounded-2xl p-4 border border-outline-variant/30 h-28"
               />
             ))}
           </div>

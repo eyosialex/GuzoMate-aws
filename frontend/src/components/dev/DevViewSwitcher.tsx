@@ -47,7 +47,7 @@ export const DevViewSwitcher: React.FC = () => {
         title={`Development Shortcut: Currently on ${currentLabel}. Click to switch to ${nextLabel}`}
         aria-label="Development page view toggle"
       >
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="w-2 h-2 rounded-full bg-emerald-400" />
         <Terminal className="w-3.5 h-3.5 text-secondary-light" />
         <span className="text-[11px] text-ash group-hover:text-white transition-colors">
           Dev: [{currentLabel}] → {nextLabel}

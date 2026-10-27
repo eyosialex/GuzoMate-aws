@@ -14,6 +14,12 @@ let connectionString =
   process.env.DATABASE_URL ||
   'postgresql://guzomate:guzomate_dev_password@localhost:5432/guzomate';
 
+if (connectionString.includes(':6543') || connectionString.includes('pooler.supabase.com')) {
+  if (!connectionString.includes('pgbouncer=true')) {
+    connectionString += (connectionString.includes('?') ? '&' : '?') + 'pgbouncer=true';
+  }
+}
+
 if (!connectionString.includes('connection_limit=')) {
   connectionString += (connectionString.includes('?') ? '&' : '?') + 'connection_limit=1';
 }

@@ -26,6 +26,9 @@ interface AppState {
   authModalTab: 'login' | 'signup';
   openAuthModal: (tab?: 'login' | 'signup') => void;
   closeAuthModal: () => void;
+  isProfileModalOpen: boolean;
+  openProfileModal: () => void;
+  closeProfileModal: () => void;
 
   // Localization
   language: Language;
@@ -51,6 +54,8 @@ interface AppState {
   setSelectedRoute: (route: RouteOption | null) => void;
 
   // Incident Modal & Draft
+  incidentSubpage: 'list' | 'submit';
+  setIncidentSubpage: (sub: 'list' | 'submit') => void;
   isReportingIncident: boolean;
   incidentDraftLocation: GeoLocation | null;
   openIncidentModal: (loc?: GeoLocation) => void;
@@ -59,6 +64,7 @@ interface AppState {
 
   // Saved Places
   savedPlaceIds: string[];
+  setSavedPlaceIds: (ids: string[]) => void;
   toggleSavePlace: (id: string) => void;
 
   // Chat State
@@ -85,6 +91,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   authModalTab: 'login',
   openAuthModal: (tab: 'login' | 'signup' = 'login') => set({ isAuthModalOpen: true, authModalTab: tab }),
   closeAuthModal: () => set({ isAuthModalOpen: false }),
+  isProfileModalOpen: false,
+  openProfileModal: () => set({ isProfileModalOpen: true }),
+  closeProfileModal: () => set({ isProfileModalOpen: false }),
 
   language: (localStorage.getItem('guzo_lang') as Language) || 'en',
   setLanguage: (lang: Language) => {
@@ -148,6 +157,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  incidentSubpage: 'list',
+  setIncidentSubpage: (sub: 'list' | 'submit') => set({ incidentSubpage: sub }),
+
   isReportingIncident: false,
   incidentDraftLocation: null,
   openIncidentModal: (loc?: GeoLocation) => {
@@ -164,6 +176,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   savedPlaceIds: initialSavedPlaces,
+  setSavedPlaceIds: (ids: string[]) => {
+    localStorage.setItem('guzo_saved_places', JSON.stringify(ids));
+    set({ savedPlaceIds: ids });
+  },
   toggleSavePlace: (id: string) => {
     set((state) => {
       const exists = state.savedPlaceIds.includes(id);

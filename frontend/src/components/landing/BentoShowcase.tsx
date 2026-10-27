@@ -64,7 +64,7 @@ export const BentoShowcase: React.FC = () => {
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center font-bold shadow-md">
-                <Radio className={`w-6 h-6 text-emerald-300 ${radarPing ? 'animate-ping' : 'animate-pulse'}`} />
+                <Radio className="w-6 h-6 text-emerald-300" />
               </div>
               <div>
                 <span className="text-[10px] font-mono font-bold text-secondary uppercase tracking-wider">
@@ -77,8 +77,8 @@ export const BentoShowcase: React.FC = () => {
             </div>
 
             <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-              LIVE RADAR
+              <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              RADAR ACTIVE
             </span>
           </div>
 
@@ -174,7 +174,7 @@ export const BentoShowcase: React.FC = () => {
         >
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center font-bold shadow-lg animate-pulse">
+              <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center font-bold shadow-lg">
                 <PhoneCall className="w-6 h-6 text-white" />
               </div>
               <div>

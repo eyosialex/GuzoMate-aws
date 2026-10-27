@@ -1,11 +1,8 @@
 import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Sparkles, MessageSquare, Compass, ShieldCheck } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { ChatInterface } from '../components/chat/ChatInterface';
-import { springGentle } from '../lib/motion';
 
 export const AssistantPage: React.FC = () => {
-  const shouldReduceMotion = useReducedMotion();
 
   return (
     <div className="w-full h-[calc(100vh-4rem)] bg-[#f8faf8] flex flex-col overflow-hidden font-sans">

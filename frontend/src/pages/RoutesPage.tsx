@@ -381,7 +381,7 @@ export const RoutesPage: React.FC = () => {
             className="w-full py-3 px-4 bg-[#183a2b] hover:bg-[#122e22] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
           >
             <Navigation className="w-4 h-4 text-emerald-400" />
-            <span>{isNavigating ? 'Live Telemetry Active on Map' : 'Start Corridor Navigation'}</span>
+            <span>{isNavigating ? 'Telemetry Active on Map' : 'Start Corridor Navigation'}</span>
           </button>
         </div>
       </aside>
@@ -429,7 +429,7 @@ export const RoutesPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Live Leaflet OpenStreetMap Canvas */}
+        {/* Leaflet OpenStreetMap Canvas */}
         <GuzoMap
           customRoute={activeData.routeCoordinates}
           waypoints={activeData.waypoints}

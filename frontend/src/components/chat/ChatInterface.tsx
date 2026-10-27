@@ -8,7 +8,9 @@ import {
   Bot, 
   User, 
   ExternalLink, 
-  CloudSun 
+  CloudSun,
+  RotateCcw,
+  AlertTriangle 
 } from 'lucide-react';
 import { ChatMessage } from '../../types';
 import { useAppStore } from '../../features/useAppStore';
@@ -27,6 +29,8 @@ export const ChatInterface: React.FC = () => {
   const shouldReduceMotion = useReducedMotion();
   const messages = useAppStore((state) => state.messages);
   const addMessage = useAppStore((state) => state.addMessage);
+  const clearMessages = useAppStore((state) => state.clearMessages);
+  const currentUser = useAppStore((state) => state.currentUser);
   const isAssistantLoading = useAppStore((state) => state.isAssistantLoading);
   const setAssistantLoading = useAppStore((state) => state.setAssistantLoading);
   const userLocation = useAppStore((state) => state.userLocation);
@@ -284,23 +288,44 @@ export const ChatInterface: React.FC = () => {
     setInputQuery('');
     setAssistantLoading(true);
 
+    const sessionId = currentUser?.id || localStorage.getItem('guzomate_session_id') || (() => {
+      const sid = `traveler_session_${Date.now()}`;
+      localStorage.setItem('guzomate_session_id', sid);
+      return sid;
+    })();
+
     try {
       const response = await assistantService.query({
         query: textToSend.trim(),
         language,
         location: userLocation,
+        userId: sessionId,
+        enableVoice: isVoiceActive,
       });
+
+      const audioUrl = response.voice?.audioUrl || (
+        response.voice?.audioBase64
+          ? `data:${response.voice.mimeType || 'audio/mpeg'};base64,${response.voice.audioBase64}`
+          : undefined
+      );
 
       const assistantMsg: ChatMessage = {
         id: `asst-${Date.now()}`,
         sender: 'assistant',
         content: response.answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        places: response.places,
-        weather: response.weather,
-        incidents: response.incidents,
+        places: response.places as any,
+        weather: response.weather as any,
+        incidents: response.incidents as any,
         sources: response.sources,
+        limitations: response.limitations,
+        audioUrl,
+        audioDurationSeconds: response.voice?.durationSeconds,
       };
+
+      if (audioUrl && isVoiceActive) {
+        setAutoPlayAudioId(assistantMsg.id);
+      }
 
       addMessage(assistantMsg);
     } catch {
@@ -314,6 +339,16 @@ export const ChatInterface: React.FC = () => {
     } finally {
       setAssistantLoading(false);
     }
+  };
+
+  const handleClearMemory = async () => {
+    const sessionId = currentUser?.id || localStorage.getItem('guzomate_session_id') || 'traveler_session';
+    try {
+      await assistantService.clearMemory(sessionId);
+    } catch {
+      // ignore
+    }
+    clearMessages();
   };
 
   const suggestions = [
@@ -340,9 +375,20 @@ export const ChatInterface: React.FC = () => {
           </div>
         </div>
 
-        <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full leading-none">
-          Gemini RAG
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleClearMemory}
+            className="p-1.5 rounded-lg bg-surface-low hover:bg-surface-high border border-outline-variant/30 text-on-surface-variant hover:text-primary text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 select-none"
+            title="Clear conversation memory & start new chat"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">New Chat</span>
+          </button>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full leading-none">
+            Gemini RAG
+          </span>
+        </div>
       </div>
 
       {/* Messages Flow with Scale 0.95 Spring Entry */}
@@ -449,6 +495,34 @@ export const ChatInterface: React.FC = () => {
                   ))}
                 </div>
               )}
+
+              {/* Rich Embedded UI: Hazard / Incidents in chat */}
+              {msg.incidents && msg.incidents.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <span className="text-xs font-bold text-rose-700 flex items-center gap-1 block px-1 leading-none">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Reported Hazards ({msg.incidents.length})</span>
+                  </span>
+                  {msg.incidents.map((inc) => (
+                    <div key={inc.id} className="p-2.5 bg-rose-50/70 border border-rose-200 rounded-xl text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-rose-800">{inc.type.replace(/_/g, ' ')}</span>
+                        {inc.distanceMeters && (
+                          <span className="text-[10px] text-rose-600 font-semibold">{Math.round(inc.distanceMeters)}m away</span>
+                        )}
+                      </div>
+                      <p className="text-rose-900 font-medium leading-relaxed">{inc.description}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Grounding Disclaimers */}
+              {msg.limitations && msg.limitations.length > 0 && (
+                <div className="text-[11px] text-amber-800 bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 leading-relaxed">
+                  ⚠️ {msg.limitations.join(' • ')}
+                </div>
+              )}
             </div>
 
             {msg.sender === 'user' && (
@@ -536,7 +610,7 @@ export const ChatInterface: React.FC = () => {
             icon={
               isVoiceActive ? (
                 <span className="relative flex h-5 w-5 items-center justify-center">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <Square className="w-3.5 h-3.5 fill-white text-white relative" />
                 </span>
               ) : (

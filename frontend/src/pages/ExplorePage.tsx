@@ -147,7 +147,6 @@ export const ExplorePage: React.FC = () => {
           <div className="flex items-center justify-between text-[11px] text-gray-500 mt-2.5 px-0.5">
             <div className="flex items-center gap-1.5 font-semibold text-gray-700">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
               </span>
               <span>Current GPS: <strong>Bole Medhane Alem</strong></span>
@@ -410,7 +409,7 @@ export const ExplorePage: React.FC = () => {
           </button>
         </div>
 
-        {/* Live Leaflet OpenStreetMap Canvas */}
+        {/* Leaflet OpenStreetMap Canvas */}
         <GuzoMap 
           customPlaces={filteredPlaces}
           mapStyle={mapStyle}

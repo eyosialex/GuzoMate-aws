@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, LoginCredentials, RegisterPayload } from '../types/auth';
 import { authService } from '../services/authService';
+import { useAppStore } from './useAppStore';
 
 interface AuthContextType {
   user: User | null;
@@ -25,6 +26,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const handleGlobalLogout = () => {
       if (isMounted) {
         setUser(null);
+        useAppStore.getState().setCurrentUser(null);
       }
     };
 
@@ -36,10 +38,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const session = authService.getStoredSession();
       if (session) {
         setUser(session.user);
+        useAppStore.getState().setCurrentUser(session.user as any);
         // Refresh profile in background
         authService.getCurrentUser().then((refreshed) => {
           if (isMounted && refreshed) {
             setUser(refreshed);
+            useAppStore.getState().setCurrentUser(refreshed as any);
           }
         });
       }
@@ -62,6 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const session = await authService.login(credentials);
       setUser(session.user);
+      useAppStore.getState().setCurrentUser(session.user as any);
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const session = await authService.register(payload);
       setUser(session.user);
+      useAppStore.getState().setCurrentUser(session.user as any);
     } finally {
       setIsLoading(false);
     }
@@ -80,13 +86,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     authService.clearSession();
     setUser(null);
+    useAppStore.getState().setCurrentUser(null);
   };
 
   const updateUserPreferences = (prefs: Partial<User>) => {
-    if (!user) return;
-    const updated = { ...user, ...prefs };
+    const base = user || authService.getStoredSession()?.user;
+    if (!base) return;
+    const updated = { ...base, ...prefs };
     setUser(updated);
-    localStorage.setItem('guzo_user_session', JSON.stringify(updated));
+    useAppStore.getState().setCurrentUser(updated as any);
+    try {
+      localStorage.setItem('guzo_user_session', JSON.stringify(updated));
+      localStorage.setItem('guzomate_user', JSON.stringify(updated));
+    } catch {}
   };
 
   return (

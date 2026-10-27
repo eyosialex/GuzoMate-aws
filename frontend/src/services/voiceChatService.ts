@@ -46,24 +46,32 @@ export const voiceChatService = {
       enableVoice: true,
     });
 
-    // Synthesize response audio
-    let audioUrl: string | undefined;
-    try {
-      const audioBlobRes = await assistantService.synthesizeSpeech(assistantRes.answer, language);
-      if (audioBlobRes) {
-        audioUrl = URL.createObjectURL(audioBlobRes);
+    // Check if voice was returned directly in assistant response
+    let audioUrl: string | undefined = assistantRes.voice?.audioUrl || (
+      assistantRes.voice?.audioBase64
+        ? `data:${assistantRes.voice.mimeType || 'audio/mpeg'};base64,${assistantRes.voice.audioBase64}`
+        : undefined
+    );
+
+    if (!audioUrl) {
+      try {
+        const speechRes = await assistantService.synthesizeSpeech({
+          text: assistantRes.answer,
+          language,
+        });
+        audioUrl = speechRes?.audioUrl;
+      } catch (err) {
+        console.warn('Audio synthesis fallback failed:', err);
       }
-    } catch (err) {
-      console.warn('Audio synthesis failed:', err);
     }
 
     return {
       transcript: userText,
       answer: assistantRes.answer,
       audioUrl,
-      audioDurationSeconds: 4,
-      places: assistantRes.places,
-      weather: assistantRes.weather,
+      audioDurationSeconds: assistantRes.voice?.durationSeconds || 4,
+      places: assistantRes.places as any,
+      weather: assistantRes.weather as any,
       sources: assistantRes.sources,
     };
   },

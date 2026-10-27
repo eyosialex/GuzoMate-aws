@@ -1,14 +1,54 @@
 {
   "info": {
     "_postman_id": "7a3e81a9-34b2-4d2c-9a29-b68a411516e8",
-    "name": "GuzoMate AI Assistant & Voice Chat API",
-    "description": "Comprehensive Postman Collection for testing GuzoMate's AI Assistant: Text Chat & Voice Chat, PostGIS POI Retrieval (18,833 places in addis_geo_points), Open-Meteo Live Arrival Weather & Clothing Advice, Transit pgvector Knowledge, and Addis AI Multilingual Voice Synthesis.",
+    "name": "GuzoMate Complete API Master Collection",
+    "description": "Complete, production-grade Postman collection for the GuzoMate Addis Ababa Smart Travel & Road Safety Platform. Covers all 9 modules: Auth, Users, Crowdsourced Incidents, Confirmations & Consensus, Notifications, Staff Moderation, 13,800+ Places & Bookmarks, Multilingual AI Travel Assistant, and Travel Services (Weather, Transit Routes, and Speech).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "voterToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "modToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0NTIyYjRhYS00ZGM4LTQzMDEtYWRlYi0wMjFhMTAwMWMxZTIiLCJlbWFpbCI6Im1vZGVyYXRvckBleGFtcGxlLmNvbSIsInJvbGUiOiJNT0RFUkFUT1IiLCJpYXQiOjE3OTMxMjg0NTYsImV4cCI6MTc5MzczMzI1Nn0.uWTbrI4lSeNmRclHtXS56AIEvcBksLA2X5FtgYf8qDc",
+      "type": "string"
+    },
+    {
+      "key": "incidentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "placeId",
+      "value": "4465",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
       "type": "string"
     }
   ],
@@ -20,18 +60,40 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/health",
-          "host": ["{{baseUrl}}"],
-          "path": ["health"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
         },
-        "description": "Verifies that the GuzoMate backend server and Supabase PostgreSQL + PostGIS database connection are healthy."
+        "description": "Verifies that the GuzoMate API server and Supabase PostgreSQL + PostGIS database connection are operational."
       },
       "response": []
     },
     {
-      "name": "1. Text Chat Mode (enableVoice: false)",
+      "name": "1. Auth Module (/api/v1/auth)",
+      "description": "Traveler registration, credential login, JWT token recovery, and session invalidation.",
       "item": [
         {
-          "name": "1.1 Hospital Search with Phone & Hours (Mercato)",
+          "name": "1.1 Register New Traveler",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "}",
+                  "if (res.data && res.data.user && res.data.user.id) {",
+                  "    pm.collectionVariables.set('userId', res.data.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -42,19 +104,41 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"Find a hospital or health clinic near Mercato and give me contact details and opening hours.\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.030,\n    \"lon\": 38.740\n  },\n  \"enableVoice\": false\n}"
+              "raw": "{\n  \"email\": \"traveler.abebe@guzomate.et\",\n  \"password\": \"Password123!\",\n  \"name\": \"Abebe Bikila\",\n  \"preferredLanguage\": \"am\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             },
-            "description": "Queries 18,833 places in addis_geo_points using PostGIS radius search for verified hospitals near Mercato (e.g. Teklehaimanot, Tikur Anbessa, St. Paul's) with phone and operating hours."
+            "description": "Registers a new traveler account with validation and sets collection variables {{accessToken}} and {{userId}}."
           },
           "response": []
         },
         {
-          "name": "1.2 Restaurant Search (Arat Kilo)",
+          "name": "1.2 Login Traveler",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "}",
+                  "if (res.data && res.data.user && res.data.user.id) {",
+                  "    pm.collectionVariables.set('userId', res.data.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -65,42 +149,62 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"Find good restaurants and cafes near Arat Kilo.\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.033,\n    \"lon\": 38.763\n  },\n  \"enableVoice\": false\n}"
+              "raw": "{\n  \"email\": \"traveler.abebe@guzomate.et\",\n  \"password\": \"Password123!\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
-            "description": "Spatial PostGIS restaurant query in addis_geo_points around Arat Kilo."
+            "description": "Authenticates traveler credentials and returns signed JWT access token."
           },
           "response": []
         },
         {
-          "name": "1.3 Hotel & Lodging Search (Bole)",
+          "name": "1.3 Get Current User Session (GET /auth/me)",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"Are there verified hotels or guest houses near Bole?\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 8.995,\n    \"lon\": 38.788\n  },\n  \"enableVoice\": false\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             },
-            "description": "Retrieves verified hotel and tourism lodging entries from addis_geo_points in Bole."
+            "description": "Recovers traveler profile and roles using Bearer JWT authentication header."
           },
           "response": []
         },
         {
-          "name": "1.4 Bank & ATM Search (Kazanchis)",
+          "name": "1.4 Register Second Community Voter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('voterToken', res.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -111,19 +215,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"Where can I find a bank or ATM near Kazanchis?\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.018,\n    \"lon\": 38.769\n  },\n  \"enableVoice\": false\n}"
+              "raw": "{\n  \"email\": \"voter.chala@guzomate.et\",\n  \"password\": \"Password123!\",\n  \"name\": \"Chala Gemechu\",\n  \"preferredLanguage\": \"om\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             },
-            "description": "Finds commercial banks and ATMs from addis_geo_points."
+            "description": "Registers a second traveler account to test consensus confirmations and voting lockouts."
           },
           "response": []
         },
         {
-          "name": "1.5 Transit Routing Guidance (pgvector)",
+          "name": "1.5 Refresh Access Token",
           "request": {
             "method": "POST",
             "header": [
@@ -134,122 +243,1077 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"How do I get to Ayat using the Light Rail Transit or public bus?\",\n  \"language\": \"en\",\n  \"enableVoice\": false\n}"
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
             },
-            "description": "Semantic retrieval from pgvector rag_documents for Addis Ababa Light Rail Transit (AALRT) and bus routes."
+            "description": "Issues a fresh JWT token using the refresh token."
           },
           "response": []
         },
         {
-          "name": "1.6 Road Incidents & Traffic Check",
+          "name": "1.6 Logout Traveler",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"Are there any traffic accidents or road closures around Mexico Square?\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.011,\n    \"lon\": 38.745\n  },\n  \"enableVoice\": false\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
             },
-            "description": "Retrieves road incident notices with mandatory [UNVERIFIED] community report disclosures."
-          },
-          "response": []
-        },
-        {
-          "name": "1.7 Flexible Relaxation & Leisure (Anywhere in Addis Ababa)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"Suggest me a place to relax anywhere in Addis Ababa.\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.030,\n    \"lon\": 38.740\n  },\n  \"enableVoice\": false\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
-            },
-            "description": "Flexible query: Assistant suggests top relaxation destinations across Addis Ababa (e.g. Entoto Natural Park, Friendship Park, Unity Park, scenic cafes) even when a specific user location is passed."
+            "description": "Terminates user session and blacklists client token."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "2. Voice Chat Mode (enableVoice: true)",
+      "name": "2. Users Module (/api/v1/users)",
+      "description": "User profile management, geofence radius settings, push notification preferences, and RBAC admin controls.",
       "item": [
         {
-          "name": "2.1 Voice Chat - Amharic (መርካቶ ፋርማሲ + የድምጽ መልስ)",
+          "name": "2.1 Get Traveler Profile (/users/me)",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"መርካቶ አካባቢ ፋርማሲ አለ?\",\n  \"language\": \"am\",\n  \"location\": {\n    \"lat\": 9.030,\n    \"lon\": 38.740\n  },\n  \"enableVoice\": true\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
             },
-            "description": "Full Voice Chat turn: User asks in Amharic, system retrieves pharmacies from addis_geo_points, grounds answer, and returns streamable Addis AI (am-hamen) voice audio."
+            "description": "Retrieves traveler display profile, verification status, and language preferences."
           },
           "response": []
         },
         {
-          "name": "2.2 Voice Chat - Destination Arrival Weather + Clothing & Umbrella Advice",
+          "name": "2.2 Update Profile (/users/me)",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"I will arrive at Arat Kilo in 1 hour and 30 minutes. What will the weather be and should I carry an umbrella or jacket?\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.033,\n    \"lon\": 38.763\n  },\n  \"arrivalTime\": \"2026-10-24T18:00:00+03:00\",\n  \"enableVoice\": true\n}"
+              "raw": "{\n  \"name\": \"Abebe Bikila Champion\",\n  \"geofenceRadius\": 15000,\n  \"preferredLanguage\": \"am\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
             },
-            "description": "Voice Chat with Live Weather Forecast: Evaluates weather around arrival time, provides clothing/umbrella suggestions, and speaks the response in English via Addis AI."
+            "description": "Updates traveler display name, preferred language, and geofence radius slider (meters)."
           },
           "response": []
         },
         {
-          "name": "2.3 Voice Chat - Afaan Oromo (Bole Pharmacy + Sagalee)",
+          "name": "2.3 Get Notification Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/notification-preferences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "notification-preferences"
+              ]
+            },
+            "description": "Retrieves traveler push notification categories, alert radius, and mute toggles."
+          },
+          "response": []
+        },
+        {
+          "name": "2.4 Update Notification Preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"radiusMeters\": 10000,\n  \"incidentTypes\": [\n    \"ACCIDENT\",\n    \"ROAD_BLOCK\",\n    \"HAZARD\",\n    \"FLOODING\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/notification-preferences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "notification-preferences"
+              ]
+            },
+            "description": "Configures active push hazard alert subscriptions."
+          },
+          "response": []
+        },
+        {
+          "name": "2.5 Admin List All Users (RBAC: ADMIN only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{modToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Staff administrative listing of all platform registered users."
+          },
+          "response": []
+        },
+        {
+          "name": "2.6 Admin Update User Status (ACTIVE / SUSPENDED)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{modToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            },
+            "description": "Staff moderation action to activate or suspend an account."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Incidents Module (/api/v1/incidents)",
+      "description": "Crowdsourced road safety hazard reporting, PostGIS spatial queries, and duplicate incident prevention.",
+      "item": [
+        {
+          "name": "3.1 Report Road Hazard (POST /incidents)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('incidentId', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ROAD_DAMAGE\",\n  \"description\": \"Severe pothole cluster and damaged asphalt on ring road corridor\",\n  \"severity\": \"HIGH\",\n  \"lat\": 9.008,\n  \"lon\": 38.762,\n  \"occurredAt\": \"2026-10-27T19:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/incidents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents"
+              ]
+            },
+            "description": "Reports a new crowdsourced incident and populates {{incidentId}}."
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Duplicate Incident Conflict Guard (409 Conflict)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ROAD_DAMAGE\",\n  \"description\": \"Duplicate report submitted at identical coordinates\",\n  \"severity\": \"HIGH\",\n  \"lat\": 9.008,\n  \"lon\": 38.762\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/incidents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents"
+              ]
+            },
+            "description": "Verifies the duplicate conflict detection engine returns 409 Conflict within 500m / 2hr."
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Nearby Incidents Spatial Query (PostGIS ST_DWithin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/incidents/nearby?lat=9.008&lon=38.762&radius=5000&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents",
+                "nearby"
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "9.008"
+                },
+                {
+                  "key": "lon",
+                  "value": "38.762"
+                },
+                {
+                  "key": "radius",
+                  "value": "5000"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "High-performance PostGIS spatial radius query returning hazards sorted by distance."
+          },
+          "response": []
+        },
+        {
+          "name": "3.4 List Incidents Feed (Filtered & Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/incidents?type=ROAD_DAMAGE&status=ACTIVE&sortBy=newest&page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "ROAD_DAMAGE"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "newest"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "General incidents feed filtered by hazard category, status, and sorted by date."
+          },
+          "response": []
+        },
+        {
+          "name": "3.5 Get Incident by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/incidents/{{incidentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents",
+                "{{incidentId}}"
+              ]
+            },
+            "description": "Fetches full report metadata including community vote counts and reporter info."
+          },
+          "response": []
+        },
+        {
+          "name": "3.6 Update Incident Report",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated report: Temporary gravel repair applied by local road agency\",\n  \"severity\": \"MEDIUM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/incidents/{{incidentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents",
+                "{{incidentId}}"
+              ]
+            },
+            "description": "Allows the original reporter (while PENDING) or Staff to modify description and severity."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Confirmations & Consensus (/api/v1/incidents/:id/confirm)",
+      "description": "Community consensus voting, auto-activation thresholds (3 confirmations), dispute flagging, and vote lockouts.",
+      "item": [
+        {
+          "name": "4.1 Reporter Self-Vote Lockout Guard (400 Bad Request)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"CONFIRM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/incidents/{{incidentId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents",
+                "{{incidentId}}",
+                "confirm"
+              ]
+            },
+            "description": "Verifies the business rule prohibiting reporters from voting on their own submissions."
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Community Confirmation Vote (Voter)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{voterToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"CONFIRM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/incidents/{{incidentId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents",
+                "{{incidentId}}",
+                "confirm"
+              ]
+            },
+            "description": "Second traveler confirms road hazard. Increments confirmationsCount atomically."
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Duplicate Vote Conflict Guard (409 Conflict)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{voterToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"CONFIRM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/incidents/{{incidentId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents",
+                "{{incidentId}}",
+                "confirm"
+              ]
+            },
+            "description": "Verifies that voting with the exact same action returns 409 Conflict."
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 Atomic Vote Switch to DISPUTE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{voterToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"DISPUTE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/incidents/{{incidentId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "incidents",
+                "{{incidentId}}",
+                "confirm"
+              ]
+            },
+            "description": "Switches voter's existing vote from CONFIRM to DISPUTE. Adjusts tallies atomically."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Notifications Module (/api/v1/notifications)",
+      "description": "In-app traveler notification center, unread badges, and multi-platform device push token registration.",
+      "item": [
+        {
+          "name": "5.1 List In-App Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20&unreadOnly=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "unreadOnly",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Retrieves traveler in-app notifications and real-time unreadCount badge count."
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Register Device Push Token (Web / iOS / Android)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"fcm_device_token_web_sample_1234567890\",\n  \"platform\": \"web\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/devices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "devices"
+              ]
+            },
+            "description": "Registers traveler push notification device token for geofence road alerts."
+          },
+          "response": []
+        },
+        {
+          "name": "5.3 Deactivate Device Push Token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/devices/fcm_device_token_web_sample_1234567890",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "devices",
+                "fcm_device_token_web_sample_1234567890"
+              ]
+            },
+            "description": "Deactivates device push token upon traveler sign-out."
+          },
+          "response": []
+        },
+        {
+          "name": "5.4 Mark Single Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": "Marks a specific notification as read."
+          },
+          "response": []
+        },
+        {
+          "name": "5.5 Mark All Notifications as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Bulk marks all unread notifications as read and resets unread badge counter to 0."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Moderation Module (/api/v1/moderation)",
+      "description": "Staff review portal for disputed/pending road hazard reports, status state transitions, and audit logs.",
+      "item": [
+        {
+          "name": "6.1 Staff Review Queue (/moderation/incidents)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{modToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/incidents?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "incidents"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Staff queue prioritized by community dispute counts and pending submissions."
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 Verify Incident & Transition to ACTIVE",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{modToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\",\n  \"reason\": \"Verified by traffic patrol team on ring road\",\n  \"internalNotes\": \"Traffic cones placed by road maintenance crew\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/moderation/incidents/{{incidentId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "incidents",
+                "{{incidentId}}",
+                "status"
+              ]
+            },
+            "description": "Transitions report status to ACTIVE with MODERATOR_VERIFIED verification."
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 Reject Incident (Mandatory Reason Enforcement)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{modToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\",\n  \"reason\": \"Confirmed false report by traffic camera footage\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/moderation/incidents/{{incidentId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "incidents",
+                "{{incidentId}}",
+                "status"
+              ]
+            },
+            "description": "Enforces mandatory reason when transitioning report to REJECTED."
+          },
+          "response": []
+        },
+        {
+          "name": "6.4 Get Incident Audit History (/history)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{modToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/incidents/{{incidentId}}/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "incidents",
+                "{{incidentId}}",
+                "history"
+              ]
+            },
+            "description": "Returns immutable append-only audit trail with actor IDs, status diffs, and reasons."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Places & Saved Places (/api/v1/places & /saved-places)",
+      "description": "13,800+ Addis Ababa OpenStreetMap POI discovery and traveler bookmarking.",
+      "item": [
+        {
+          "name": "7.1 Nearby Places Discovery (Addis OpenStreetMap POIs)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/places/nearby?lat=9.03&lon=38.74&radius=2500&category=hospital&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "places",
+                "nearby"
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "9.03"
+                },
+                {
+                  "key": "lon",
+                  "value": "38.74"
+                },
+                {
+                  "key": "radius",
+                  "value": "2500"
+                },
+                {
+                  "key": "category",
+                  "value": "hospital"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "PostGIS distance queries on 13,861 curated Addis points (clinics, hospitals, cafes, fuel)."
+          },
+          "response": []
+        },
+        {
+          "name": "7.2 Bookmark Place (POST /saved-places)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placeId\": \"{{placeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/saved-places",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "saved-places"
+              ]
+            },
+            "description": "Saves a point of interest to traveler's personal bookmarks."
+          },
+          "response": []
+        },
+        {
+          "name": "7.3 List Saved Places (GET /saved-places)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/saved-places",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "saved-places"
+              ]
+            },
+            "description": "Returns all saved destinations and bookmarks for the authenticated traveler."
+          },
+          "response": []
+        },
+        {
+          "name": "7.4 Remove Saved Place (DELETE /saved-places/:id)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/saved-places/{{placeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "saved-places",
+                "{{placeId}}"
+              ]
+            },
+            "description": "Removes a bookmarked destination. Returns HTTP 204 No Content."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. AI Assistant & Voice Chat (/api/v1/assistant)",
+      "description": "Zero-hallucination multilingual AI travel companion in Amharic, Afaan Oromo, & English with speech synthesis.",
+      "item": [
+        {
+          "name": "8.1 Multilingual Grounded Query - English",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Find hospitals or 24/7 emergency clinics near Mercato Addis Ababa\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.03,\n    \"lon\": 38.74\n  },\n  \"enableVoice\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assistant/assistant/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assistant",
+                "assistant",
+                "query"
+              ]
+            },
+            "description": "Grounded RAG query returning verified OSM health facilities, phone numbers, and hours."
+          },
+          "response": []
+        },
+        {
+          "name": "8.2 Multilingual Voice Chat Turn - Amharic (ድምጽ መልስ)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"መርካቶ አካባቢ ፋርማሲ አለ?\",\n  \"language\": \"am\",\n  \"location\": {\n    \"lat\": 9.03,\n    \"lon\": 38.74\n  },\n  \"enableVoice\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assistant/assistant/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assistant",
+                "assistant",
+                "query"
+              ]
+            },
+            "description": "Amharic voice chat turn returning structured POIs and streamable Addis AI audio."
+          },
+          "response": []
+        },
+        {
+          "name": "8.3 Voice Chat Turn - Afaan Oromo (Sagalee)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
               }
             ],
             "body": {
@@ -257,21 +1321,222 @@
               "raw": "{\n  \"query\": \"Bakketti qorichi itti gurguramu eessa jira?\",\n  \"language\": \"om\",\n  \"location\": {\n    \"lat\": 8.995,\n    \"lon\": 38.788\n  },\n  \"enableVoice\": true\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
+              "raw": "{{baseUrl}}/assistant/assistant/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assistant",
+                "assistant",
+                "query"
+              ]
             },
-            "description": "Voice Chat in Afaan Oromo: Auto-detects language, finds pharmacies near Bole, and generates spoken Afaan Oromo audio using Addis AI (om-bikila)."
+            "description": "Afaan Oromo query returning spoken audio and nearby facilities."
+          },
+          "response": []
+        },
+        {
+          "name": "8.4 Clear Session Memory (POST /memory/clear)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assistant/assistant/memory/clear",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assistant",
+                "assistant",
+                "memory",
+                "clear"
+              ]
+            },
+            "description": "Clears multi-turn conversation memory for traveler session."
+          },
+          "response": []
+        },
+        {
+          "name": "8.5 Clear Session Memory (DELETE /memory)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assistant/assistant/memory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assistant",
+                "assistant",
+                "memory"
+              ]
+            },
+            "description": "RESTful DELETE endpoint to purge conversation context."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "3. Standalone Speech Synthesis (Addis AI TTS)",
+      "name": "9. Travel Services (/api/v1/weather, /routes, /speech)",
+      "description": "Real-time weather, arrival advice, OSRM multimodal transit routing with road hazards, and localized speech.",
       "item": [
         {
-          "name": "3.1 Synthesize Speech - Amharic (am-hamen)",
+          "name": "9.1 Real-Time Addis Ababa Weather",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/weather/current?lat=9.03&lon=38.74",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "weather",
+                "current"
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "9.03"
+                },
+                {
+                  "key": "lon",
+                  "value": "38.74"
+                }
+              ]
+            },
+            "description": "Live weather conditions (temperature, condition, wind, precipitation) for Addis Ababa."
+          },
+          "response": []
+        },
+        {
+          "name": "9.2 Weather Forecast",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/weather/forecast?lat=9.03&lon=38.74&days=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "weather",
+                "forecast"
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "9.03"
+                },
+                {
+                  "key": "lon",
+                  "value": "38.74"
+                },
+                {
+                  "key": "days",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "3-day high-resolution weather forecast for travel planning."
+          },
+          "response": []
+        },
+        {
+          "name": "9.3 Destination Arrival Clothing & Weather Advice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/weather/arrival-advice?lat=9.03&lon=38.74&arrivalTime=2026-10-28T09:00:00Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "weather",
+                "arrival-advice"
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "9.03"
+                },
+                {
+                  "key": "lon",
+                  "value": "38.74"
+                },
+                {
+                  "key": "arrivalTime",
+                  "value": "2026-10-28T09:00:00Z"
+                }
+              ]
+            },
+            "description": "Generates clothing and umbrella recommendations tailored to arrival destination weather."
+          },
+          "response": []
+        },
+        {
+          "name": "9.4 Multimodal Routes with Live Hazard Alerts (OSRM)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/routes?originLat=9.01&originLon=38.75&destLat=9.03&destLon=38.76&mode=driving",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "routes"
+              ],
+              "query": [
+                {
+                  "key": "originLat",
+                  "value": "9.01"
+                },
+                {
+                  "key": "originLon",
+                  "value": "38.75"
+                },
+                {
+                  "key": "destLat",
+                  "value": "9.03"
+                },
+                {
+                  "key": "destLon",
+                  "value": "38.76"
+                },
+                {
+                  "key": "mode",
+                  "value": "driving"
+                }
+              ]
+            },
+            "description": "Calculates turn-by-turn routes cross-referenced with live road incident hazard alerts along travel corridors."
+          },
+          "response": []
+        },
+        {
+          "name": "9.5 Speech Synthesis - Amharic (Addis AI TTS)",
           "request": {
             "method": "POST",
             "header": [
@@ -286,15 +1551,20 @@
             },
             "url": {
               "raw": "{{baseUrl}}/speech/synthesis",
-              "host": ["{{baseUrl}}"],
-              "path": ["speech", "synthesis"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speech",
+                "synthesis"
+              ]
             },
             "description": "Direct speech synthesis returning streamable MP3 audio URL and duration."
           },
           "response": []
         },
         {
-          "name": "3.2 Synthesize Speech - Afaan Oromo (om-bikila)",
+          "name": "9.6 Speech Synthesis - Afaan Oromo (Addis AI TTS)",
           "request": {
             "method": "POST",
             "header": [
@@ -309,15 +1579,20 @@
             },
             "url": {
               "raw": "{{baseUrl}}/speech/synthesis",
-              "host": ["{{baseUrl}}"],
-              "path": ["speech", "synthesis"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speech",
+                "synthesis"
+              ]
             },
-            "description": "Afaan Oromo TTS generation using Addis AI Voices 2."
+            "description": "Direct speech synthesis in Afaan Oromo."
           },
           "response": []
         },
         {
-          "name": "3.3 Synthesize Speech - English (en-emma)",
+          "name": "9.7 Speech Synthesis - English (Addis AI TTS)",
           "request": {
             "method": "POST",
             "header": [
@@ -332,149 +1607,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/speech/synthesis",
-              "host": ["{{baseUrl}}"],
-              "path": ["speech", "synthesis"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speech",
+                "synthesis"
+              ]
             },
-            "description": "English TTS generation using Addis AI Voices 2."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "4. Single-Session Conversation Memory & Erase",
-      "item": [
-        {
-          "name": "4.1 Multi-Turn Turn 1: State Preference (Saved to Persistent Session)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"traveler_dan\",\n  \"query\": \"I am visiting Addis Ababa and I love Italian restaurants.\",\n  \"language\": \"en\",\n  \"enableVoice\": false\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
-            },
-            "description": "Establishes user context stored in the single persistent session for user 'traveler_dan'. Stored indefinitely in assistant_messages table."
-          },
-          "response": []
-        },
-        {
-          "name": "4.2 Multi-Turn Turn 2: Follow-up Query Relying on Memory",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"traveler_dan\",\n  \"query\": \"Based on what I told you I like, recommend a place to eat near Meskel Square.\",\n  \"language\": \"en\",\n  \"location\": {\n    \"lat\": 9.010,\n    \"lon\": 38.761\n  },\n  \"enableVoice\": false\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
-            },
-            "description": "Demonstrates multi-turn memory recall: Assistant uses conversation history to remember user's Italian food preference."
-          },
-          "response": []
-        },
-        {
-          "name": "4.3 Natural Language Memory Erase (English: 'erase your memory')",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"traveler_dan\",\n  \"query\": \"Please erase your memory and start fresh.\",\n  \"language\": \"en\",\n  \"enableVoice\": false\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
-            },
-            "description": "Natural language memory erase command. Assistant intercepts the query, purges assistant_messages for 'traveler_dan', and returns a fresh-start confirmation."
-          },
-          "response": []
-        },
-        {
-          "name": "4.4 Natural Language Memory Erase (Amharic: 'ትዝታህን አጥፋ')",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"traveler_dan\",\n  \"query\": \"እባክህ ትዝታህን አጥፋ\",\n  \"language\": \"am\",\n  \"enableVoice\": false\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/assistant/query",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "query"]
-            },
-            "description": "Multilingual natural language memory wipe in Amharic ('ትዝታህን አጥፋ'). Wipes session and confirms in Amharic."
-          },
-          "response": []
-        },
-        {
-          "name": "4.5 Explicit Memory Clear Endpoint (POST)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"traveler_dan\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/assistant/memory/clear",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "memory", "clear"]
-            },
-            "description": "Direct REST API endpoint to clear persistent conversation memory for a user."
-          },
-          "response": []
-        },
-        {
-          "name": "4.6 Explicit Memory Clear Endpoint (DELETE with x-user-id header)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "x-user-id",
-                "value": "traveler_dan"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/assistant/memory",
-              "host": ["{{baseUrl}}"],
-              "path": ["assistant", "memory"]
-            },
-            "description": "RESTful DELETE endpoint to clear memory using the x-user-id header."
+            "description": "Direct speech synthesis in English."
           },
           "response": []
         }

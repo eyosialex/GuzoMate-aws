@@ -72,38 +72,14 @@
   animation: dash-move 1.5s linear infinite;
 }
 
-/* Glowing Pulsing Ring */
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(27, 67, 50, 0.45);
-  }
-  70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 14px rgba(27, 67, 50, 0);
-  }
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(27, 67, 50, 0);
-  }
-}
-
+/* Glowing Pulsing Ring (disabled to remove blinking animations) */
 .user-location-pulse {
-  animation: pulse-ring 2.5s infinite;
+  /* animation disabled */
 }
 
-/* Highland Amber Pulse */
-@keyframes amber-glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(217, 119, 6, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(217, 119, 6, 0.65);
-  }
-}
-
+/* Highland Amber Pulse (disabled to remove blinking animations) */
 .animate-amber-glow {
-  animation: amber-glow-pulse 2s ease-in-out infinite;
+  /* animation disabled */
 }
 
 /* Ethiopic Line-height Normalization */

@@ -82,7 +82,7 @@ export const InteractiveTravelArcade: React.FC = () => {
       {/* Title */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-3 border border-primary/20">
-          <Sparkles className="w-3.5 h-3.5 text-secondary animate-pulse" />
+          <Sparkles className="w-3.5 h-3.5 text-secondary" />
           <span>Interactive Multi-Modal Travel Arcade</span>
         </div>
         <h2 className="text-4xl sm:text-6xl font-display font-extrabold text-on-surface tracking-tight">
@@ -160,13 +160,13 @@ export const InteractiveTravelArcade: React.FC = () => {
           
           {/* Weather Particles (Fog / Lightning / Rain) */}
           {weather === 'fog' && (
-            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none animate-pulse" />
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
           )}
 
           {weather === 'storm' && (
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute inset-0 bg-blue-950/20" />
-              <div className="w-full h-full opacity-60 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-300/20 via-transparent to-transparent animate-ping" />
+              <div className="w-full h-full opacity-60 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-300/20 via-transparent to-transparent" />
             </div>
           )}
 
@@ -270,7 +270,7 @@ export const InteractiveTravelArcade: React.FC = () => {
               <div className="relative">
                 {/* Holographic scanning bounding box */}
                 {aiLaserScanning && (
-                  <div className="absolute -inset-4 border-2 border-red-500 rounded-xl animate-ping opacity-75" />
+                  <div className="absolute -inset-4 border-2 border-red-500 rounded-xl opacity-75" />
                 )}
                 <div className="px-3 py-1.5 rounded-xl bg-red-600 text-white font-mono font-bold text-xs flex items-center gap-1.5 shadow-2xl border-2 border-white">
                   <ShieldAlert className="w-4 h-4 text-amber-300" />
@@ -321,7 +321,7 @@ export const InteractiveTravelArcade: React.FC = () => {
                   {/* Exhaust flames when accelerating */}
                   {isAccelerating && (
                     <div className="absolute -left-6 bottom-2 flex items-center">
-                      <Flame className="w-6 h-6 text-orange-500 animate-pulse -rotate-90" />
+                      <Flame className="w-6 h-6 text-orange-500 -rotate-90" />
                     </div>
                   )}
                 </div>
@@ -338,7 +338,7 @@ export const InteractiveTravelArcade: React.FC = () => {
                 <div className="w-40 h-16 bg-gradient-to-r from-cyan-900 to-primary text-white rounded-2xl shadow-2xl flex items-center justify-between px-4 border-2 border-cyan-400 relative">
                   {/* Pantograph with electric spark */}
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-6 h-4 border-t-2 border-cyan-400">
-                    <Zap className="w-4 h-4 text-cyan-300 animate-ping absolute -top-2 -left-2" />
+                    <Zap className="w-4 h-4 text-cyan-300 absolute -top-2 -left-2" />
                   </div>
 
                   <Train className="w-8 h-8 text-cyan-300" />
@@ -376,8 +376,8 @@ export const InteractiveTravelArcade: React.FC = () => {
             {activeMode === 'ai' && (
               <div className="relative flex flex-col items-center">
                 <div className="w-20 h-20 rounded-full bg-purple-950/80 border-2 border-purple-400 shadow-2xl flex items-center justify-center backdrop-blur-md relative">
-                  <div className="absolute inset-0 rounded-full border border-purple-300 animate-ping opacity-60" />
-                  <Bot className="w-9 h-9 text-purple-300 animate-pulse" />
+                  <div className="absolute inset-0 rounded-full border border-purple-300 opacity-60" />
+                  <Bot className="w-9 h-9 text-purple-300" />
                   {/* Rotating sensor halo */}
                   <div className="absolute inset-2 border-2 border-dashed border-cyan-400 rounded-full animate-spin" style={{ animationDuration: '6s' }} />
                 </div>
