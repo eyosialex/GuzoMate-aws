@@ -1,5 +1,5 @@
+node_modules
 # Node dependencies
-node_modules/
 **/node_modules/
 
 # Build outputs
@@ -20,5 +20,7 @@ npm-debug.log*
 Thumbs.db
 
 et-addisababa-bus
-GuzoMate_Assistant.postman_collection.json
 assistant_plan.md
+GuzoMate_Assistant.postman_collection.json
+*.pptx
+*.pdf
