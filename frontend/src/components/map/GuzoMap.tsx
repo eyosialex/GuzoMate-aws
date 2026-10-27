@@ -15,6 +15,7 @@ import { useAppStore } from '../../features/useAppStore';
 import { usePlaces } from '../../hooks/usePlaces';
 import { useIncidents } from '../../hooks/useIncidents';
 import { IconButton } from '../common/IconButton';
+import { IncidentVoteButtons } from '../incidents/IncidentVoteButtons';
 import { Place, Incident } from '../../types';
 
 export interface CorridorWaypoint {
@@ -350,7 +351,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   const openIncidentModal = useAppStore((state) => state.openIncidentModal);
 
   const { places: storePlaces } = usePlaces();
-  const { incidents } = useIncidents();
+  const { incidents, handleVoteResult } = useIncidents();
 
   // Use custom places if provided, otherwise fallback to store places
   const displayedPlaces = customPlaces && customPlaces.length > 0 ? customPlaces : storePlaces;
@@ -551,16 +552,25 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
             }}
           >
             <Popup className="rounded-2xl p-1 text-xs">
-              <div className="space-y-1">
-                <span className="font-bold text-red-600 block leading-tight">
-                  ⚠️ {inc.title || inc.type.replace('_', ' ')}
-                </span>
-                <p className="text-gray-700 leading-relaxed">{inc.description}</p>
-                {inc.locationName && (
-                  <span className="text-primary font-semibold text-[11px] block leading-none">
-                    📍 {inc.locationName}
+              <div className="space-y-2 p-1 min-w-[200px]">
+                <div>
+                  <span className="font-bold text-red-600 block leading-tight">
+                    ⚠️ {inc.title || inc.type.replace(/_/g, ' ')}
                   </span>
-                )}
+                  <p className="text-gray-700 leading-relaxed text-xs mt-1">{inc.description}</p>
+                  {inc.locationName && (
+                    <span className="text-primary font-semibold text-[11px] block mt-1 leading-none">
+                      📍 {inc.locationName}
+                    </span>
+                  )}
+                </div>
+                <div className="pt-2 border-t border-gray-100">
+                  <IncidentVoteButtons
+                    incident={inc}
+                    onVoteSuccess={handleVoteResult}
+                    size="sm"
+                  />
+                </div>
               </div>
             </Popup>
           </Marker>

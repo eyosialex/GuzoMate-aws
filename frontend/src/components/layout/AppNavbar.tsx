@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../../features/useAppStore';
 import { useAuth } from '../../features/AuthContext';
+import { useNotifications } from '../../hooks/useNotifications';
+import { NotificationCenter } from '../notifications/NotificationCenter';
 import { Language } from '../../types';
 import { 
   Bell, 
@@ -29,6 +31,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
   } = useAppStore();
   const { user: authUser } = useAuth();
   const displayedName = currentUser?.name || authUser?.name || authUser?.fullName || 'My Profile';
+  const { unreadCount } = useNotifications();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -145,7 +148,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
 
         {/* Far Top Right Side: Notifications, Language Dropdown & User Profile / Sign Out */}
         <div className="hidden md:flex items-center gap-3">
-          {/* Notification Bell (In the position of the previous audio button) */}
+          {/* Notification Bell */}
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -155,45 +158,22 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
                   : 'bg-surface-low text-ash hover:text-primary hover:bg-surface-high border-outline-variant/40'
               }`}
               aria-label="Highland Alerts & Notifications"
-              title="Highland Travel Alerts"
+              title={unreadCount > 0 ? `${unreadCount} unread travel alerts` : 'Travel Alerts'}
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500/70 ring-2 ring-surface" />
+              )}
             </button>
 
             {/* Notification Popover Dropdown */}
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-outline-variant/40 shadow-xl p-3.5 z-50 animate-in fade-in-50 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20 mb-2.5 font-bold text-primary">
-                  <span className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-primary">notifications_active</span>
-                    Highland Travel Alerts
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">3 active</span>
-                </div>
-                <div className="space-y-2">
-                  <div className="p-2.5 rounded-xl bg-surface-low hover:bg-surface-container transition-colors">
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-on-surface">Gotera Interchange resurfacing</p>
-                      <span className="text-[10px] text-ash">10m ago</span>
-                    </div>
-                    <p className="text-ash text-[11px] mt-0.5">1 lane reduced; traffic flowing steadily.</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-surface-low hover:bg-surface-container transition-colors">
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-on-surface">Entoto Pass fog advisory</p>
-                      <span className="text-[10px] text-ash">25m ago</span>
-                    </div>
-                    <p className="text-ash text-[11px] mt-0.5">Heavy highland fog near mountain summit.</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-surface-low hover:bg-surface-container transition-colors">
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-on-surface">Meskel Square corridor</p>
-                      <span className="text-[10px] text-ash">1h ago</span>
-                    </div>
-                    <p className="text-ash text-[11px] mt-0.5">All lanes open; normal traffic flow reported.</p>
-                  </div>
-                </div>
+              <div className="absolute right-0 mt-2 z-50">
+                <NotificationCenter onClose={() => setNotificationsOpen(false)} />
               </div>
             )}
           </div>
@@ -261,14 +241,28 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
         {/* Mobile Actions: Notifications, Language Dropdown & Hamburger */}
         <div className="flex md:hidden items-center gap-2">
           {/* Mobile Notification Bell */}
-          <button
-            onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="relative p-2 rounded-xl bg-surface-low border border-outline-variant/40 text-on-surface-variant hover:text-primary transition-colors"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="relative p-2 rounded-xl bg-surface-low border border-outline-variant/40 text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+              aria-label="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold min-w-[16px] h-[16px] px-0.5 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500/70 ring-2 ring-surface" />
+              )}
+            </button>
+
+            {notificationsOpen && (
+              <div className="fixed inset-x-3 top-16 z-50 flex justify-center md:hidden">
+                <NotificationCenter onClose={() => setNotificationsOpen(false)} />
+              </div>
+            )}
+          </div>
 
           {/* Mobile Language Dropdown */}
           <div className="relative">

@@ -1,6 +1,9 @@
 import { Language } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const BASE_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
+  (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.VITE_API_BASE_URL) ||
+  (typeof window !== 'undefined' ? '/api/v1' : 'http://127.0.0.1:8000/api/v1');
 
 export interface RequestOptions extends RequestInit {
   language?: Language;
@@ -39,7 +42,9 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     }
   }
 
-  const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
+  const token = typeof localStorage !== 'undefined'
+    ? (localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token'))
+    : null;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -60,21 +65,36 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem('guzomate_token');
-        localStorage.removeItem('guzomate_user');
-        localStorage.removeItem('guzo_access_token');
-        localStorage.removeItem('guzo_user_session');
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('auth:logout'));
-        }
-      }
-
-      let errorData;
+      let errorData: any;
       try {
         errorData = await response.json();
       } catch {
         errorData = { message: response.statusText };
+      }
+
+      // Retry once on transient 500 / 503 database pooler latency
+      const customHeaders = (customConfig.headers as Record<string, string>) || {};
+      if (response.status >= 500 && !customHeaders['x-retried']) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        return await request<T>(endpoint, {
+          ...options,
+          headers: {
+            ...customHeaders,
+            'x-retried': 'true',
+          },
+        });
+      }
+
+      if (response.status === 401 && !endpoint.includes('/auth/')) {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('guzomate_token');
+          localStorage.removeItem('guzomate_user');
+          localStorage.removeItem('guzo_access_token');
+          localStorage.removeItem('guzo_user_session');
+        }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('auth:logout'));
+        }
       }
 
       const errorCode = errorData?.error?.code || `HTTP_${response.status}`;

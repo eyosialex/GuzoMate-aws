@@ -6,7 +6,7 @@ import { GuzoMap } from '../map/GuzoMap';
 import { IncidentsList } from './IncidentsList';
 import { IncidentSubmitForm } from './IncidentSubmitForm';
 import { useIncidents } from '../../hooks/useIncidents';
-import { GeoLocation, IncidentSubmissionPayload } from '../../types';
+import { GeoLocation } from '../../types';
 import { springGentle } from '../../lib/motion';
 import { useAppStore } from '../../features/useAppStore';
 
@@ -34,15 +34,16 @@ export const IncidentsPage: React.FC = () => {
     }
   };
 
-  const handleReportSubmit = async (payload: IncidentSubmissionPayload): Promise<boolean> => {
-    const success = await reportIncident(payload);
-    if (success) {
+  const handleReportSubmit = async (payload: any): Promise<{ success: boolean; duplicate?: boolean; error?: string } | boolean> => {
+    const res = await reportIncident(payload);
+    if (res.success) {
       setDraftLocation(null);
       setIsMapPickingActive(false);
       // Switch back to list of incidents posted
       setSubpage('list');
+      return true;
     }
-    return success;
+    return res;
   };
 
   return (
@@ -115,6 +116,7 @@ export const IncidentsPage: React.FC = () => {
                     onSubmit={handleReportSubmit}
                     isSubmitting={isSubmitting}
                     onCancel={() => setSubpage('list')}
+                    onViewExisting={() => setSubpage('list')}
                   />
                 </motion.div>
               )}

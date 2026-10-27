@@ -90,7 +90,7 @@ export const HomePage: React.FC = () => {
 
       setAssistantAnswer(response.answer);
       if (response.places && response.places.length > 0) {
-        setAssistantPlaces(response.places);
+        setAssistantPlaces(response.places as any);
       }
 
       // Save assistant message to global chat history
@@ -99,10 +99,11 @@ export const HomePage: React.FC = () => {
         sender: 'assistant',
         content: response.answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        places: response.places,
-        weather: response.weather,
-        incidents: response.incidents,
+        places: response.places as any,
+        weather: response.weather as any,
+        incidents: response.incidents as any,
         sources: response.sources,
+        limitations: response.limitations,
       });
       setAskQuery('');
     } catch {
@@ -142,6 +143,42 @@ export const HomePage: React.FC = () => {
   // Fetch saved places
   useEffect(() => {
     let active = true;
+    const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
+
+    if (token) {
+      setLoadingSaved(true);
+      placesService
+        .getSavedPlaces()
+        .then((res) => {
+          if (active) {
+            if (res.items && res.items.length > 0) {
+              const mapped: Place[] = res.items.map((item) => ({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                address: item.address,
+                location: { lat: Number(item.latitude), lon: Number(item.longitude) },
+                distanceMeters: null,
+                tags: {},
+                source: 'openstreetmap',
+                osm: { type: 'node', id: item.id },
+                isSaved: true,
+              }));
+              setSavedPlaces(mapped);
+            } else {
+              setSavedPlaces([]);
+            }
+            setLoadingSaved(false);
+          }
+        })
+        .catch(() => {
+          if (active) setLoadingSaved(false);
+        });
+      return () => {
+        active = false;
+      };
+    }
+
     if (savedPlaceIds.length === 0) {
       setSavedPlaces([]);
       return;

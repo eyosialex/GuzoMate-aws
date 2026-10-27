@@ -64,6 +64,7 @@ interface AppState {
 
   // Saved Places
   savedPlaceIds: string[];
+  setSavedPlaceIds: (ids: string[]) => void;
   toggleSavePlace: (id: string) => void;
 
   // Chat State
@@ -175,6 +176,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   savedPlaceIds: initialSavedPlaces,
+  setSavedPlaceIds: (ids: string[]) => {
+    localStorage.setItem('guzo_saved_places', JSON.stringify(ids));
+    set({ savedPlaceIds: ids });
+  },
   toggleSavePlace: (id: string) => {
     set((state) => {
       const exists = state.savedPlaceIds.includes(id);

@@ -6,6 +6,7 @@ import {
   Bell, 
   Shield, 
   ShieldCheck, 
+  ShieldAlert,
   Sliders, 
   Check, 
   AlertTriangle, 
@@ -21,6 +22,7 @@ import { useAppStore } from '../../features/useAppStore';
 import { useAuth } from '../../features/AuthContext';
 import { userService } from '../../services/userService';
 import { authService } from '../../services/authService';
+import { ModerationQueueTab } from '../moderation/ModerationQueueTab';
 import { 
   UserProfile, 
   NotificationPreferences, 
@@ -75,7 +77,7 @@ export const UserProfileModal: React.FC = () => {
     };
   };
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'admin'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'moderation' | 'admin'>('profile');
   const [profile, setProfile] = useState<UserProfile | null>(resolveCurrentProfile);
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [loading, setLoading] = useState(false);
@@ -342,6 +344,21 @@ export const UserProfileModal: React.FC = () => {
               <span>Push Preferences</span>
             </button>
 
+            {(profile?.role === 'MODERATOR' || profile?.role === 'ADMIN') && (
+              <button
+                type="button"
+                onClick={() => { setActiveTab('moderation'); setStatusMessage(null); }}
+                className={`pb-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  activeTab === 'moderation'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-ash hover:text-on-surface'
+                }`}
+              >
+                <ShieldAlert className="w-4 h-4 text-blue-600" />
+                <span>Hazard Review</span>
+              </button>
+            )}
+
             {profile?.role === 'ADMIN' && (
               <button
                 type="button"
@@ -353,7 +370,7 @@ export const UserProfileModal: React.FC = () => {
                 }`}
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Admin Moderation</span>
+                <span>User Moderation</span>
               </button>
             )}
           </div>
@@ -607,7 +624,12 @@ export const UserProfileModal: React.FC = () => {
                   </form>
                 )}
 
-                {/* TAB 3: ADMIN USER MODERATION */}
+                {/* TAB 3: HAZARD MODERATION QUEUE */}
+                {activeTab === 'moderation' && (profile?.role === 'MODERATOR' || profile?.role === 'ADMIN') && (
+                  <ModerationQueueTab />
+                )}
+
+                {/* TAB 4: ADMIN USER MODERATION */}
                 {activeTab === 'admin' && profile?.role === 'ADMIN' && (
                   <div className="space-y-4">
                     {/* Search box */}

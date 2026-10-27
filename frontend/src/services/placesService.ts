@@ -1,31 +1,37 @@
 import { request } from '../lib/apiClient';
-import { Place, PlacesNearbyResponse, Language, PlaceCategory } from '../types';
+import { Place, PlacesNearbyResponse, Language } from '../types';
+import {
+  NearbyPlacesParams,
+  SavedPlacesResponse,
+  SavePlaceResponse,
+} from '../types/places';
 
-export interface NearbyPlacesParams {
-  lat: number;
-  lon: number;
-  radiusMeters?: number;
-  category?: PlaceCategory | string;
-  query?: string;
-  limit?: number;
-  language?: Language;
-}
+export type { NearbyPlacesParams };
 
 export const placesService = {
+  /**
+   * Queries nearby points-of-interest from 13,800+ OpenStreetMap curated Addis points.
+   * GET /api/v1/places/nearby
+   */
   async getNearby(params: NearbyPlacesParams): Promise<PlacesNearbyResponse> {
     try {
-      return await request<PlacesNearbyResponse>('/places/nearby', {
+      const res = await request<PlacesNearbyResponse>('/places/nearby', {
         method: 'GET',
         params: {
           lat: params.lat,
           lon: params.lon,
           radiusMeters: params.radiusMeters || 5000,
           category: params.category === 'all' ? undefined : params.category,
-          query: params.query,
+          query: params.query?.trim() || undefined,
           limit: params.limit || 20,
         },
-        language: params.language,
       });
+
+      return {
+        items: res?.items || [],
+        nextCursor: res?.nextCursor ?? null,
+        attribution: res?.attribution || '© OpenStreetMap contributors',
+      };
     } catch {
       return {
         items: [],
@@ -35,6 +41,10 @@ export const placesService = {
     }
   },
 
+  /**
+   * Retrieves single place details by ID.
+   * GET /api/v1/places/:id
+   */
   async getPlaceById(id: string, language?: Language): Promise<Place> {
     return await request<Place>(`/places/${id}`, {
       method: 'GET',
@@ -42,17 +52,52 @@ export const placesService = {
     });
   },
 
+  /**
+   * Lists bookmarked places for the authenticated traveler.
+   * GET /api/v1/saved-places
+   */
+  async getSavedPlaces(): Promise<SavedPlacesResponse> {
+    const res = await request<SavedPlacesResponse>('/saved-places', {
+      method: 'GET',
+    });
+
+    return {
+      items: res?.items || [],
+      total: res?.total ?? (res?.items ? res.items.length : 0),
+    };
+  },
+
+  /**
+   * Bookmarks a place for the authenticated traveler.
+   * POST /api/v1/saved-places
+   */
+  async savePlace(placeId: string): Promise<SavePlaceResponse> {
+    return await request<SavePlaceResponse>('/saved-places', {
+      method: 'POST',
+      body: JSON.stringify({ placeId }),
+    });
+  },
+
+  /**
+   * Removes a place from traveler's bookmarks.
+   * DELETE /api/v1/saved-places/:placeId
+   */
+  async deleteSavedPlace(placeId: string): Promise<boolean> {
+    await request<void>(`/saved-places/${encodeURIComponent(placeId)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  },
+
+  /**
+   * Toggles saved bookmark state.
+   */
   async toggleSave(placeId: string, shouldSave: boolean): Promise<boolean> {
     try {
       if (shouldSave) {
-        await request<{ saved: boolean }>('/saved-places', {
-          method: 'POST',
-          body: JSON.stringify({ placeId }),
-        });
+        await this.savePlace(placeId);
       } else {
-        await request<void>(`/saved-places/${placeId}`, {
-          method: 'DELETE',
-        });
+        await this.deleteSavedPlace(placeId);
       }
       return true;
     } catch {

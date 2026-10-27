@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "pptx": {
+      "source": "guanyang/open-agent-hub",
+      "sourceType": "github",
+      "skillPath": "skills/pptx/SKILL.md",
+      "computedHash": "31ca16168dba9d35d5d99edf38ddf7e66f799bf7c624d54decb745943362fb09"
+    }
+  }
+}

@@ -9,9 +9,20 @@ import {
   CloudRain, 
   AlertOctagon, 
   Check, 
-  ChevronDown 
+  ChevronDown,
+  ShieldAlert,
+  Flame,
+  HelpCircle,
+  Link as LinkIcon
 } from 'lucide-react';
-import { IncidentType, GeoLocation, IncidentSubmissionPayload } from '../../types';
+import { GeoLocation } from '../../types';
+import { 
+  IncidentType, 
+  IncidentSeverity, 
+  CreateIncidentPayload,
+  SEVERITY_COLORS,
+  SEVERITY_LABELS 
+} from '../../types/incidents';
 import { searchAddisLandmarks, AddisLandmark } from '../../lib/addisLandmarks';
 import { Button } from '../common/Button';
 import { springGentle } from '../../lib/motion';
@@ -20,19 +31,26 @@ interface IncidentSubmitFormProps {
   draftLocation: GeoLocation | null;
   isMapPickingActive: boolean;
   onActivateMapPicker: () => void;
-  onSubmit: (payload: IncidentSubmissionPayload) => Promise<boolean>;
+  onSubmit: (payload: CreateIncidentPayload & { title?: string; locationName?: string }) => Promise<{ success: boolean; duplicate?: boolean; error?: string } | boolean>;
   isSubmitting: boolean;
   onCancel: () => void;
+  onViewExisting?: () => void;
 }
 
-const INCIDENT_CATEGORIES: { id: IncidentType; label: string; icon: React.ReactNode }[] = [
-  { id: 'HEAVY_TRAFFIC', label: 'Heavy Traffic', icon: <Car className="w-4 h-4" /> },
-  { id: 'ROAD_CLOSURE', label: 'Road Closure', icon: <AlertOctagon className="w-4 h-4" /> },
-  { id: 'ACCIDENT', label: 'Traffic Accident', icon: <AlertTriangle className="w-4 h-4" /> },
-  { id: 'FLOODING', label: 'Flooding / Water', icon: <CloudRain className="w-4 h-4" /> },
-  { id: 'CONSTRUCTION', label: 'Road Work', icon: <Construction className="w-4 h-4" /> },
-  { id: 'ROAD_DAMAGE', label: 'Pothole / Damage', icon: <AlertTriangle className="w-4 h-4" /> },
+const ALL_INCIDENT_CATEGORIES: { id: IncidentType; label: string; icon: React.ReactNode }[] = [
+  { id: 'ACCIDENT', label: 'Traffic Accident', icon: <AlertTriangle className="w-4 h-4 text-red-500" /> },
+  { id: 'ROAD_BLOCK', label: 'Roadblock / Escarpment', icon: <ShieldAlert className="w-4 h-4 text-amber-500" /> },
+  { id: 'ROAD_CLOSURE', label: 'Road Closure', icon: <AlertOctagon className="w-4 h-4 text-red-600" /> },
+  { id: 'FLOODING', label: 'Flooding / Torrent', icon: <CloudRain className="w-4 h-4 text-blue-500" /> },
+  { id: 'LANDSLIDE', label: 'Landslide / Rockfall', icon: <Flame className="w-4 h-4 text-amber-700" /> },
+  { id: 'ROAD_DAMAGE', label: 'Pothole / Road Damage', icon: <AlertTriangle className="w-4 h-4 text-yellow-600" /> },
+  { id: 'CONSTRUCTION', label: 'Road Construction', icon: <Construction className="w-4 h-4 text-orange-500" /> },
+  { id: 'HEAVY_TRAFFIC', label: 'Heavy Traffic Jam', icon: <Car className="w-4 h-4 text-purple-500" /> },
+  { id: 'HAZARD', label: 'General Hazard', icon: <AlertTriangle className="w-4 h-4 text-rose-500" /> },
+  { id: 'OTHER', label: 'Other Disturbance', icon: <HelpCircle className="w-4 h-4 text-slate-500" /> },
 ];
+
+const SEVERITY_OPTIONS: IncidentSeverity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
 export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
   draftLocation,
@@ -41,12 +59,14 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
   onSubmit,
   isSubmitting,
   onCancel,
+  onViewExisting,
 }) => {
   const shouldReduceMotion = useReducedMotion();
 
-  const [title, setTitle] = useState('');
   const [type, setType] = useState<IncidentType>('HEAVY_TRAFFIC');
+  const [severity, setSeverity] = useState<IncidentSeverity>('MEDIUM');
   const [description, setDescription] = useState('');
+  const [evidenceUrl, setEvidenceUrl] = useState('');
 
   // Location search state
   const [locationQuery, setLocationQuery] = useState('');
@@ -54,6 +74,7 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
   const [selectedLocationName, setSelectedLocationName] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [duplicateAlert, setDuplicateAlert] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -68,8 +89,6 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
     setIsDropdownOpen(false);
   }
 
-  // Derive filtered places during render.
-  // If user didn't type anything, dropdown menu is invisible and does not search
   const trimmed = locationQuery.trim();
   const shouldSearch = Boolean(trimmed && trimmed !== selectedLocationName);
   const filteredPlaces = useMemo(() => {
@@ -77,7 +96,6 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
     return searchAddisLandmarks(trimmed);
   }, [shouldSearch, trimmed]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -107,14 +125,10 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError(null);
+    setDuplicateAlert(null);
 
-    if (!title.trim()) {
-      setValidationError('Please enter an incident title.');
-      return;
-    }
-
-    if (!description.trim()) {
-      setValidationError('Please describe the road condition.');
+    if (description.trim().length < 5) {
+      setValidationError('Please provide a detailed description (at least 5 characters).');
       return;
     }
 
@@ -123,18 +137,32 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
       return;
     }
 
-    const success = await onSubmit({
-      title: title.trim(),
+    if (evidenceUrl.trim() && !/^https?:\/\//i.test(evidenceUrl.trim())) {
+      setValidationError('Evidence photo must be a valid http:// or https:// URL.');
+      return;
+    }
+
+    const payload: CreateIncidentPayload & { title?: string; locationName?: string } = {
       type,
       description: description.trim(),
-      location: selectedLocation,
+      severity,
+      lat: selectedLocation.lat,
+      lon: selectedLocation.lon,
+      evidenceUrl: evidenceUrl.trim() || undefined,
+      occurredAt: new Date().toISOString(),
       locationName: selectedLocationName || locationQuery,
-    });
+    };
 
-    if (success) {
-      // Clear form
-      setTitle('');
+    const res = await onSubmit(payload);
+
+    if (typeof res === 'object' && res.duplicate) {
+      setDuplicateAlert(res.error || 'A similar incident was recently reported near this location.');
+      return;
+    }
+
+    if (res === true || (typeof res === 'object' && res.success)) {
       setDescription('');
+      setEvidenceUrl('');
       setLocationQuery('');
       setSelectedLocation(null);
       setSelectedLocationName('');
@@ -149,43 +177,73 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
       onSubmit={handleSubmit}
       className="p-4 space-y-4 overflow-y-auto h-full"
     >
-      {/* Title Input */}
-      <div>
-        <label className="text-xs font-bold text-on-surface uppercase tracking-wider block mb-1.5 leading-none">
-          Incident Title <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Heavy congestion near Megenagna"
-          className="w-full min-h-[44px] px-3.5 py-2.5 bg-surface-low border border-outline-variant/60 rounded-xl text-sm font-medium text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all shadow-xs"
-        />
-      </div>
+      {/* Duplicate Report Alert Box */}
+      {duplicateAlert && (
+        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="font-semibold leading-relaxed">{duplicateAlert}</p>
+          </div>
+          {onViewExisting && (
+            <button
+              type="button"
+              onClick={onViewExisting}
+              className="text-xs font-bold text-primary underline hover:text-primary-dark cursor-pointer"
+            >
+              View existing reports nearby →
+            </button>
+          )}
+        </div>
+      )}
 
-      {/* Incident Type Selector */}
+      {/* Incident Category Selector */}
       <div>
         <label className="text-xs font-bold text-on-surface uppercase tracking-wider block mb-1.5 leading-none">
-          Incident Type
+          Incident Category <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-2 gap-1.5">
-          {INCIDENT_CATEGORIES.map((cat) => {
+        <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto p-1 bg-surface-low rounded-2xl border border-outline-variant/30">
+          {ALL_INCIDENT_CATEGORIES.map((cat) => {
             const isSelected = type === cat.id;
             return (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setType(cat.id)}
-                className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all border text-left select-none ${
+                className={`min-h-[40px] px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all border text-left select-none cursor-pointer ${
                   isSelected
                     ? 'bg-primary text-white border-primary shadow-xs'
-                    : 'bg-white text-on-surface-variant border-outline-variant/40 hover:bg-surface-low'
+                    : 'bg-white text-on-surface-variant border-outline-variant/40 hover:bg-surface-high'
                 }`}
               >
-                <span className={isSelected ? 'text-white' : 'text-primary'}>
-                  {cat.icon}
-                </span>
+                <span>{cat.icon}</span>
                 <span className="truncate">{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Severity Selector */}
+      <div>
+        <label className="text-xs font-bold text-on-surface uppercase tracking-wider block mb-1.5 leading-none">
+          Severity Level
+        </label>
+        <div className="grid grid-cols-4 gap-1.5">
+          {SEVERITY_OPTIONS.map((sev) => {
+            const isSelected = severity === sev;
+            const style = SEVERITY_COLORS[sev];
+            return (
+              <button
+                key={sev}
+                type="button"
+                onClick={() => setSeverity(sev)}
+                className={`py-2 px-1 rounded-xl text-xs font-bold text-center border transition-all cursor-pointer ${
+                  isSelected
+                    ? `${style.bg} ${style.text} ${style.border} ring-2 ring-primary/20 shadow-xs font-extrabold`
+                    : 'bg-white text-on-surface-variant/70 border-outline-variant/40 hover:bg-surface-low'
+                }`}
+              >
+                {SEVERITY_LABELS[sev].en}
               </button>
             );
           })}
@@ -195,15 +253,33 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
       {/* Description Input */}
       <div>
         <label className="text-xs font-bold text-on-surface uppercase tracking-wider block mb-1.5 leading-none">
-          Description <span className="text-red-500">*</span>
+          Hazard Description <span className="text-red-500">*</span>
         </label>
         <textarea
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Provide details about blocked lanes, hazards, or traffic delays..."
+          placeholder="Details on affected lanes, impassable sections, or recommended detours..."
           className="w-full p-3 bg-surface-low border border-outline-variant/60 rounded-xl text-sm font-medium text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all shadow-xs resize-none"
         />
+        <span className="text-[10px] text-on-surface-variant/60">Minimum 5 characters.</span>
+      </div>
+
+      {/* Evidence Photo URL (Optional) */}
+      <div>
+        <label className="text-xs font-bold text-on-surface uppercase tracking-wider block mb-1.5 leading-none">
+          Photo or Evidence Link (Optional)
+        </label>
+        <div className="relative flex items-center">
+          <LinkIcon className="w-4 h-4 text-ash absolute left-3 pointer-events-none" />
+          <input
+            type="url"
+            value={evidenceUrl}
+            onChange={(e) => setEvidenceUrl(e.target.value)}
+            placeholder="https://example.com/photo.jpg"
+            className="w-full min-h-[40px] pl-9 pr-3.5 py-2 bg-surface-low border border-outline-variant/60 rounded-xl text-xs font-medium text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all shadow-xs"
+          />
+        </div>
       </div>
 
       {/* Location Input with Search, Dropdown & Fallback */}
@@ -228,7 +304,7 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
             type="text"
             value={locationQuery}
             onChange={handleLocationInputChange}
-            placeholder="Search place in Addis (e.g., 'Bole', 'Piazza')..."
+            placeholder="Search landmark (e.g., 'Bole', 'Gotera', 'Megenagna')..."
             className="w-full min-h-[44px] pl-10 pr-10 py-2.5 bg-surface-low border border-outline-variant/60 rounded-xl text-sm font-medium text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all shadow-xs"
           />
 
@@ -236,17 +312,13 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
             type="button"
             onClick={onActivateMapPicker}
             title="Pick location on map"
-            className="absolute right-2 p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
+            className="absolute right-2 p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors cursor-pointer"
           >
             <Crosshair className={`w-4 h-4 ${isMapPickingActive ? 'text-secondary animate-spin' : ''}`} />
           </button>
         </div>
 
-        {/* Dropdown Menu:
-            - INVISIBLE when locationQuery is empty!
-            - Shows matching places when found
-            - Shows "didnt find your your location? click on map" when place is not found (or at bottom)
-        */}
+        {/* Dropdown Menu */}
         {isDropdownOpen && locationQuery.trim() !== '' && (
           <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-outline-variant/50 rounded-2xl shadow-floating z-50 overflow-hidden divide-y divide-outline-variant/20">
             {filteredPlaces.length > 0 ? (
@@ -272,7 +344,6 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
                   ))}
                 </div>
 
-                {/* Option to click on map at bottom of results */}
                 <div
                   onClick={() => {
                     setIsDropdownOpen(false);
@@ -288,7 +359,6 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
                 </div>
               </>
             ) : (
-              // When searched place is not to be found
               <div className="p-4 text-center space-y-2">
                 <p className="text-xs font-medium text-on-surface-variant">
                   No places found for <span className="font-bold text-on-surface">"{locationQuery}"</span>
@@ -313,8 +383,8 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
       {/* Map Picking Active Callout */}
       {isMapPickingActive && (
         <div className="p-3 rounded-xl bg-secondary/10 border border-secondary/30 text-secondary-dark flex items-center gap-2 text-xs font-semibold">
-          <Crosshair className="w-4 h-4 text-secondary shrink-0" />
-          <span>Click anywhere on the map on the right to set the pin.</span>
+          <Crosshair className="w-4 h-4 text-secondary shrink-0 animate-pulse" />
+          <span>Click anywhere on the map to set the exact incident coordinate.</span>
         </div>
       )}
 
@@ -341,7 +411,7 @@ export const IncidentSubmitForm: React.FC<IncidentSubmitFormProps> = ({
           isLoading={isSubmitting}
           className="flex-1 rounded-xl min-h-[44px]"
         >
-          Submit Incident
+          Submit Hazard Report
         </Button>
       </div>
     </motion.form>

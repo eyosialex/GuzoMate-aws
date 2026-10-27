@@ -7,6 +7,7 @@ export function usePlaces() {
   const userLocation = useAppStore((state) => state.userLocation);
   const language = useAppStore((state) => state.language);
   const savedPlaceIds = useAppStore((state) => state.savedPlaceIds);
+  const setSavedPlaceIds = useAppStore((state) => state.setSavedPlaceIds);
   const toggleSavePlaceInStore = useAppStore((state) => state.toggleSavePlace);
 
   const [places, setPlaces] = useState<Place[]>([]);
@@ -41,6 +42,27 @@ export function usePlaces() {
     }, 200);
     return () => clearTimeout(timer);
   }, [fetchPlaces]);
+
+  // Synchronize authenticated traveler bookmarks from database
+  useEffect(() => {
+    const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
+    if (!token) return;
+
+    let active = true;
+    placesService
+      .getSavedPlaces()
+      .then((res) => {
+        if (active && res.items && res.items.length > 0) {
+          const ids = res.items.map((i) => i.id);
+          setSavedPlaceIds(ids);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [setSavedPlaceIds]);
 
   const placesWithSavedStatus = useMemo(() => {
     return places.map((place) => ({
