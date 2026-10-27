@@ -27,6 +27,7 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const { user } = useAuth();
+  const currentUser = useAppStore((state) => state.currentUser);
 
   const savedPlaceIds = useAppStore((state) => state.savedPlaceIds);
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
@@ -116,7 +117,7 @@ export const HomePage: React.FC = () => {
             {/* Scout Status Pill */}
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-500">
               <ShieldCheck className="w-4 h-4 text-[#183a2b]" />
-              <span>Logged as <strong className="text-gray-900">{user?.fullName || 'Dawit A.'}</strong></span>
+              <span>Logged as <strong className="text-gray-900">{currentUser?.name || user?.name || user?.fullName || 'Traveler'}</strong></span>
               <span className="bg-emerald-50 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold">
                 {user?.scoutGuildBadge || 'Selam Guild #418'}
               </span>

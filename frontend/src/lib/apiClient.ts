@@ -48,10 +48,15 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     ...(customConfig.headers as Record<string, string>),
   };
 
+  const controller = new AbortController();
+  const timeoutMs = 10000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
     const response = await fetch(url, {
       ...customConfig,
       headers,
+      signal: customConfig.signal || controller.signal,
     });
 
     if (!response.ok) {
@@ -93,5 +98,7 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     }
     const message = err instanceof Error ? err.message : 'Network connection error';
     throw new ApiError(message, 'PROVIDER_UNAVAILABLE', 503);
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

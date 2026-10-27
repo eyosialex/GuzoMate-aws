@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../../features/useAppStore';
+import { useAuth } from '../../features/AuthContext';
 import { Language } from '../../types';
 import { 
   Bell, 
@@ -7,7 +8,9 @@ import {
   ChevronDown, 
   Check, 
   Menu, 
-  X 
+  X,
+  User,
+  Sliders 
 } from 'lucide-react';
 
 interface AppNavbarProps {
@@ -21,8 +24,11 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
     language, 
     setLanguage, 
     currentUser, 
-    setCurrentUser 
+    setCurrentUser,
+    openProfileModal 
   } = useAppStore();
+  const { user: authUser } = useAuth();
+  const displayedName = currentUser?.name || authUser?.name || authUser?.fullName || 'My Profile';
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -232,15 +238,20 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
 
           {/* User Profile & Sign Out Button */}
           <div className="flex items-center gap-2">
-            {currentUser?.name && (
-              <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-low border border-outline-variant/40 text-xs font-semibold text-primary">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="max-w-[120px] truncate">{currentUser.name}</span>
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={openProfileModal}
+              className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-low hover:bg-surface-high border border-outline-variant/40 text-xs font-semibold text-primary transition-colors cursor-pointer shadow-xs"
+              title="Open Profile & Settings"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="max-w-[120px] truncate">{displayedName}</span>
+              <Sliders className="w-3.5 h-3.5 text-ash ml-0.5" />
+            </button>
+
             <button
               onClick={handleSignOut}
-              className="px-5 py-2 rounded-full text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 transition-colors shadow-sm"
+              className="px-5 py-2 rounded-full text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 transition-colors shadow-sm cursor-pointer"
             >
               {language === 'am' ? 'ውጣ' : language === 'om' ? "Ba'i" : 'Sign Out'}
             </button>
@@ -329,6 +340,17 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
               }`}
             >
               <span>{language === 'am' ? 'አደጋዎች' : language === 'om' ? 'Balaa' : 'Incidents'}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                openProfileModal();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full py-2.5 px-3 text-left font-bold rounded-xl text-primary hover:bg-surface-low flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              <span>{language === 'am' ? 'መገለጫ እና ቅንብሮች' : 'Profile & Settings'}</span>
             </button>
           </div>
 

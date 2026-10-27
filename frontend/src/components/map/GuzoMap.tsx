@@ -377,6 +377,12 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
             lat: position.coords.latitude,
             lon: position.coords.longitude,
           };
+          try {
+            localStorage.setItem('guzo_last_location', JSON.stringify({
+              coords: newLoc,
+              timestamp: Date.now(),
+            }));
+          } catch {}
           setUserLocation(newLoc);
           setMapCenter([newLoc.lat, newLoc.lon], 16);
           setIsLocating(false);

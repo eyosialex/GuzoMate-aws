@@ -10,6 +10,7 @@ import { AboutUsPage } from '../components/pages/AboutUsPage';
 import { ContactUsPage } from '../components/pages/ContactUsPage';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { AuthModal } from '../components/auth/AuthModal';
+import { UserProfileModal } from '../components/user/UserProfileModal';
 import { DevViewSwitcher } from '../components/dev/DevViewSwitcher';
 
 export const App: React.FC = () => {
@@ -21,8 +22,9 @@ export const App: React.FC = () => {
         {/* Development View Switcher: Bottom Right Corner */}
         <DevViewSwitcher />
 
-        {/* Global Authentication Modal */}
+        {/* Global Authentication & User Profile Modals */}
         <AuthModal />
+        <UserProfileModal />
 
         {pageView === 'landing' && (
           <>

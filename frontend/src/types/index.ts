@@ -238,10 +238,19 @@ export type PageView = 'landing' | 'app' | 'about' | 'contact' | 'home' | 'explo
 
 export interface UserProfile {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   phone?: string;
   preferredLanguage: Language;
+  role?: 'USER' | 'MODERATOR' | 'ADMIN';
+  status?: 'ACTIVE' | 'SUSPENDED';
   isGuildVerified?: boolean;
   avatarUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  stats?: {
+    reportedIncidentsCount: number;
+    confirmationsCount: number;
+    savedPlacesCount: number;
+  };
 }

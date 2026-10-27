@@ -26,6 +26,9 @@ interface AppState {
   authModalTab: 'login' | 'signup';
   openAuthModal: (tab?: 'login' | 'signup') => void;
   closeAuthModal: () => void;
+  isProfileModalOpen: boolean;
+  openProfileModal: () => void;
+  closeProfileModal: () => void;
 
   // Localization
   language: Language;
@@ -87,6 +90,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   authModalTab: 'login',
   openAuthModal: (tab: 'login' | 'signup' = 'login') => set({ isAuthModalOpen: true, authModalTab: tab }),
   closeAuthModal: () => set({ isAuthModalOpen: false }),
+  isProfileModalOpen: false,
+  openProfileModal: () => set({ isProfileModalOpen: true }),
+  closeProfileModal: () => set({ isProfileModalOpen: false }),
 
   language: (localStorage.getItem('guzo_lang') as Language) || 'en',
   setLanguage: (lang: Language) => {

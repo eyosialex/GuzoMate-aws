@@ -7,7 +7,7 @@ import { weatherService } from '../../services/weatherService';
 import { incidentsService } from '../../services/incidentsService';
 import { placesService } from '../../services/placesService';
 import { assistantService } from '../../services/assistantService';
-import { Place, Incident, WeatherData } from '../../types';
+import { Place, Incident, WeatherData, GeoLocation, DEFAULT_ADDIS_COORDINATES } from '../../types';
 import { 
   Compass, 
   MapPin, 
@@ -42,6 +42,7 @@ export const HomePage: React.FC = () => {
     setSelectedPlace,
     language,
     userLocation,
+    setUserLocation,
     addMessage
   } = useAppStore();
 
@@ -118,6 +119,21 @@ export const HomePage: React.FC = () => {
   // Weather state (real backend data)
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
+  const [lastWeatherUpdate, setLastWeatherUpdate] = useState<Date | null>(null);
+  const [weatherLocation, setWeatherLocation] = useState<GeoLocation>(() => {
+    try {
+      const stored = localStorage.getItem('guzo_last_location');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const coords = parsed?.coords || parsed;
+        if (coords && typeof coords.lat === 'number' && typeof coords.lon === 'number') {
+          return coords;
+        }
+      }
+    } catch {}
+    return DEFAULT_ADDIS_COORDINATES;
+  });
+  const [locationSource, setLocationSource] = useState<'current' | 'last_known' | 'default'>('default');
 
   // Incidents state (real backend data)
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -147,34 +163,128 @@ export const HomePage: React.FC = () => {
     };
   }, [savedPlaceIds]);
 
-  // Fetch real weather
+  // Weather Fallback Hierarchy & Hourly Auto-Refresh:
+  // 1. Current user location (if permission granted). Auto-refreshes every 1 hour (3,600,000ms).
+  // 2. User's last known location (from localStorage).
+  // 3. Addis Ababa default coordinates (if neither current nor last known location available).
   useEffect(() => {
     let active = true;
-    weatherService.getFullWeather(userLocation.lat, userLocation.lon, undefined, language)
-      .then((data) => {
+    let hourlyIntervalId: ReturnType<typeof setInterval> | null = null;
+
+    const fetchWeather = async (coords: GeoLocation, source: 'current' | 'last_known' | 'default') => {
+      if (!active) return;
+      setWeatherLoading(true);
+      setWeatherLocation(coords);
+      setLocationSource(source);
+
+      try {
+        const data = await weatherService.getFullWeather(coords.lat, coords.lon, undefined, language);
         if (active) {
           setWeatherData(data);
           setWeatherLoading(false);
+          setLastWeatherUpdate(new Date());
         }
-      })
-      .catch(() => {
+      } catch {
         if (active) {
           setWeatherData(null);
           setWeatherLoading(false);
         }
-      });
+      }
+    };
+
+    const handleFallback = () => {
+      // 2. Try user's last known location
+      try {
+        const stored = localStorage.getItem('guzo_last_location');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const coords = parsed?.coords || parsed;
+          if (coords && typeof coords.lat === 'number' && typeof coords.lon === 'number') {
+            fetchWeather(coords, 'last_known');
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not read last known location from localStorage:', err);
+      }
+
+      // 3. Fallback to Addis Ababa default coordinates
+      fetchWeather(DEFAULT_ADDIS_COORDINATES, 'default');
+    };
+
+    // 1. Check for location permission / get current location
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (!active) return;
+          const currentCoords: GeoLocation = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          };
+
+          // Save to localStorage as last known location
+          try {
+            localStorage.setItem('guzo_last_location', JSON.stringify({
+              coords: currentCoords,
+              timestamp: Date.now(),
+            }));
+          } catch {}
+
+          setUserLocation(currentCoords);
+          fetchWeather(currentCoords, 'current');
+
+          // "if the user has given location permission .. the weather should update its readings in an hour period"
+          const ONE_HOUR_MS = 60 * 60 * 1000;
+          hourlyIntervalId = setInterval(() => {
+            if (!active) return;
+            navigator.geolocation.getCurrentPosition(
+              (latestPos) => {
+                const updatedCoords: GeoLocation = {
+                  lat: latestPos.coords.latitude,
+                  lon: latestPos.coords.longitude,
+                };
+                try {
+                  localStorage.setItem('guzo_last_location', JSON.stringify({
+                    coords: updatedCoords,
+                    timestamp: Date.now(),
+                  }));
+                } catch {}
+                setUserLocation(updatedCoords);
+                fetchWeather(updatedCoords, 'current');
+              },
+              () => {
+                // If position lookup fails on periodic refresh, refresh using existing currentCoords
+                fetchWeather(currentCoords, 'current');
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+          }, ONE_HOUR_MS);
+        },
+        (err) => {
+          if (!active) return;
+          console.warn('Geolocation permission not given or unavailable:', err);
+          handleFallback();
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      handleFallback();
+    }
 
     return () => {
       active = false;
+      if (hourlyIntervalId) {
+        clearInterval(hourlyIntervalId);
+      }
     };
-  }, [userLocation.lat, userLocation.lon, language]);
+  }, [language, setUserLocation]);
 
-  // Fetch real nearby incidents
+  // Fetch real nearby incidents for the active weather location
   useEffect(() => {
     let active = true;
     incidentsService.getNearby({
-      lat: userLocation.lat,
-      lon: userLocation.lon,
+      lat: weatherLocation.lat,
+      lon: weatherLocation.lon,
       radiusMeters: 15000,
     })
       .then((res) => {
@@ -193,7 +303,7 @@ export const HomePage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [userLocation.lat, userLocation.lon]);
+  }, [weatherLocation.lat, weatherLocation.lon]);
 
   return (
     <div className="relative min-h-screen bg-surface text-on-surface flex flex-col font-sans selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden">
@@ -646,15 +756,40 @@ export const HomePage: React.FC = () => {
             {/* Weather & Microclimate (5 Cols) */}
             <div className="lg:col-span-5 bg-surface-lowest p-6 sm:p-7 rounded-3xl border border-outline-variant/40 shadow-sm relative overflow-hidden">
               <div className="flex items-center justify-between mb-5">
+                {locationSource === 'current'}
+                {locationSource === 'last_known' && (
+                  <span className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/60 font-semibold px-2 py-0.5 rounded-full flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                    <span>Last Known Location</span>
+                  </span>
+                )}
+                {locationSource === 'default' && (
+                  <span className="text-[11px] text-stone-600 bg-stone-100 border border-stone-200 font-semibold px-2 py-0.5 rounded-full">
+                    <span>Addis Ababa (Default)</span>
+                  </span>
+                )}
               </div>
 
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-primary">
-                  Addis Ababa
-                </h3>
-                <p className="text-xxs text-on-surface-variant">
-                  At Your Current Location.
-                </p>
+              <div className="mb-6 flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-primary">
+                    {locationSource === 'default'
+                      ? 'Addis Ababa'
+                      : locationSource === 'last_known'
+                      ? 'Last Known Location'
+                      : Math.abs(weatherLocation.lat - DEFAULT_ADDIS_COORDINATES.lat) < 0.1 && Math.abs(weatherLocation.lon - DEFAULT_ADDIS_COORDINATES.lon) < 0.1
+                      ? 'Addis Ababa'
+                      : 'Current Location'}
+                  </h3>
+                  <p className="text-xs text-on-surface-variant font-mono mt-0.5">
+                    {weatherLocation.lat.toFixed(4)}°N, {weatherLocation.lon.toFixed(4)}°E
+                  </p>
+                </div>
+                {lastWeatherUpdate && (
+                  <span className="text-[10px] text-ash font-medium">
+                    Updated {lastWeatherUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center justify-between p-4 bg-surface-low rounded-2xl mb-5 border border-outline-variant/30">
@@ -779,9 +914,6 @@ export const HomePage: React.FC = () => {
                     <h4 className="text-sm font-bold text-on-surface mb-1">
                       No incidents reported nearby
                     </h4>
-                    <p className="text-xs text-on-surface-variant max-w-sm mb-4">
-                      All major road corridors and transit routes in Addis Ababa are currently clear and operating normally.
-                    </p>
                     <button
                       type="button"
                       onClick={() => setPageView('incidents')}
@@ -805,10 +937,6 @@ export const HomePage: React.FC = () => {
                               {incident.title || incident.type.replace(/_/g, ' ')}
                             </span>
                           </div>
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-primary text-white font-bold whitespace-nowrap rounded">
-                            <CheckCircle2 className="w-3 h-3 text-secondary-light" />
-                            <span>{incident.verification || 'Verified'}</span>
-                          </span>
                         </div>
                         <p className="text-xs text-on-surface-variant mb-2 line-clamp-2">
                           {incident.description}
