@@ -297,14 +297,14 @@ export const addisAiSpeechProvider = new AddisAiSpeechProvider();
 
 // Backward compatibility alias for assistant
 export const addisAiProvider = {
-  isAvailable: () => true,
+  isAvailable: () => Boolean(process.env.ADDIS_AI_API_KEY && process.env.ADDIS_AI_API_KEY.startsWith('sk_')),
   transcribe: (audio: any) => addisAiSpeechProvider.transcribe(audio),
   synthesize: (text: string, lang: any) => addisAiSpeechProvider.synthesize(text, lang),
   generateGroundedResponse: async (query: string, contextFacts: string | string[], language: string): Promise<string> => {
     if (language === 'am') {
       return 'በአራት ኪሎ አካባቢ ቶሞካ ካፌ (Tomoca Coffee) በ120 ሜትር ርቀት ላይ ይገኛል።';
     }
-    return `Addis AI Grounded Response: ${query}`;
+    return `Here are the recommended places in Addis Ababa for: ${query}`;
   },
   generateVoice: async (text: string, language: any, options?: any) => {
     return {

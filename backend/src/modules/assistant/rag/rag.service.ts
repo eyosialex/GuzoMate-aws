@@ -243,23 +243,11 @@ export class RagService {
       history,
     });
 
-    // 6. Generate Grounded Response via LLM (Addis AI / Gemini based on database facts)
+    // 6. Generate Response via LLM (Gemini as primary conversational assistant, with fallback to Addis AI)
     let answer: string | null = null;
-    const preferredProvider = process.env.AI_PROVIDER || (addisAiProvider.isAvailable() ? 'addis-ai' : 'gemini');
+    const preferredProvider = process.env.AI_PROVIDER || (geminiProvider.isAvailable() ? 'gemini' : 'addis-ai');
 
-    if (preferredProvider === 'addis-ai' && addisAiProvider.isAvailable()) {
-      try {
-        answer = await addisAiProvider.generateGroundedResponse(
-          query,
-          contextFacts,
-          analysis.language
-        );
-      } catch (err: any) {
-        console.warn('[RagService] Addis AI grounded generation error, attempting fallback:', err.message);
-      }
-    }
-
-    if (!answer && geminiProvider.isAvailable()) {
+    if (preferredProvider === 'gemini' && geminiProvider.isAvailable()) {
       try {
         answer = await geminiProvider.generateGroundedResponse(
           query,
@@ -267,7 +255,7 @@ export class RagService {
           analysis.language
         );
       } catch (err: any) {
-        console.warn('[RagService] Gemini grounded generation error:', err.message);
+        console.warn('[RagService] Gemini generation error, attempting fallback:', err.message);
       }
     }
 
@@ -279,7 +267,19 @@ export class RagService {
           analysis.language
         );
       } catch (err: any) {
-        console.warn('[RagService] Addis AI fallback error:', err.message);
+        console.warn('[RagService] Addis AI generation error:', err.message);
+      }
+    }
+
+    if (!answer && geminiProvider.isAvailable()) {
+      try {
+        answer = await geminiProvider.generateGroundedResponse(
+          query,
+          contextFacts,
+          analysis.language
+        );
+      } catch (err: any) {
+        console.warn('[RagService] Gemini generation fallback error:', err.message);
       }
     }
 
