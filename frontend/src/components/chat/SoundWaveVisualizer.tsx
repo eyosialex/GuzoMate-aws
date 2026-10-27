@@ -4,7 +4,8 @@ import { X, Check } from 'lucide-react';
 import { springGentle } from '../../lib/motion';
 
 interface SoundWaveVisualizerProps {
-  stream: MediaStream | null;
+  /** Pre-built AnalyserNode from the parent's AudioContext (avoids duplicate AudioContext on same stream) */
+  analyser: AnalyserNode | null;
   silenceSeconds: number | null;
   isSpeaking: boolean;
   onCancel: () => void;
@@ -12,7 +13,7 @@ interface SoundWaveVisualizerProps {
 }
 
 export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
-  stream,
+  analyser,
   silenceSeconds,
   isSpeaking,
   onCancel,
@@ -24,60 +25,26 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
   );
 
   const animationFrameRef = useRef<number | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
 
-  // Setup Web Audio Analyser if stream is available
-  useEffect(() => {
-    if (!stream) return;
-
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const audioCtx = new AudioCtx();
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
-      analyser.smoothingTimeConstant = 0.8;
-
-      const source = audioCtx.createMediaStreamSource(stream);
-      source.connect(analyser);
-
-      audioContextRef.current = audioCtx;
-      analyserRef.current = analyser;
-    } catch (err) {
-      console.warn('AudioContext not supported or restricted:', err);
-    }
-
-    return () => {
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        try {
-          audioContextRef.current.close();
-        } catch {
-          // ignore
-        }
-      }
-    };
-  }, [stream]);
-
-  // Animation loop to sample audio or synthesize realistic dynamic sound waves
+  // Animation loop to sample audio or synthesize a realistic dynamic sound wave
   useEffect(() => {
     let tick = 0;
 
     const updateWave = () => {
       tick += 0.08;
-      const analyser = analyserRef.current;
 
       if (analyser) {
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
         analyser.getByteFrequencyData(dataArray);
 
-        // Map to 28 bars
+        // Map frequency bins to 28 display bars
         const barCount = 28;
         const newFreqs: number[] = [];
         for (let i = 0; i < barCount; i++) {
           const index = Math.floor((i / barCount) * (bufferLength / 2));
           const val = dataArray[index] / 255;
-          // Add a subtle base wave so it's always animated even in low room noise
+          // Subtle base wave so bars animate even in low room noise
           const base = 0.12 + 0.1 * Math.sin(tick * 2 + i * 0.4);
           newFreqs.push(Math.max(base, val));
         }
@@ -107,7 +74,7 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isSpeaking]);
+  }, [analyser, isSpeaking]);
 
   return (
     <motion.div
@@ -146,10 +113,8 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
       {/* Real-Time Sound Wave Bars */}
       <div className="flex-1 flex items-center justify-center gap-[3px] h-7 px-1 overflow-hidden">
         {frequencies.map((heightRatio, i) => {
-          // Height between 4px and 26px
           const barHeight = Math.max(4, Math.round(heightRatio * 26));
           const isAmber = i % 5 === 0;
-
           return (
             <div
               key={i}
@@ -170,7 +135,7 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
           </span>
         )}
 
-        {/* Quick Send Now Checkmark Button */}
+        {/* Quick Send Now */}
         <button
           type="button"
           onClick={onSendNow}
@@ -181,7 +146,7 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
           <Check className="w-3.5 h-3.5 stroke-[3]" />
         </button>
 
-        {/* Cancel Recording Button */}
+        {/* Cancel Recording */}
         <button
           type="button"
           onClick={onCancel}

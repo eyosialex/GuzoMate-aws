@@ -32,6 +32,14 @@ export function useSpeechRecognition(language: Language = 'en', onResult?: (text
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
 
+  // Keep onResult in a ref so the useEffect doesn't need it as a dependency.
+  // This prevents the recognition engine from being torn down every render
+  // when onResult is an inline arrow function (new reference every render).
+  const onResultRef = useRef(onResult);
+  useEffect(() => {
+    onResultRef.current = onResult;
+  });
+
   useEffect(() => {
     const win = window as unknown as IWindowWithSpeech;
     const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
@@ -54,8 +62,8 @@ export function useSpeechRecognition(language: Language = 'en', onResult?: (text
           currentTranscript += event.results[i][0].transcript;
         }
         setTranscript(currentTranscript);
-        if (event.results[0].isFinal && onResult) {
-          onResult(currentTranscript);
+        if (event.results[0].isFinal && onResultRef.current) {
+          onResultRef.current(currentTranscript);
         }
       };
 
@@ -82,7 +90,8 @@ export function useSpeechRecognition(language: Language = 'en', onResult?: (text
         }
       }
     };
-  }, [language, onResult]);
+  // Only re-run when language changes — onResult changes are handled via ref above
+  }, [language]);
 
   const startListening = useCallback(() => {
     if (!recognitionRef.current) return;
