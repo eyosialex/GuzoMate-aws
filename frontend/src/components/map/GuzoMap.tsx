@@ -9,10 +9,8 @@ import {
   useMapEvents 
 } from 'react-leaflet';
 import L from 'leaflet';
-import { 
-  Crosshair, 
-  AlertTriangle 
-} from 'lucide-react';
+import { Crosshair, AlertTriangle } from 'lucide-react';
+import { GeoLocation } from '../../types';
 import { useAppStore } from '../../features/useAppStore';
 import { usePlaces } from '../../hooks/usePlaces';
 import { useIncidents } from '../../hooks/useIncidents';
@@ -91,13 +89,8 @@ function createPlaceIcon(category: string, isSelected: boolean) {
   });
 }
 
-function createIncidentIcon(status: string, _type: string, isSelected: boolean) {
-  const colorMap: Record<string, string> = {
-    PENDING: '#f59e0b',  // Amber
-    ACTIVE: '#dc2626',   // Red
-    RESOLVED: '#16a34a', // Emerald
-  };
-  const bg = colorMap[status] || '#dc2626';
+function createIncidentIcon(_type: string, isSelected: boolean) {
+  const bg = '#dc2626';
 
   return L.divIcon({
     className: 'custom-incident-pin',
@@ -120,7 +113,7 @@ function createIncidentIcon(status: string, _type: string, isSelected: boolean) 
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+          box-shadow: 0 4px 10px rgba(220,38,38,0.35);
           font-size: 14px;
           transform: scale(${isSelected ? 1.2 : 1});
           transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -243,6 +236,37 @@ function MapViewController() {
   return null;
 }
 
+const draftLocationIcon = L.divIcon({
+  className: 'custom-draft-pin',
+  html: `
+    <div style="
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div style="
+        background-color: #d97706;
+        color: #ffffff;
+        border: 3px solid #ffffff;
+        border-radius: 9999px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+        font-size: 15px;
+      ">
+        📍
+      </div>
+    </div>
+  `,
+  iconSize: [44, 44],
+  iconAnchor: [22, 22],
+});
+
 /**
  * Fits map viewport automatically to the active highway corridor polyline or waypoints
  */
@@ -271,20 +295,35 @@ function MapAutoFitter({
 /**
  * Handle map click to drop pin or select coordinates
  */
-function MapEventsHandler() {
+function MapEventsHandler({ onMapClick }: { onMapClick?: (loc: GeoLocation) => void }) {
   const setIncidentDraftLocation = useAppStore((state) => state.setIncidentDraftLocation);
 
   useMapEvents({
     click(e) {
       const loc = { lat: e.latlng.lat, lon: e.latlng.lng };
       setIncidentDraftLocation(loc);
+      onMapClick?.(loc);
     },
   });
 
   return null;
 }
 
-export const GuzoMap: React.FC<GuzoMapProps> = ({
+export interface GuzoMapProps {
+  showIncidents?: boolean;
+  draftLocation?: GeoLocation | null;
+  onMapClick?: (loc: GeoLocation) => void;
+  customPlaces?: Place[];
+  customRoute?: [number, number][];
+  waypoints?: CorridorWaypoint[];
+  mapStyle?: 'terrain' | 'satellite' | 'standard' | 'topo';
+  className?: string;
+}
+
+export const GuzoMap: React.FC<GuzoMapProps> = ({ 
+  showIncidents = true,
+  draftLocation,
+  onMapClick,
   customPlaces,
   customRoute,
   waypoints,
@@ -359,8 +398,8 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
       >
         <MapResizer />
         <MapViewController />
-        <MapEventsHandler />
-        <MapAutoFitter route={routeCoordinates} waypoints={waypoints} />
+        <MapEventsHandler onMapClick={onMapClick} />
+        {waypoints && <MapAutoFitter route={routeCoordinates} waypoints={waypoints} />}
 
         {/* Dynamic OpenStreetMap Tile Layer */}
         <TileLayer
@@ -369,6 +408,21 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
           url={tileUrl}
           maxZoom={19}
         />
+
+        {/* Draft / Pinned Location Marker (When selecting location on map) */}
+        {draftLocation && (
+          <Marker
+            position={[draftLocation.lat, draftLocation.lon]}
+            icon={draftLocationIcon}
+          >
+            <Popup className="rounded-xl font-bold text-xs">
+              <span className="text-secondary font-bold block">Pinned Incident Location</span>
+              <span className="text-gray-600 text-[11px] block mt-0.5">
+                {draftLocation.lat.toFixed(4)}, {draftLocation.lon.toFixed(4)}
+              </span>
+            </Popup>
+          </Marker>
+        )}
 
         {/* User Location Marker */}
         <Marker
@@ -442,28 +496,27 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
           </Marker>
         ))}
 
-        {/* Verified Road Hazard Markers */}
-        {incidents.map((inc) => (
+        {/* Incident Markers */}
+        {showIncidents && incidents.map((inc) => (
           <Marker
             key={inc.id}
             position={[inc.location.lat, inc.location.lon]}
-            icon={createIncidentIcon(inc.status, inc.type, selectedIncident?.id === inc.id)}
+            icon={createIncidentIcon(inc.type, selectedIncident?.id === inc.id)}
             eventHandlers={{
               click: () => setSelectedIncident(inc),
             }}
           >
             <Popup className="rounded-2xl p-1 text-xs">
-              <div className="space-y-1 max-w-xs">
-                <span className="font-bold text-red-600 block text-sm leading-tight">
-                  ⚠️ {inc.type.replace('_', ' ')}
+              <div className="space-y-1">
+                <span className="font-bold text-red-600 block leading-tight">
+                  ⚠️ {inc.title || inc.type.replace('_', ' ')}
                 </span>
-                <p className="text-gray-800 text-[11px] leading-relaxed">{inc.description}</p>
-                <div className="flex items-center justify-between text-[10px] pt-1 border-t border-gray-100">
-                  <span className="font-bold text-emerald-700">
-                    ✓ {inc.confirmationsCount || 12} Endorsements
+                <p className="text-gray-700 leading-relaxed">{inc.description}</p>
+                {inc.locationName && (
+                  <span className="text-primary font-semibold text-[11px] block leading-none">
+                    📍 {inc.locationName}
                   </span>
-                  <span className="text-gray-400">Status: {inc.status}</span>
-                </div>
+                )}
               </div>
             </Popup>
           </Marker>
@@ -496,14 +549,16 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
           className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md"
         />
 
-        <IconButton
-          aria-label="Report road incident"
-          icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
-          variant="glass"
-          shape="circle"
-          onClick={() => openIncidentModal()}
-          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md"
-        />
+        {showIncidents && (
+          <IconButton
+            aria-label="Report road incident"
+            icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
+            variant="glass"
+            shape="circle"
+            onClick={() => openIncidentModal()}
+            className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+          />
+        )}
       </div>
     </div>
   );

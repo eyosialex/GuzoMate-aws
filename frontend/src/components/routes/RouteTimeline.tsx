@@ -52,54 +52,54 @@ export const RouteTimeline: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-full bg-surface-low/30 overflow-y-auto p-4 space-y-4">
       {/* Route Inputs Card with Scale 0.95 Enter Animation */}
       <motion.div
         variants={cardEnter}
         initial={shouldReduceMotion ? undefined : 'hidden'}
         animate={shouldReduceMotion ? undefined : 'visible'}
         transition={springGentle}
-        className="bg-gray-50/90 rounded-2xl p-4 border border-gray-200/80 shadow-sm space-y-3"
+        className="bg-white rounded-2xl p-4 border border-outline-variant/40 shadow-xs space-y-3"
       >
         {/* Origin */}
         <div className="flex items-center gap-3">
-          <div className="h-4 w-4 rounded-full border-2 border-indigo-600 bg-white shrink-0 flex items-center justify-center">
-            <div className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+          <div className="h-4 w-4 rounded-full border-2 border-primary bg-white shrink-0 flex items-center justify-center">
+            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
           </div>
           <div className="flex-1">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block leading-none">
+            <span className="text-[11px] font-bold text-on-surface-variant/70 uppercase tracking-wider block leading-none">
               Origin
             </span>
-            <span className="text-sm font-bold text-gray-900 truncate block mt-0.5 leading-tight">
+            <span className="text-sm font-bold text-on-surface truncate block mt-0.5 leading-tight">
               {t('routes.origin')}
             </span>
           </div>
         </div>
 
         {/* Divider dotted line */}
-        <div className="ml-2 pl-3 border-l-2 border-dashed border-gray-300 py-1" />
+        <div className="ml-2 pl-3 border-l-2 border-dashed border-outline-variant/60 py-1" />
 
         {/* Destination */}
         <div className="flex items-center gap-3">
-          <div className="h-4 w-4 rounded-full bg-red-500 shrink-0 flex items-center justify-center">
+          <div className="h-4 w-4 rounded-full bg-red-600 shrink-0 flex items-center justify-center">
             <MapPin className="w-2.5 h-2.5 text-white" />
           </div>
           <div className="flex-1">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block leading-none">
+            <span className="text-[11px] font-bold text-on-surface-variant/70 uppercase tracking-wider block leading-none">
               Destination
             </span>
             <input
               type="text"
               value={destinationName}
               onChange={(e) => setDestinationName(e.target.value)}
-              className="text-sm font-bold text-gray-900 bg-transparent border-b border-gray-300 focus:border-indigo-600 focus:outline-none w-full pb-0.5 mt-0.5 leading-tight"
+              className="text-sm font-bold text-on-surface bg-transparent border-b border-outline-variant/60 focus:border-primary focus:outline-none w-full pb-0.5 mt-0.5 leading-tight placeholder:text-on-surface-variant/40"
               placeholder={t('routes.destinationPlaceholder')}
             />
           </div>
         </div>
 
         {/* Mode Selector Buttons with Tactile Springs */}
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-200/60">
+        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-outline-variant/30">
           {travelModes.map((mode) => {
             const isActive = travelMode === mode.id;
             return (
@@ -108,10 +108,10 @@ export const RouteTimeline: React.FC = () => {
                 whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
                 transition={springTactile}
                 onClick={() => setTravelMode(mode.id)}
-                className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold leading-none flex items-center justify-center gap-2 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 select-none ${
+                className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold leading-none flex items-center justify-center gap-2 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary select-none ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-white text-gray-700 border border-gray-200/90 hover:bg-gray-100/80'
+                    ? 'bg-primary text-white shadow-xs'
+                    : 'bg-surface-low text-on-surface-variant border border-outline-variant/40 hover:bg-surface-container'
                 }`}
                 aria-pressed={isActive}
               >
@@ -136,10 +136,10 @@ export const RouteTimeline: React.FC = () => {
       {routes.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-gray-700 tracking-wide uppercase leading-none">
+            <h3 className="text-xs font-bold text-on-surface-variant tracking-wide uppercase leading-none">
               {t('routes.title')}
             </h3>
-            <span className="text-xs text-gray-400 leading-none">Addis Transit</span>
+            <span className="text-xs text-on-surface-variant/60 leading-none">Addis Transit</span>
           </div>
 
           {routes.map((route) => {
@@ -153,19 +153,19 @@ export const RouteTimeline: React.FC = () => {
                 onClick={() => setSelectedRoute(route)}
                 className={`p-3.5 rounded-2xl border transition-colors cursor-pointer ${
                   isSelected
-                    ? 'bg-indigo-50/70 border-indigo-600 ring-2 ring-indigo-500/20 shadow-sm'
-                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    ? 'bg-primary/5 border-primary ring-2 ring-primary/20 shadow-xs'
+                    : 'bg-white border-outline-variant/40 hover:border-outline-variant shadow-xs'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-extrabold text-gray-900 leading-tight">
+                  <span className="text-base font-extrabold text-on-surface leading-tight">
                     {formatDuration(route.durationSeconds)}
                   </span>
-                  <span className="text-xs font-semibold text-gray-500 leading-none">
+                  <span className="text-xs font-semibold text-on-surface-variant leading-none">
                     {formatDistance(route.distanceMeters)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 font-medium mt-1 truncate leading-relaxed">
+                <p className="text-xs text-on-surface-variant font-medium mt-1 truncate leading-relaxed">
                   {route.summary}
                 </p>
               </motion.div>
@@ -181,38 +181,38 @@ export const RouteTimeline: React.FC = () => {
           initial={shouldReduceMotion ? undefined : 'hidden'}
           animate={shouldReduceMotion ? undefined : 'visible'}
           transition={springGentle}
-          className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm"
+          className="bg-white rounded-2xl p-4 border border-outline-variant/40 shadow-xs"
         >
-          <h4 className="text-xs font-bold text-gray-800 tracking-wide uppercase mb-4 flex items-center gap-1.5 leading-none">
-            <Navigation className="w-3.5 h-3.5 text-indigo-600" />
+          <h4 className="text-xs font-bold text-on-surface tracking-wide uppercase mb-4 flex items-center gap-1.5 leading-none">
+            <Navigation className="w-3.5 h-3.5 text-primary" />
             {t('routes.steps')}
           </h4>
 
-          <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-indigo-100">
+          <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-primary/20">
             {selectedRoute.segments.map((segment, idx) => (
               <div key={segment.id || idx} className="relative group">
                 {/* Node icon pin */}
-                <div className="absolute -left-6 top-0 h-4 w-4 rounded-full bg-indigo-600 border-2 border-white shadow-sm flex items-center justify-center">
+                <div className="absolute -left-6 top-0 h-4 w-4 rounded-full bg-primary border-2 border-white shadow-xs flex items-center justify-center">
                   <div className="h-1.5 w-1.5 rounded-full bg-white" />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-900 leading-none">
+                    <span className="text-xs font-bold text-on-surface leading-none">
                       Step {idx + 1}
                     </span>
                     {segment.lineName && (
-                      <span className="text-[10px] font-bold bg-indigo-100/80 text-indigo-800 px-2 py-0.5 rounded-full leading-none">
+                      <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full leading-none">
                         {segment.lineName}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-sm font-medium text-gray-700 mt-1 leading-relaxed">
+                  <p className="text-sm font-medium text-on-surface mt-1 leading-relaxed">
                     {segment.instruction}
                   </p>
 
-                  <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 font-semibold leading-none">
+                  <div className="flex items-center gap-3 text-xs text-on-surface-variant/70 mt-1 font-semibold leading-none">
                     <span className="inline-flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {formatDuration(segment.durationSeconds)}
@@ -226,8 +226,8 @@ export const RouteTimeline: React.FC = () => {
           </div>
 
           {selectedRoute.limitations && selectedRoute.limitations.length > 0 && (
-            <div className="mt-4 p-3 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-600 flex items-start gap-2 leading-relaxed">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2 leading-relaxed">
+              <AlertCircle className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
               <span>{selectedRoute.limitations[0]}</span>
             </div>
           )}

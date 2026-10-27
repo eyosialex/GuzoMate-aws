@@ -67,11 +67,13 @@ export type IncidentVerification =
 
 export interface Incident {
   id: string;
+  title?: string;
   type: IncidentType;
   description: string;
   status: IncidentStatus;
   verification: IncidentVerification;
   location: GeoLocation;
+  locationName?: string;
   distanceMeters?: number | null;
   createdAt: string;
   expiresAt?: string | null;
@@ -80,9 +82,11 @@ export interface Incident {
 }
 
 export interface IncidentSubmissionPayload {
+  title?: string;
   type: IncidentType;
   description: string;
   location: GeoLocation;
+  locationName?: string;
   occurredAt?: string;
 }
 
@@ -212,6 +216,8 @@ export interface ChatMessage {
   routes?: RouteOption[];
   sources?: AssistantSource[];
   isStreaming?: boolean;
+  audioUrl?: string;
+  audioDurationSeconds?: number;
 }
 
 export interface UserPreferences {
@@ -220,3 +226,15 @@ export interface UserPreferences {
 }
 
 export type ActiveTab = 'assistant' | 'places' | 'routes' | 'weather' | 'incidents';
+
+export type PageView = 'landing' | 'app' | 'about' | 'contact' | 'home' | 'explore' | 'incidents';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  preferredLanguage: Language;
+  isGuildVerified?: boolean;
+  avatarUrl?: string;
+}

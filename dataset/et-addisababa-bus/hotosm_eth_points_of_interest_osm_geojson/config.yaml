@@ -1,0 +1,90 @@
+iso3: ETH
+category:
+  name: points_of_interest
+  formats:
+  - gpkg
+  - shp
+  - geojson
+  - kml
+  - geoparquet
+  zip_formats: null
+  skip_pcodes: false
+  boundary_resolution: null
+  hdx:
+    title: Points of Interest
+    notes: 'Points of interest: public-facing amenities, shops, tourist attractions,
+      and landmarks tagged via `amenity`, `shop`, `tourism`, or `man_made`. Useful
+      for general POI reference, urban analysis, and basemap detail.
+
+
+      Coverage reflects where volunteer mappers have been active. Urban areas are
+      usually well represented, remote areas may be sparse. Cross-check critical decisions
+      with local field knowledge.
+
+
+      - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative
+      world map
+
+      - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [shop](https://wiki.openstreetmap.org/wiki/Key:shop),
+      [tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [man_made](https://wiki.openstreetmap.org/wiki/Key:man_made)
+
+      - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/)
+      by [HOT](https://www.hotosm.org/)
+
+      '
+    summary: ''
+    tags:
+    - facilities-infrastructure
+    - geodata
+    - points of interest-poi
+    license: hdx-odc-odbl
+    license_url: https://opendatacommons.org/licenses/odbl/1-0/
+    caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+    dataset_source: OpenStreetMap contributors
+  overture:
+    enabled: false
+    theme: ''
+    feature_type: ''
+    select: []
+    where: []
+    tiles: true
+  osm:
+    enabled: true
+    select:
+    - feature_id AS id
+    - tags['name'] AS name
+    - tags['name:en'] AS name_en
+    - tags['amenity'] AS amenity
+    - tags['man_made'] AS man_made
+    - tags['shop'] AS shop
+    - tags['tourism'] AS tourism
+    - tags['opening_hours'] AS opening_hours
+    - tags['beds'] AS beds
+    - tags['rooms'] AS rooms
+    - tags['addr:full'] AS addr_full
+    - tags['addr:housenumber'] AS addr_housenumber
+    - tags['addr:street'] AS addr_street
+    - tags['addr:city'] AS addr_city
+    - tags['source'] AS source
+    where: []
+    filter:
+      amenity: true
+      man_made: true
+      shop: true
+      tourism: true
+    tiles: true
+  file:
+    enabled: true
+    path: ''
+    crs: ''
+    layer: ''
+    select: {}
+    where: []
+    tiles: true
+  transliterate:
+  - target: name_latin
+    source: name
+    prefer: name_en
+  temporal:
+    column: update_time
+source: osm

@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, PanInfo, useReducedMotion } from 'framer-motion';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, MapPin, Sparkles, Route, CloudSun, AlertTriangle } from 'lucide-react';
+import { ActiveTab } from '../../types';
 import { useAppStore } from '../../features/useAppStore';
 import { useI18n } from '../../hooks/useI18n';
 import { ChatInterface } from '../chat/ChatInterface';
@@ -10,20 +11,35 @@ import { WeatherWidget } from '../weather/WeatherWidget';
 import { IncidentsList } from '../incidents/IncidentsList';
 import { springSheet, springTactile } from '../../lib/motion';
 
-export const BottomSheet: React.FC = () => {
+interface BottomSheetProps {
+  hideIncidents?: boolean;
+}
+
+export const BottomSheet: React.FC<BottomSheetProps> = ({ hideIncidents = false }) => {
   const { t } = useI18n();
   const shouldReduceMotion = useReducedMotion();
   const activeTab = useAppStore((state) => state.activeTab);
+  const setActiveTab = useAppStore((state) => state.setActiveTab);
   const bottomSheetSnap = useAppStore((state) => state.bottomSheetSnap);
   const setBottomSheetSnap = useAppStore((state) => state.setBottomSheetSnap);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   const snapHeights = {
-    collapsed: '96px',
+    collapsed: '108px',
     half: '54vh',
     expanded: '88vh',
   };
+
+  const allTabs: { id: ActiveTab; labelKey: string; icon: React.ReactNode }[] = [
+    { id: 'places', labelKey: 'nav.places', icon: <MapPin className="w-3.5 h-3.5" /> },
+    { id: 'assistant', labelKey: 'nav.assistant', icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { id: 'routes', labelKey: 'nav.routes', icon: <Route className="w-3.5 h-3.5" /> },
+    { id: 'weather', labelKey: 'nav.weather', icon: <CloudSun className="w-3.5 h-3.5" /> },
+    { id: 'incidents', labelKey: 'nav.incidents', icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+  ];
+
+  const tabs = hideIncidents ? allTabs.filter(tab => tab.id !== 'incidents') : allTabs;
 
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const velocity = info.velocity.y;
@@ -55,9 +71,9 @@ export const BottomSheet: React.FC = () => {
       case 'weather':
         return <WeatherWidget />;
       case 'incidents':
-        return <IncidentsList />;
+        return hideIncidents ? <PlacesList /> : <IncidentsList />;
       default:
-        return <ChatInterface />;
+        return <PlacesList />;
     }
   };
 
@@ -78,7 +94,7 @@ export const BottomSheet: React.FC = () => {
           whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
           transition={springTactile}
           onClick={toggleSnap}
-          className="w-full pt-3 pb-2.5 px-4 flex items-center justify-between cursor-pointer select-none border-b border-gray-100/70 shrink-0 bg-white/50"
+          className="w-full pt-3 pb-2 px-4 flex items-center justify-between cursor-pointer select-none border-b border-gray-100/70 shrink-0 bg-white/50"
           role="button"
           tabIndex={0}
           aria-label="Toggle sheet height"
@@ -86,9 +102,6 @@ export const BottomSheet: React.FC = () => {
           <div className="w-6" /> {/* Spacer */}
           <div className="flex flex-col items-center">
             <div className="w-12 h-1.5 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors" />
-            <span className="text-xs font-bold text-gray-700 mt-1.5 leading-none">
-              {t(`nav.${activeTab}`)}
-            </span>
           </div>
 
           <div className="w-6 flex justify-end text-gray-400">
@@ -99,6 +112,30 @@ export const BottomSheet: React.FC = () => {
             )}
           </div>
         </motion.div>
+
+        {/* Mobile Sub-Tab Bar */}
+        <div className="px-3 py-1.5 border-b border-outline-variant/30 bg-surface-low/80 flex items-center justify-around gap-1 shrink-0">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  if (bottomSheetSnap === 'collapsed') setBottomSheetSnap('half');
+                }}
+                className={`py-1.5 px-2.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  isActive
+                    ? 'bg-white text-primary shadow-xs'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {tab.icon}
+                <span className="text-[11px]">{t(tab.labelKey)}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* Dynamic Content Area */}
         <div className="flex-1 overflow-hidden relative">

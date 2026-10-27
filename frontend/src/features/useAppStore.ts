@@ -6,13 +6,27 @@ import {
   Incident, 
   RouteOption, 
   ChatMessage, 
-  GeoLocation 
+  GeoLocation,
+  PageView,
+  UserProfile
 } from '../types';
 import { MOCK_USER_LOCATION } from '../lib/mockData';
 
 export type BottomSheetSnap = 'collapsed' | 'half' | 'expanded';
 
 interface AppState {
+  // Page Navigation
+  pageView: PageView;
+  setPageView: (view: PageView) => void;
+
+  // User Auth State
+  currentUser: UserProfile | null;
+  setCurrentUser: (user: UserProfile | null) => void;
+  isAuthModalOpen: boolean;
+  authModalTab: 'login' | 'signup';
+  openAuthModal: (tab?: 'login' | 'signup') => void;
+  closeAuthModal: () => void;
+
   // Localization
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -62,6 +76,16 @@ interface AppState {
 const initialSavedPlaces = ['place-02']; // MCM Korean Hospital
 
 export const useAppStore = create<AppState>((set, get) => ({
+  pageView: 'landing',
+  setPageView: (view: PageView) => set({ pageView: view }),
+
+  currentUser: null,
+  setCurrentUser: (user: UserProfile | null) => set({ currentUser: user }),
+  isAuthModalOpen: false,
+  authModalTab: 'login',
+  openAuthModal: (tab: 'login' | 'signup' = 'login') => set({ isAuthModalOpen: true, authModalTab: tab }),
+  closeAuthModal: () => set({ isAuthModalOpen: false }),
+
   language: (localStorage.getItem('guzo_lang') as Language) || 'en',
   setLanguage: (lang: Language) => {
     localStorage.setItem('guzo_lang', lang);

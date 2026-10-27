@@ -2,7 +2,7 @@ import React from 'react';
 
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'pending' | 'active' | 'resolved' | 'neutral' | 'indigo' | 'teal';
+  variant?: 'primary' | 'secondary' | 'pending' | 'active' | 'resolved' | 'neutral' | 'indigo' | 'teal';
   size?: 'sm' | 'md';
   icon?: React.ReactNode;
   className?: string;
@@ -16,6 +16,10 @@ export const Badge: React.FC<BadgeProps> = ({
   className = '',
 }) => {
   const variantStyles = {
+    // Highland Green Primary
+    primary: 'bg-primary/10 text-primary border-primary/20',
+    // Harvest Amber Secondary
+    secondary: 'bg-secondary/10 text-secondary-dark border-secondary/20',
     // Amber for Pending
     pending: 'bg-amber-50 text-amber-800 border-amber-200',
     // Red for Active
@@ -23,9 +27,9 @@ export const Badge: React.FC<BadgeProps> = ({
     // Green for Resolved
     resolved: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     // Neutral
-    neutral: 'bg-gray-100 text-gray-700 border-gray-200',
+    neutral: 'bg-surface-container text-on-surface-variant border-outline-variant/30',
     // Indigo accent
-    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    indigo: 'bg-primary/10 text-primary border-primary/20',
     // Teal accent
     teal: 'bg-teal-50 text-teal-800 border-teal-200',
   };

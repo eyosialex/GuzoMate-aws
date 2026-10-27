@@ -1,0 +1,667 @@
+<!DOCTYPE html><html class="h-full bg-surface" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GuzoMate — Report Road Incident &amp; Escarpment Hazard (የመንገድ አደጋ ሪፖርት ማድረጊያ)</title>
+<!-- Google Fonts: Plus Jakarta Sans & Inter for crisp multilingual editorial typography -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+Ethiopic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined with full weight variation support -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed-dim": "#81d1f0",
+            "secondary": "#904d00",
+            "primary": "#012d1d",
+            "surface-bright": "#fafaf4",
+            "on-primary-container": "#86af99",
+            "outline-variant": "#c1c8c2",
+            "surface-container-low": "#f4f4ef",
+            "tertiary-container": "#004254",
+            "primary-fixed": "#c1ecd4",
+            "on-primary-fixed-variant": "#274e3d",
+            "inverse-primary": "#a5d0b9",
+            "primary-fixed-dim": "#a5d0b9",
+            "surface-container": "#eeeee9",
+            "error": "#ba1a1a",
+            "surface-variant": "#e3e3de",
+            "on-tertiary-fixed": "#001f29",
+            "secondary-fixed-dim": "#ffb77d",
+            "on-secondary-container": "#663500",
+            "primary-container": "#1b4332",
+            "on-error": "#ffffff",
+            "inverse-surface": "#2f312e",
+            "on-error-container": "#93000a",
+            "surface": "#fafaf4",
+            "on-background": "#1a1c19",
+            "on-secondary-fixed": "#2f1500",
+            "inverse-on-surface": "#f1f1ec",
+            "outline": "#717973",
+            "tertiary-fixed": "#b9eaff",
+            "on-tertiary-fixed-variant": "#004d62",
+            "surface-dim": "#dadad5",
+            "on-primary-fixed": "#002114",
+            "on-primary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#fe932c",
+            "tertiary": "#002b37",
+            "background": "#fafaf4",
+            "on-tertiary": "#ffffff",
+            "on-secondary-fixed-variant": "#6e3900",
+            "on-tertiary-container": "#60b1cf",
+            "on-surface": "#1a1c19",
+            "secondary-fixed": "#ffdcc3",
+            "error-container": "#ffdad6",
+            "surface-tint": "#3f6653",
+            "surface-container-high": "#e8e8e3",
+            "surface-container-highest": "#e3e3de",
+            "on-surface-variant": "#414844"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-xl": "2.5rem",
+            "space-md": "1rem",
+            "gutter": "1.5rem",
+            "gutter-sm": "1rem",
+            "margin-lg": "3.5rem",
+            "margin": "2rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin-sm": "1rem"
+          },
+          "fontFamily": {
+            "title-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "title-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-lg-mobile": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "label-lg": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "label-md": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "label-sm": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"]
+          },
+          "fontSize": {
+            "title-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "title-md": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "display-lg": ["44px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["15px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #eeeee9;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #c1c8c2;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-surface text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TOP APP BAR (Shared Component: TopNavBar with active 'Road Incidents' tab) -->
+<header class="docked full-width top-0 sticky z-50 bg-surface dark:bg-surface shadow-sm dark:shadow-none border-b border-outline-variant/30 dark:border-outline/20">
+<div class="flex justify-between items-center w-full px-4 lg:px-8 max-w-7xl mx-auto h-16">
+<!-- Brand Logo Anchor -->
+<a class="text-headline-sm font-headline-sm font-bold text-primary dark:text-primary-fixed flex items-center gap-2 group" href="#">
+<div class="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center text-primary-fixed shadow-sm">
+<span class="material-symbols-outlined text-xl" data-icon="explore">explore</span>
+</div>
+<div class="flex flex-col">
+<span class="tracking-tight text-primary font-extrabold flex items-center gap-1">
+            GuzoMate
+            <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+</span>
+<span class="text-[10px] font-label-sm uppercase tracking-widest text-outline -mt-1 font-semibold">Highland Transit</span>
+</div>
+</a>
+<!-- Desktop Navigation Links -->
+<nav class="hidden md:flex items-center gap-6 text-label-md font-label-md">
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Home</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Explore Map</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Routes</a>
+<!-- Active Tab per Intent -->
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1 flex items-center gap-1.5" href="#">
+<span class="w-2 h-2 rounded-full bg-primary-container inline-block"></span>
+          Road Incidents
+        </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant pb-1 transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">AI Assistant</a>
+</nav>
+<!-- Right Action Cluster: Emergency, Language, Notifications, Verified Avatar -->
+<div class="flex items-center gap-3">
+<!-- Emergency Hotlines Quick Trigger -->
+<a class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary text-label-md font-label-md font-bold hover:bg-primary transition-all active:scale-95 duration-150" href="tel:991"><span class="material-symbols-outlined text-base" data-icon="emergency">emergency</span><span class="">Emergency Contacts</span></a>
+<!-- Multilingual Segmented Toggle (EN / አማ / OM) -->
+<div class="flex items-center bg-surface-container rounded-full p-1 border border-outline-variant/40 text-label-sm font-label-sm">
+<button class="px-2.5 py-0.5 rounded-full bg-surface-container-lowest text-primary font-bold shadow-xs transition-colors" title="English Mode">EN</button>
+<button class="px-2.5 py-0.5 rounded-full text-on-surface-variant hover:text-primary transition-colors" title="አማርኛ ቋንቋ">አማ</button>
+<button class="px-2.5 py-0.5 rounded-full text-on-surface-variant hover:text-primary transition-colors" title="Afaan Oromoo">OM</button>
+</div>
+<!-- Trailing Icon Action: Notifications -->
+<button aria-label="Incident Notifications" class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined text-xl" data-icon="notifications">notifications</span>
+</button>
+<!-- Verified Driver / Guild Scout Profile Avatar -->
+<div class="flex items-center gap-2 pl-1 border-l border-outline-variant/40">
+<div class="relative">
+<img alt="User traveler profile avatar" class="w-9 h-9 rounded-full object-cover border border-outline-variant" data-alt="Portrait of Dawit A., an Ethiopian senior bus driver and verified transit guild scout wearing a professional high-visibility tactical jacket, captured in natural highland daylight against an atmospheric mountain backdrop, calm, trustworthy demeanor, high detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0C2L3xdhBFrTYyF-QIFFadk6joVt3XvFamz54QjzawSCBrAUfD6c98Cb7528VN0JnONL-QXMc6_g9KQKpAVnClUvrIbsXevSB6e3wrvffDwjOhhdsvNsGhc6AQw60ivc9v9qkTIMl2B_DnSvBwPg2PfjN9sjBtt77fRq13l8Y8r9Ip3k9bnH6ArtbrgStbFmWyLmYVsLxVPe2CuLPBTQuF0AU6fMeWU0O_DrtTdHBvkphVG_GWYUzow">
+<span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-primary-container border-2 border-surface flex items-center justify-center text-primary-fixed" title="Verified Guild Scout #418">
+<span class="material-symbols-outlined text-[9px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</span>
+</div>
+<div class="hidden xl:flex flex-col text-left">
+<span class="text-label-sm font-label-sm font-bold text-on-surface leading-tight">Dawit A.</span>
+<span class="text-[10px] text-on-surface-variant font-label-sm">Selam Guild #418</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- SUB-NAV / BREADCRUMB HUD & TELEMETRY BAND -->
+<section class="bg-surface-container-low border-b border-outline-variant/30 py-3">
+<div class="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-3">
+<!-- Breadcrumb + Back Anchor -->
+<div class="flex items-center gap-2 text-label-md font-label-md flex-wrap">
+<a class="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+<span class="">Road Incidents Radar</span>
+</a>
+<span class="text-outline-variant">/</span>
+<span class="text-on-surface font-bold text-label-md">Report Escarpment Hazard (የመንገድ አደጋ ሪፖርት)</span>
+</div>
+<!-- Live GPS & Guild Scout Telemetry Pill -->
+<div class="flex items-center gap-2 flex-wrap">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest border border-outline-variant/60 shadow-xs text-label-sm font-label-sm text-on-surface">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-semibold text-primary">Scout GPS Lock:</span>
+<span class="font-mono text-outline">9.0478° N, 38.7492° E (±3m)</span>
+<span class="text-outline-variant">•</span>
+<span class="text-primary-container font-semibold">14 Guild Endorsements</span>
+</div>
+<div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed/30 text-on-primary-fixed-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="cloud_sync">cloud_sync</span>
+<span class="">Telebirr SMS Fallback Ready</span>
+</div>
+</div>
+</div>
+</section>
+<!-- MAIN EDITORIAL CONTENT: SPLIT 2-COLUMN DESKTOP CANVAS -->
+<main class="max-w-7xl mx-auto px-4 lg:px-8 py-8 flex-1 w-full">
+<!-- Page Header Heading (Modern Highland Editorial Posture) -->
+<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/30 pb-6">
+<div>
+<div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-primary-fixed/30 text-primary-container border border-outline-variant/60 text-label-sm font-label-sm font-bold uppercase tracking-wide mb-2"><span class="material-symbols-outlined text-sm text-primary-container" data-icon="warning">warning</span><span class="">Crowdsourced Escarpment Alert</span></div>
+<h1 class="text-headline-lg font-headline-lg text-primary tracking-tight font-bold">
+          Report Highland Hazard &amp; Road Blockade
+        </h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1 max-w-2xl">
+          Real-time highway intelligence for Addis Ababa – Dessie – Tigray corridors. Submissions from verified scouts trigger instant broadcasts to 2,400+ intercity buses and regional safety posts.
+        </p>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<button class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-outline-variant text-on-surface text-label-md font-label-md hover:bg-surface-container transition-colors active:scale-95 duration-150" type="button">
+<span class="material-symbols-outlined text-base" data-icon="mic">mic</span>
+<span class="">Amharic Voice Memo</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-primary text-on-primary text-label-md font-label-md font-bold shadow-sm hover:bg-primary-container transition-all active:scale-95 duration-150" type="button">
+<span class="material-symbols-outlined text-base" data-icon="bolt">bolt</span>
+<span class="">Quick 10s Dispatch</span>
+</button>
+</div>
+</div>
+<!-- 2-COLUMN SPLIT GRID -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- LEFT COLUMN: MULTI-STEP CATEGORIZED FORM (~60% = 7 cols) -->
+<div class="lg:col-span-7 space-y-6">
+<!-- SECTION 1: HAZARD CATEGORY & SEVERITY -->
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/40 shadow-xs">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-label-sm font-label-sm font-bold">1</span>
+<h2 class="text-title-md font-title-md font-bold text-primary">Select Hazard Category &amp; Severity</h2>
+</div>
+<span class="text-label-sm font-label-sm text-outline">አደጋው ዓይነት</span>
+</div>
+<!-- Category Selection Cards Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+<!-- Option 1: Selected (Rockfall) -->
+<button class="flex flex-col text-left p-3.5 rounded-lg border-2 border-primary bg-primary-fixed/20 text-primary relative transition-all group shadow-xs" type="button">
+<div class="flex items-center justify-between w-full mb-2">
+<span class="material-symbols-outlined text-2xl text-primary" data-icon="landslide" style="font-variation-settings: 'FILL' 1;">landslide</span>
+<span class="w-4 h-4 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[10px]" data-icon="check">check</span>
+</span>
+</div>
+<span class="text-label-md font-label-md font-bold leading-tight">Rockfall &amp; Debris</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant font-medium mt-0.5">የድንጋይ ናዳ / Sigiga</span>
+</button>
+<!-- Option 2: Heavy Mountain Fog -->
+<button class="flex flex-col text-left p-3.5 rounded-lg border border-outline-variant/60 bg-surface hover:border-primary/50 text-on-surface transition-all group" type="button">
+<div class="flex items-center justify-between w-full mb-2">
+<span class="material-symbols-outlined text-2xl text-outline group-hover:text-primary transition-colors" data-icon="foggy">foggy</span>
+<span class="w-4 h-4 rounded-full border border-outline-variant"></span>
+</div>
+<span class="text-label-md font-label-md font-semibold leading-tight">Mountain Fog &amp; Mist</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant mt-0.5">ከባድ ጉም (&lt;30m)</span>
+</button>
+<!-- Option 3: Mudslide / Washout -->
+<button class="flex flex-col text-left p-3.5 rounded-lg border border-outline-variant/60 bg-surface hover:border-primary/50 text-on-surface transition-all group" type="button">
+<div class="flex items-center justify-between w-full mb-2">
+<span class="material-symbols-outlined text-2xl text-outline group-hover:text-primary transition-colors" data-icon="tsunami">tsunami</span>
+<span class="w-4 h-4 rounded-full border border-outline-variant"></span>
+</div>
+<span class="text-label-md font-label-md font-semibold leading-tight">Mudslide / Washout</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant mt-0.5">የጭቃና ጎርፍ መደርመስ</span>
+</button>
+<!-- Option 4: Broken Down Truck -->
+<button class="flex flex-col text-left p-3.5 rounded-lg border border-outline-variant/60 bg-surface hover:border-primary/50 text-on-surface transition-all group" type="button">
+<div class="flex items-center justify-between w-full mb-2">
+<span class="material-symbols-outlined text-2xl text-outline group-hover:text-primary transition-colors" data-icon="car_crash">car_crash</span>
+<span class="w-4 h-4 rounded-full border border-outline-variant"></span>
+</div>
+<span class="text-label-md font-label-md font-semibold leading-tight">Vehicle Breakdown</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant mt-0.5">የተበላሸ ከባድ መኪና</span>
+</button>
+<!-- Option 5: Livestock Herd -->
+<button class="flex flex-col text-left p-3.5 rounded-lg border border-outline-variant/60 bg-surface hover:border-primary/50 text-on-surface transition-all group" type="button">
+<div class="flex items-center justify-between w-full mb-2">
+<span class="material-symbols-outlined text-2xl text-outline group-hover:text-primary transition-colors" data-icon="cruelty_free">cruelty_free</span>
+<span class="w-4 h-4 rounded-full border border-outline-variant"></span>
+</div>
+<span class="text-label-md font-label-md font-semibold leading-tight">Livestock on Highway</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant mt-0.5">የከብቶች መንጋ</span>
+</button>
+<!-- Option 6: Bridge Resurfacing -->
+<button class="flex flex-col text-left p-3.5 rounded-lg border border-outline-variant/60 bg-surface hover:border-primary/50 text-on-surface transition-all group" type="button">
+<div class="flex items-center justify-between w-full mb-2">
+<span class="material-symbols-outlined text-2xl text-outline group-hover:text-primary transition-colors" data-icon="construction">construction</span>
+<span class="w-4 h-4 rounded-full border border-outline-variant"></span>
+</div>
+<span class="text-label-md font-label-md font-semibold leading-tight">Bridge / Toll Bottleneck</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant mt-0.5">የድልድይ ጥገና</span>
+</button>
+</div>
+<!-- Severity Level Selector (Pill / Segmented Cards) -->
+<div>
+<label class="block text-label-md font-label-md font-bold text-on-surface mb-2">
+              Passability &amp; Severity Status (የመንገዱ ሁኔታ)
+            </label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3"><label class="flex items-start gap-3 p-3 rounded-lg border border-outline-variant bg-surface cursor-pointer hover:bg-surface-container transition-colors"><input class="mt-1 text-primary-container focus:ring-primary text-sm" name="severity" type="radio"><div><span class="text-label-md font-label-md font-bold text-on-surface block">Critical Blockade</span><span class="text-body-sm font-body-sm text-on-surface-variant block mt-0.5">መንገዱ ሙሉ ለሙሉ ተዘግቷል (Impasse)</span></div></label><label class="flex items-start gap-3 p-3 rounded-lg border-2 border-primary-container bg-primary-fixed/20 cursor-pointer"><input checked="" class="mt-1 text-primary-container focus:ring-primary text-sm" name="severity" type="radio"><div><div class="flex items-center gap-1.5"><span class="text-label-md font-label-md font-bold text-primary block">Single Lane Open</span><span class="w-2 h-2 rounded-full bg-primary-container"></span></div><span class="text-body-sm font-body-sm text-on-surface-variant block mt-0.5">ነጠላ መስመር ክፍት (Alternating)</span></div></label><label class="flex items-start gap-3 p-3 rounded-lg border border-outline-variant/60 bg-surface cursor-pointer hover:bg-surface-container transition-colors"><input class="mt-1 text-primary-container focus:ring-primary text-sm" name="severity" type="radio"><div><span class="text-label-md font-label-md font-bold text-on-surface block">Slow Caution</span><span class="text-body-sm font-body-sm text-on-surface-variant block mt-0.5">ቀስ ብለው ይንዱ (Passable with Care)</span></div></label></div>
+</div>
+</div>
+<!-- SECTION 2: PRECISE HIGHLAND LOCATION & CORRIDOR -->
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/40 shadow-xs">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-label-sm font-label-sm font-bold">2</span>
+<h2 class="text-title-md font-title-md font-bold text-primary">Precise Corridor &amp; Escarpment Pinpoint</h2>
+</div>
+<span class="text-label-sm font-label-sm text-outline">ቦታ እና መጋጠሚያ</span>
+</div>
+<div class="space-y-4">
+<!-- Highway Corridor Dropdown -->
+<div>
+<label class="block text-label-md font-label-md font-semibold text-on-surface mb-1.5">
+                Strategic Highland Highway Corridor
+              </label>
+<div class="relative">
+<select class="w-full h-12 pl-10 pr-10 rounded-lg bg-surface border border-outline-variant text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent">
+<option selected="">A2 Highway: Addis Ababa – Debre Birhan – Dessie (Termaber Escarpment)</option>
+<option>A1 Highway: Addis Ababa – Adama – Awash – Djibouti</option>
+<option>A3 Highway: Addis Ababa – Dejen – Gojjam Gorge – Bahir Dar</option>
+<option>B30 Route: Debre Berhan – Ankober Escarpment Pass</option>
+<option>A4 Highway: Addis Ababa – Ambo – Wollega</option>
+</select>
+<span class="material-symbols-outlined absolute left-3 top-3 text-outline text-xl" data-icon="alt_route">alt_route</span>
+<span class="material-symbols-outlined absolute right-3 top-3 text-outline pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+<!-- Kilometer Marker & Landmark Split -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div>
+<label class="block text-label-md font-label-md font-semibold text-on-surface mb-1.5">
+                  Physical KM Marker / Distance Post
+                </label>
+<div class="relative">
+<input class="w-full h-12 pl-10 rounded-lg bg-surface border border-outline-variant font-mono text-body-md font-body-md font-bold text-primary focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="e.g. Km 98.4" type="text" value="Km 98.4">
+<span class="material-symbols-outlined absolute left-3 top-3 text-outline text-xl" data-icon="straighten">straighten</span>
+</div>
+</div>
+<div>
+<label class="block text-label-md font-label-md font-semibold text-on-surface mb-1.5">
+                  Local Landmark / Hairpin Turn Name
+                </label>
+<div class="relative">
+<input class="w-full h-12 pl-10 rounded-lg bg-surface border border-outline-variant text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="e.g. Near Termaber Tunnel" type="text" value="Termaber Hairpin Curve #4 (ተርማበር ዋሻ አካባቢ)">
+<span class="material-symbols-outlined absolute left-3 top-3 text-outline text-xl" data-icon="signpost">signpost</span>
+</div>
+</div>
+</div>
+<!-- Altitude & Sensor Telemetry Auto-Bar -->
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between border border-outline-variant/30 text-body-sm font-body-sm">
+<div class="flex items-center gap-2 text-primary font-medium">
+<span class="material-symbols-outlined text-lg" data-icon="landscape">landscape</span>
+<span class="">Barometric Sensor Lock: <strong>3,120 m</strong> (Highland Ridge)</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-medium"><span class="material-symbols-outlined text-base text-primary-container" data-icon="device_thermostat">device_thermostat</span><span class="">Air Temp: 11°C • Fog Saturation: 92%</span></div>
+</div>
+<!-- Direction of Travel Radio Group -->
+<div>
+<label class="block text-label-md font-label-md font-semibold text-on-surface mb-2">
+                Impacted Flow Direction
+              </label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-label-md font-label-md">
+<label class="flex items-center gap-2 p-2.5 rounded-lg border border-outline-variant/60 bg-surface cursor-pointer hover:bg-surface-container">
+<input class="text-primary focus:ring-primary" name="direction" type="radio">
+<span class="">Northbound (Ascending)</span>
+</label>
+<label class="flex items-center gap-2 p-2.5 rounded-lg border-2 border-primary-container bg-primary-container text-on-primary font-bold cursor-pointer"><input checked="" class="text-primary-container focus:ring-primary" name="direction" type="radio"><span class="">Southbound (Descending)</span></label>
+<label class="flex items-center gap-2 p-2.5 rounded-lg border border-outline-variant/60 bg-surface cursor-pointer hover:bg-surface-container">
+<input class="text-primary focus:ring-primary" name="direction" type="radio">
+<span class="">Both Directions Blocked</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 3: HAZARD DETAILS & MULTILINGUAL CONTEXT -->
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/40 shadow-xs">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-label-sm font-label-sm font-bold">3</span>
+<h2 class="text-title-md font-title-md font-bold text-primary">Hazard Description &amp; Quick Tags</h2>
+</div>
+<span class="text-label-sm font-label-sm text-outline">ዝርዝር መግለጫ</span>
+</div>
+<div class="space-y-4">
+<!-- Description Textarea -->
+<div>
+<div class="flex justify-between items-center mb-1.5">
+<label class="text-label-md font-label-md font-semibold text-on-surface">
+                  Observations from Scene (Dual-Script Supported)
+                </label>
+<span class="text-label-sm font-label-sm text-outline">182 / 500 chars</span>
+</div>
+<textarea class="w-full p-3.5 rounded-lg bg-surface border border-outline-variant text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent leading-relaxed" placeholder="Describe the physical condition, size of debris, trapped vehicles..." rows="3">Three large basalt boulders fell from the upper cliff on hairpin #4 right after km 98.4. Heavy cloud cover makes it invisible from 40m away. Selam Bus currently reversing to safety pullout. Mud slurry spreading on descending lane.</textarea>
+</div>
+<!-- Quick-Tag Chips -->
+<div>
+<span class="block text-label-sm font-label-sm font-bold uppercase tracking-wider text-outline mb-2">
+                Rapid Hazard Attributes (Click to append)
+              </span>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1 rounded-full bg-primary-container text-on-primary text-label-sm font-label-sm font-semibold inline-flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-xs" data-icon="check">check</span>
+<span class="">Boulder Size &gt; 1m</span>
+</button>
+<button class="px-3 py-1 rounded-full bg-primary-container text-on-primary text-label-sm font-label-sm font-semibold inline-flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-xs" data-icon="check">check</span>
+<span class="">Mist Below 30m</span>
+</button>
+<button class="px-3 py-1 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant text-label-sm font-label-sm font-medium transition-colors" type="button">
+                  + Mud on Asphalt (ጭቃ)
+                </button>
+<button class="px-3 py-1 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant text-label-sm font-label-sm font-medium transition-colors" type="button">
+                  + Tow Truck Required (ክሬን)
+                </button>
+<button class="px-3 py-1 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant text-label-sm font-label-sm font-medium transition-colors" type="button">
+                  + 4WD / High Clearance Only
+                </button>
+</div>
+</div>
+<!-- Trilingual Audio Voice Memo Tool -->
+<div class="p-3.5 rounded-lg border border-dashed border-outline-variant bg-surface flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:bg-primary transition-colors shadow-xs active:scale-95 duration-100" type="button"><span class="material-symbols-outlined text-xl" data-icon="mic">mic</span></button>
+<div>
+<span class="text-label-md font-label-md font-bold text-on-surface block">Record 15s Voice Memo for Guild Radio Dispatch</span>
+<span class="text-body-sm font-body-sm text-outline block">Amharic, Afaan Oromoo, or English. Transcribed via offline engine.</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-label-sm font-label-sm font-mono self-start sm:self-auto">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                00:00 / 00:15
+              </span>
+</div>
+</div>
+</div>
+<!-- SECTION 4: PHOTO / EVIDENCE UPLOADER -->
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/40 shadow-xs">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-label-sm font-label-sm font-bold">4</span>
+<h2 class="text-title-md font-title-md font-bold text-primary">Visual Evidence &amp; Dashcam Feed</h2>
+</div>
+<span class="text-label-sm font-label-sm text-outline">ፎቶ እና ማስረጃ</span>
+</div>
+<!-- Split Evidence Showcase & Drop Zone -->
+<div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+<!-- Existing Captured Photo with EXIF Stamp -->
+<div class="sm:col-span-5 relative rounded-lg overflow-hidden border border-outline-variant group">
+<img alt="Captured road hazard evidence photo" class="w-full h-36 object-cover" data-alt="Authentic highland mountain road blocked by massive fractured basalt boulders lying on wet asphalt, dense misty fog reducing visibility, steep Ethiopian escarpment cliffside on the right, high dynamic range, documentary travel safety photo." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPeCGFzU3U-sAiyke4rGc4oJyK-bnpB7vc-dcZ3Z3B0It8Ke3rzrGwPyuB6uKKP9_fOxhCQo4LT8JXnZN1fV1QPTkw6RdkAaH7oQYyK_TwsVxhWVOZUObt78_9qiQobYByfSEoJ4NcVbh2MnlUHIlzbQvg3rsxvz39V-AL6GKd_eflfbK6jjrhXo_0ndO7t6YavEY8NnwlVXXJKGlZiKKRqguubTIjJJ-YbDmxmQf0r2kOEMDGWHw5TQ">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white">
+<span class="inline-flex items-center gap-1 text-[11px] font-label-sm bg-primary/70 backdrop-blur-xs px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-xs" data-icon="verified">verified</span>
+<span class="">EXIF: 11:42 EAT</span>
+</span>
+<button class="w-6 h-6 rounded bg-surface/80 text-on-surface flex items-center justify-center hover:bg-surface" type="button">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Upload Zone -->
+<div class="sm:col-span-7 flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/80 rounded-lg p-5 text-center bg-surface hover:bg-surface-container transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-primary-fixed/30 text-primary flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-2xl" data-icon="add_a_photo">add_a_photo</span>
+</div>
+<span class="text-label-md font-label-md font-bold text-primary block">Drop additional photo or dashcam clip</span>
+<span class="text-body-sm font-body-sm text-outline mt-0.5 block">Direct GPS geotag read automatically</span>
+<div class="mt-3 flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded bg-surface-container text-on-surface-variant text-[11px] font-label-sm">JPG / PNG</span>
+<span class="px-2.5 py-0.5 rounded bg-surface-container text-on-surface-variant text-[11px] font-label-sm">Dashcam MP4 &lt;20MB</span>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 5: GUILD VERIFICATION & ESCALATION -->
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/40 shadow-xs">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-label-sm font-label-sm font-bold">5</span>
+<h2 class="text-title-md font-title-md font-bold text-primary">Identity &amp; Verification Guild</h2>
+</div>
+<span class="text-label-sm font-label-sm text-outline">የሹፌር ማረጋገጫ</span>
+</div>
+<div class="space-y-3">
+<label class="flex items-start gap-3 p-3 rounded-lg border-2 border-primary bg-primary-fixed/10 cursor-pointer">
+<input checked="" class="mt-1 text-primary focus:ring-primary text-sm" name="driver_status" type="radio">
+<div>
+<div class="flex items-center gap-2">
+<span class="text-label-md font-label-md font-bold text-primary">Submit as Verified Guild Scout</span>
+<span class="px-2 py-0.2 rounded-full bg-primary-container text-on-primary text-[10px] font-bold">Instant Broadcast</span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant mt-0.5 block">
+                  Logged as <strong>Dawit A.</strong> (Selam Bus Intercity Guild #418). Trust rating: 98.4%. No pre-approval needed.
+                </span>
+</div>
+</label>
+<label class="flex items-start gap-3 p-3 rounded-lg border border-outline-variant/60 bg-surface cursor-pointer hover:bg-surface-container">
+<input class="mt-1 text-primary focus:ring-primary text-sm" name="driver_status" type="radio">
+<div>
+<span class="text-label-md font-label-md font-semibold text-on-surface">Submit Anonymously / Unverified Passenger</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant mt-0.5 block">
+                  Alert is queued as "Under Review" until endorsed by 3 on-route verified scouts.
+                </span>
+</div>
+</label>
+<!-- Highway Police Escalation Checkbox -->
+<div class="pt-3 border-t border-outline-variant/30">
+<label class="flex items-center gap-3 cursor-pointer">
+<input checked="" class="rounded text-error focus:ring-error w-4 h-4 border-outline" type="checkbox">
+<span class="text-body-sm font-body-sm text-on-surface">
+                  Direct dispatch to <strong>Ethiopian Federal Highway Police (991)</strong> &amp; Debre Birhan Heavy Road Rescue Unit.
+                </span>
+</label>
+</div>
+</div>
+</div>
+<!-- ACTION BAR -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 pb-6">
+<div class="flex items-center gap-3 w-full sm:w-auto">
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-primary text-on-primary font-headline-sm text-label-lg font-bold shadow-md hover:bg-primary-container transition-all active:scale-95 duration-150" type="submit">
+<span class="material-symbols-outlined text-xl" data-icon="cell_tower">cell_tower</span>
+<span class="">Publish Hazard Report (ሪፖርቱን ላክ)</span>
+</button>
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-full border border-outline-variant text-on-surface hover:bg-surface-container text-label-md font-label-md transition-colors active:scale-95 duration-150" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="save">save</span>
+<span class="">Save Offline Draft</span>
+</button>
+</div>
+<a class="text-label-md font-label-md text-outline hover:text-error transition-colors" href="#">
+            Cancel &amp; Exit
+          </a>
+</div>
+</div>
+<!-- RIGHT COLUMN: RADAR MAP PINPOINT & LIVE PREVIEWS (~40% = 5 cols) -->
+<div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+<!-- CARD 1: TOPOGRAPHIC PINPOINT MINI-MAP -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/40 shadow-xs">
+<div class="p-4 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="near_me">near_me</span>
+<span class="text-title-sm font-title-sm font-bold text-primary">Live Highland Topo Radar</span>
+</div>
+<span class="text-label-sm font-label-sm font-mono px-2.5 py-0.5 rounded bg-primary-container text-on-primary font-bold">A2 KM 98.4</span>
+</div>
+<!-- Synthetic Interactive Map Canvas -->
+<div class="relative h-64 bg-surface-container-highest overflow-hidden" data-location="Ethiopia">
+<!-- Atmospheric Topo Contour Background Art -->
+<div class="absolute inset-0 bg-[radial-gradient(#1b4332_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+<!-- Escarpment Mountain Line Vector Overlay (SVG representation) -->
+<svg class="absolute inset-0 w-full h-full text-outline-variant/40" fill="none" preserveAspectRatio="none" viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
+<path d="M-10 180 C 80 140, 140 210, 220 120 C 300 40, 340 90, 420 50" stroke="#1b4332" stroke-dasharray="4 4" stroke-opacity="0.3" stroke-width="3"></path>
+<path d="M-10 110 C 60 90, 130 140, 200 80 C 270 20, 330 60, 420 30" stroke="#004254" stroke-opacity="0.2" stroke-width="1.5"></path>
+<!-- Highway Line -->
+<path d="M 40 240 Q 180 180 200 125 T 360 20" stroke="#904d00" stroke-linecap="round" stroke-width="5"></path>
+<path d="M 40 240 Q 180 180 200 125 T 360 20" stroke="#ffdcc3" stroke-dasharray="6 6" stroke-width="1.5"></path>
+</svg>
+<!-- Nearby Active Incident Markers -->
+<div class="absolute top-10 right-14 flex items-center gap-1 bg-surface/90 backdrop-blur-xs px-2 py-1 rounded-md border border-outline-variant text-[11px] font-label-sm shadow-xs"><span class="w-2 h-2 rounded-full bg-primary-container"></span><span class="">Sheno Depot (Clear)</span></div>
+<div class="absolute bottom-8 left-6 flex items-center gap-1 bg-surface/90 backdrop-blur-xs px-2 py-1 rounded-md border border-outline-variant text-[11px] font-label-sm shadow-xs">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="">Debre Birhan Toll</span>
+</div>
+<!-- Current Active Pinpoint with Pulsing Anchor -->
+<div class="absolute top-[48%] left-[48%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer"><div class="relative flex items-center justify-center"><span class="absolute w-12 h-12 rounded-full bg-primary-container/20 animate-ping"></span><span class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-md"><span class="material-symbols-outlined text-base" data-icon="landslide" style="font-variation-settings: 'FILL' 1;">landslide</span></span></div><div class="mt-1 px-2.5 py-1 rounded-md bg-inverse-surface text-inverse-on-surface text-label-sm font-label-sm font-bold shadow-md whitespace-nowrap">Termaber Hairpin #4 • Pin Selected</div></div>
+<!-- Map Controls HUD -->
+<div class="absolute right-3 bottom-3 flex flex-col gap-1">
+<button class="w-7 h-7 rounded bg-surface border border-outline-variant text-on-surface flex items-center justify-center shadow-xs text-sm font-bold hover:bg-surface-container">+</button>
+<button class="w-7 h-7 rounded bg-surface border border-outline-variant text-on-surface flex items-center justify-center shadow-xs text-sm font-bold hover:bg-surface-container">−</button>
+</div>
+<!-- Dynamic Elevation Gradient Indicator -->
+<div class="absolute left-3 top-3 px-2 py-1 rounded bg-surface/95 backdrop-blur-xs border border-outline-variant text-label-sm font-label-sm font-medium text-primary flex items-center gap-1.5 shadow-xs">
+<span class="material-symbols-outlined text-sm text-secondary" data-icon="altitude">altitude</span>
+<span class="">Termaber Escarpment 3,120m</span>
+</div>
+</div>
+<div class="p-3 bg-surface-container-low text-body-sm font-body-sm text-outline flex items-center justify-between">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="drag_pan">drag_pan</span>
+<span class="">Drag pin to refine exact boulder location</span>
+</span>
+<button class="text-primary font-bold text-label-sm font-label-sm hover:underline">Reset to GPS</button>
+</div>
+</div>
+<!-- CARD 2: LIVE TRAVELER ADVISORY PREVIEW (What other drivers see) -->
+<div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/40 shadow-xs">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base text-secondary" data-icon="preview">preview</span>
+<h3 class="text-title-sm font-title-sm font-bold text-on-surface">Passenger &amp; Driver Feed Preview</h3>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-primary-container text-on-primary text-[10px] font-bold">Live Simulation</span>
+</div>
+<!-- Feed Card Simulation -->
+<div class="rounded-lg border border-outline-variant/60 bg-surface p-4 space-y-3"><div class="flex items-center justify-between"><div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-fixed/30 text-primary-container text-label-sm font-label-sm font-bold"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="">MAJOR CAUTION • ROCKFALL</span></div><span class="text-label-sm font-label-sm text-outline">Just now</span></div><div><h4 class="text-title-sm font-title-sm font-bold text-primary">A2 Termaber Hairpin Rockfall (Km 98.4)</h4><p class="text-body-sm font-body-sm text-on-surface-variant mt-1 line-clamp-2">"Three large basalt boulders fell on hairpin #4. Single lane alternating. Visibility &lt;30m with dense highland fog."</p></div><div class="grid grid-cols-3 gap-2 py-2 border-y border-outline-variant/30 text-center"><div><span class="text-[10px] font-label-sm uppercase text-outline block">Lane Status</span><span class="text-label-sm font-label-sm font-bold text-primary">Single Lane</span></div><div><span class="text-[10px] font-label-sm uppercase text-outline block">Visibility</span><span class="text-label-sm font-label-sm font-bold text-primary">&lt; 30 m (Fog)</span></div><div><span class="text-[10px] font-label-sm uppercase text-outline block">Altitude</span><span class="text-label-sm font-label-sm font-bold text-primary">3,120 m</span></div></div><div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant"><div class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-[10px] font-bold">D</span><span class="text-label-sm font-label-sm font-semibold text-primary">Dawit A. (Selam Bus)</span></div><span class="inline-flex items-center gap-1 text-label-sm font-label-sm text-primary-container font-semibold"><span class="material-symbols-outlined text-sm" data-icon="thumb_up">thumb_up</span><span class="">Instant Guild Verified</span></span></div></div>
+<p class="text-[11px] font-label-sm text-outline mt-2.5">
+            This card automatically appears on GuzoMate Radar, regional Telegram bot channels, and Selam/Sky Bus onboard radios.
+          </p>
+</div>
+<!-- CARD 3: HIGHLAND SUBMISSION ETHICS & ETHIOPIAN TRANSPORT RULES -->
+<div class="bg-surface-container-low rounded-xl p-5 border border-outline-variant/40">
+<div class="flex items-center gap-2 mb-3 text-primary">
+<span class="material-symbols-outlined text-xl" data-icon="shield">shield</span>
+<h3 class="text-title-sm font-title-sm font-bold">Highland Reporting Standards</h3>
+</div>
+<ul class="space-y-2.5 text-body-sm font-body-sm text-on-surface-variant"><li class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-primary-container shrink-0 mt-0.5" data-icon="safety_check">safety_check</span><span class=""><strong>Safety Pullout First:</strong> Never submit while navigating hairpins or active single-lane bottlenecks.</span></li><li class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-primary-container shrink-0 mt-0.5" data-icon="signpost">signpost</span><span class=""><strong>Physical Stone Markers:</strong> Cross-check concrete mileposts beside the asphalt for exact km markers.</span></li><li class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-primary-container shrink-0 mt-0.5" data-icon="call">call</span><span class=""><strong>Casualties or Severe Collisions:</strong> Dial <strong class="text-primary-container">Medical 907</strong> or <strong class="text-primary-container">Police 991</strong> first before crowdsourcing.</span></li></ul>
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+<a class="text-label-sm font-label-sm font-bold text-primary hover:underline" href="#">Read Guild Charter (የአሽከርካሪዎች መመሪያ)</a>
+<span class="text-label-sm font-label-sm text-outline font-mono">v4.2 Highland</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FOOTER (Shared Component: Footer with verified Highland Travel Intelligence) -->
+<footer class="w-full mt-auto bg-surface-container-low dark:bg-surface-container-lowest border-t border-outline-variant/40 dark:border-outline/20">
+<div class="max-w-7xl mx-auto px-4 lg:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
+<!-- Brand & Copyright Integrity -->
+<div class="flex flex-col items-center md:items-start gap-2 text-center md:text-left">
+<div class="text-title-md font-title-md font-bold text-primary dark:text-primary-fixed flex items-center gap-2">
+<span class="w-6 h-6 rounded-md bg-primary-container text-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="explore">explore</span>
+</span>
+<span class="">GuzoMate</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant max-w-md">
+          © 2024 GuzoMate Ethiopia — Verified Highland Travel Intelligence. Latin, አማርኛ &amp; Afaan Oromo parity.
+        </p>
+</div>
+<!-- Emergency & Guild Direct Links -->
+<div class="flex flex-wrap items-center justify-center md:justify-end gap-x-6 gap-y-2 text-label-sm font-label-sm"><a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-semibold" href="tel:991"><span class="w-1.5 h-1.5 rounded-full bg-primary-container inline-block"></span>Police 991</a><a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-semibold" href="tel:907"><span class="w-1.5 h-1.5 rounded-full bg-primary-container inline-block"></span>Medical 907</a><a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-semibold" href="tel:922"><span class="w-1.5 h-1.5 rounded-full bg-primary-container inline-block"></span>Red Cross 922</a><a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Emergency Dial</a><a class="text-primary-container underline font-semibold" href="#">Road Verification Guild</a><a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a></div>
+</div>
+</footer>
+
+
+</body></html>

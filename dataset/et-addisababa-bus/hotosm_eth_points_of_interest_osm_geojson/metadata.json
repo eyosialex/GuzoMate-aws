@@ -1,0 +1,640 @@
+{
+  "type": "Feature",
+  "stac_version": "1.1.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/table/v1.2.0/schema.json"
+  ],
+  "id": "hotosm_eth_points_of_interest-osm",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          33.2753713,
+          3.4557024
+        ],
+        [
+          47.9357502,
+          3.4557024
+        ],
+        [
+          47.9357502,
+          14.8082321
+        ],
+        [
+          33.2753713,
+          14.8082321
+        ],
+        [
+          33.2753713,
+          3.4557024
+        ]
+      ]
+    ]
+  },
+  "bbox": [
+    33.2753713,
+    3.4557024,
+    47.9357502,
+    14.8082321
+  ],
+  "properties": {
+    "oex:category": "points_of_interest",
+    "oex:source": "osm",
+    "oex:dataset_source": "OpenStreetMap (Geofabrik ETH 2026-10-12)",
+    "oex:snapshot": "2026-10-12",
+    "oex:boundary": "geoBoundaries gbOpen ADM0",
+    "oex:version": "0.4.16",
+    "oex:pcode_source_date": "2025-07-29",
+    "oex:geometry_types": {
+      "POINT": 19325,
+      "POLYGON": 16458,
+      "LINESTRING": 155,
+      "MULTIPOLYGON": 9
+    },
+    "title": "Points of Interest of Ethiopia",
+    "description": "35,947 features: 19,325 points, 16,458 polygons, 155 lines, 9 multipolygons. 1 of 16 attributes are filled for at least half of the features.",
+    "license": "ODbL-1.0",
+    "created": "2026-10-13T08:13:06Z",
+    "keywords": [
+      "facilities-infrastructure",
+      "geodata",
+      "points of interest-poi"
+    ],
+    "providers": [
+      {
+        "name": "OpenStreetMap (Geofabrik ETH 2026-10-12)",
+        "roles": [
+          "producer",
+          "licensor"
+        ]
+      }
+    ],
+    "proj:code": "EPSG:4326",
+    "table:row_count": 35947,
+    "table:primary_geometry": "geom",
+    "table:columns": [
+      {
+        "name": "id",
+        "type": "VARCHAR",
+        "oex:null_count": 0,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 35947,
+        "oex:top_values": []
+      },
+      {
+        "name": "name",
+        "type": "VARCHAR",
+        "oex:null_count": 24111,
+        "oex:null_percent": 67.07,
+        "oex:distinct_count": 10762,
+        "oex:top_values": []
+      },
+      {
+        "name": "name_en",
+        "type": "VARCHAR",
+        "oex:null_count": 28598,
+        "oex:null_percent": 79.56,
+        "oex:distinct_count": 6792,
+        "oex:top_values": []
+      },
+      {
+        "name": "name_am",
+        "type": "VARCHAR",
+        "oex:null_count": 33765,
+        "oex:null_percent": 93.93,
+        "oex:distinct_count": 1921,
+        "oex:top_values": []
+      },
+      {
+        "name": "amenity",
+        "type": "VARCHAR",
+        "oex:null_count": 9614,
+        "oex:null_percent": 26.74,
+        "oex:distinct_count": 121,
+        "oex:top_values": [
+          {
+            "value": "place_of_worship",
+            "count": 9929
+          },
+          {
+            "value": "shelter",
+            "count": 3817
+          },
+          {
+            "value": "school",
+            "count": 1949
+          },
+          {
+            "value": "bank",
+            "count": 1606
+          },
+          {
+            "value": "restaurant",
+            "count": 1111
+          }
+        ]
+      },
+      {
+        "name": "man_made",
+        "type": "VARCHAR",
+        "oex:null_count": 33175,
+        "oex:null_percent": 92.29,
+        "oex:distinct_count": 49,
+        "oex:top_values": [
+          {
+            "value": "tower",
+            "count": 674
+          },
+          {
+            "value": "mast",
+            "count": 673
+          },
+          {
+            "value": "kiln",
+            "count": 338
+          },
+          {
+            "value": "storage_tank",
+            "count": 239
+          },
+          {
+            "value": "water_well",
+            "count": 114
+          }
+        ]
+      },
+      {
+        "name": "shop",
+        "type": "VARCHAR",
+        "oex:null_count": 33303,
+        "oex:null_percent": 92.64,
+        "oex:distinct_count": 117,
+        "oex:top_values": [
+          {
+            "value": "supermarket",
+            "count": 274
+          },
+          {
+            "value": "yes",
+            "count": 257
+          },
+          {
+            "value": "bakery",
+            "count": 244
+          },
+          {
+            "value": "car_repair",
+            "count": 147
+          },
+          {
+            "value": "clothes",
+            "count": 134
+          }
+        ]
+      },
+      {
+        "name": "tourism",
+        "type": "VARCHAR",
+        "oex:null_count": 31612,
+        "oex:null_percent": 87.94,
+        "oex:distinct_count": 22,
+        "oex:top_values": [
+          {
+            "value": "hotel",
+            "count": 1466
+          },
+          {
+            "value": "apartment",
+            "count": 713
+          },
+          {
+            "value": "viewpoint",
+            "count": 608
+          },
+          {
+            "value": "attraction",
+            "count": 430
+          },
+          {
+            "value": "guest_house",
+            "count": 330
+          }
+        ]
+      },
+      {
+        "name": "opening_hours",
+        "type": "VARCHAR",
+        "oex:null_count": 34519,
+        "oex:null_percent": 96.03,
+        "oex:distinct_count": 249,
+        "oex:top_values": [
+          {
+            "value": "24/7",
+            "count": 500
+          },
+          {
+            "value": "Mo-Sa 08:30-18:00",
+            "count": 153
+          },
+          {
+            "value": "Mo-Sa 08:00-18:00",
+            "count": 146
+          },
+          {
+            "value": "Mo-Sa 08:00-17:00",
+            "count": 83
+          },
+          {
+            "value": "Su-Fr 08:00-18:30",
+            "count": 34
+          }
+        ]
+      },
+      {
+        "name": "beds",
+        "type": "VARCHAR",
+        "oex:null_count": 35946,
+        "oex:null_percent": 100.0,
+        "oex:distinct_count": 1,
+        "oex:top_values": [
+          {
+            "value": "1200",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "rooms",
+        "type": "VARCHAR",
+        "oex:null_count": 35919,
+        "oex:null_percent": 99.92,
+        "oex:distinct_count": 23,
+        "oex:top_values": [
+          {
+            "value": "10",
+            "count": 4
+          },
+          {
+            "value": "0",
+            "count": 2
+          },
+          {
+            "value": "4",
+            "count": 2
+          },
+          {
+            "value": "16",
+            "count": 1
+          },
+          {
+            "value": "34",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "addr_full",
+        "type": "VARCHAR",
+        "oex:null_count": 35947,
+        "oex:null_percent": 100.0,
+        "oex:distinct_count": 0,
+        "oex:top_values": []
+      },
+      {
+        "name": "addr_housenumber",
+        "type": "VARCHAR",
+        "oex:null_count": 35528,
+        "oex:null_percent": 98.83,
+        "oex:distinct_count": 303,
+        "oex:top_values": [
+          {
+            "value": "1",
+            "count": 38
+          },
+          {
+            "value": "3",
+            "count": 8
+          },
+          {
+            "value": "2",
+            "count": 8
+          },
+          {
+            "value": "182",
+            "count": 6
+          },
+          {
+            "value": "12",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "name": "addr_street",
+        "type": "VARCHAR",
+        "oex:null_count": 34494,
+        "oex:null_percent": 95.96,
+        "oex:distinct_count": 804,
+        "oex:top_values": [
+          {
+            "value": "Haile Gebresellasie Avenue",
+            "count": 35
+          },
+          {
+            "value": "Gursum Road",
+            "count": 31
+          },
+          {
+            "value": "Ring Road",
+            "count": 26
+          },
+          {
+            "value": "Equatorial Guinea Street",
+            "count": 26
+          },
+          {
+            "value": "Addis Ababa to Nairobi road",
+            "count": 25
+          }
+        ]
+      },
+      {
+        "name": "addr_city",
+        "type": "VARCHAR",
+        "oex:null_count": 35066,
+        "oex:null_percent": 97.55,
+        "oex:distinct_count": 137,
+        "oex:top_values": [
+          {
+            "value": "Addis Ababa",
+            "count": 507
+          },
+          {
+            "value": "funyanbira",
+            "count": 59
+          },
+          {
+            "value": "Jinka",
+            "count": 22
+          },
+          {
+            "value": "Asela",
+            "count": 21
+          },
+          {
+            "value": "Wolayta Sodo",
+            "count": 16
+          }
+        ]
+      },
+      {
+        "name": "source",
+        "type": "VARCHAR",
+        "oex:null_count": 35947,
+        "oex:null_percent": 100.0,
+        "oex:distinct_count": 0,
+        "oex:top_values": []
+      },
+      {
+        "name": "adm0_pcode",
+        "type": "VARCHAR",
+        "oex:null_count": 0,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 1,
+        "oex:top_values": [
+          {
+            "value": "ETH",
+            "count": 35947
+          }
+        ]
+      },
+      {
+        "name": "adm0_name",
+        "type": "VARCHAR",
+        "oex:null_count": 0,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 1,
+        "oex:top_values": [
+          {
+            "value": "Ethiopia",
+            "count": 35947
+          }
+        ]
+      },
+      {
+        "name": "adm1_pcode",
+        "type": "VARCHAR",
+        "oex:null_count": 1,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 13,
+        "oex:top_values": [
+          {
+            "value": "ET14",
+            "count": 8182
+          },
+          {
+            "value": "ET03",
+            "count": 8168
+          },
+          {
+            "value": "ET01",
+            "count": 5801
+          },
+          {
+            "value": "ET04",
+            "count": 4244
+          },
+          {
+            "value": "ET12",
+            "count": 3995
+          }
+        ]
+      },
+      {
+        "name": "adm1_name",
+        "type": "VARCHAR",
+        "oex:null_count": 1,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 13,
+        "oex:top_values": [
+          {
+            "value": "Addis Ababa",
+            "count": 8182
+          },
+          {
+            "value": "Amhara",
+            "count": 8168
+          },
+          {
+            "value": "Tigray",
+            "count": 5801
+          },
+          {
+            "value": "Oromia",
+            "count": 4244
+          },
+          {
+            "value": "Gambela",
+            "count": 3995
+          }
+        ]
+      },
+      {
+        "name": "adm2_pcode",
+        "type": "VARCHAR",
+        "oex:null_count": 1,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 92,
+        "oex:top_values": [
+          {
+            "value": "ET1401",
+            "count": 8182
+          },
+          {
+            "value": "ET1204",
+            "count": 3807
+          },
+          {
+            "value": "ET0101",
+            "count": 1211
+          },
+          {
+            "value": "ET0307",
+            "count": 1137
+          },
+          {
+            "value": "ET0102",
+            "count": 1090
+          }
+        ]
+      },
+      {
+        "name": "adm2_name",
+        "type": "VARCHAR",
+        "oex:null_count": 1,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 92,
+        "oex:top_values": [
+          {
+            "value": "Region 14",
+            "count": 8182
+          },
+          {
+            "value": "Itang Special woreda",
+            "count": 3807
+          },
+          {
+            "value": "North Western",
+            "count": 1211
+          },
+          {
+            "value": "West Gojam",
+            "count": 1137
+          },
+          {
+            "value": "Central",
+            "count": 1090
+          }
+        ]
+      },
+      {
+        "name": "adm3_pcode",
+        "type": "VARCHAR",
+        "oex:null_count": 1,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 921,
+        "oex:top_values": [
+          {
+            "value": "ET120407",
+            "count": 3807
+          },
+          {
+            "value": "ET140104",
+            "count": 1497
+          },
+          {
+            "value": "ET140102",
+            "count": 1075
+          },
+          {
+            "value": "ET140106",
+            "count": 1048
+          },
+          {
+            "value": "ET140107",
+            "count": 799
+          }
+        ]
+      },
+      {
+        "name": "adm3_name",
+        "type": "VARCHAR",
+        "oex:null_count": 1,
+        "oex:null_percent": 0.0,
+        "oex:distinct_count": 921,
+        "oex:top_values": [
+          {
+            "value": "Itang",
+            "count": 3807
+          },
+          {
+            "value": "Bole",
+            "count": 1497
+          },
+          {
+            "value": "Nifas Silk Lafto",
+            "count": 1075
+          },
+          {
+            "value": "Kirkos",
+            "count": 1048
+          },
+          {
+            "value": "Yeka",
+            "count": 799
+          }
+        ]
+      },
+      {
+        "name": "adm4_pcode",
+        "type": "VARCHAR",
+        "oex:null_count": 35947,
+        "oex:null_percent": 100.0,
+        "oex:distinct_count": 0,
+        "oex:top_values": []
+      },
+      {
+        "name": "adm4_name",
+        "type": "VARCHAR",
+        "oex:null_count": 35947,
+        "oex:null_percent": 100.0,
+        "oex:distinct_count": 0,
+        "oex:top_values": []
+      },
+      {
+        "name": "name_latin",
+        "type": "VARCHAR",
+        "oex:null_count": 20100,
+        "oex:null_percent": 55.92,
+        "oex:distinct_count": 14243,
+        "oex:top_values": []
+      }
+    ],
+    "datetime": "2026-10-12T00:00:00Z"
+  },
+  "links": [
+    {
+      "rel": "license",
+      "href": "https://opendatacommons.org/licenses/odbl/1-0/",
+      "title": "Open Database License (ODC-ODbL)"
+    },
+    {
+      "rel": "root",
+      "href": "https://production-raw-data-api.s3.amazonaws.com/ISO3/catalog.json",
+      "type": "application/json"
+    }
+  ],
+  "assets": {}
+}

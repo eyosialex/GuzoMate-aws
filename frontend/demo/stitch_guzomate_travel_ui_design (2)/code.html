@@ -1,0 +1,758 @@
+<!DOCTYPE html><html lang="en" style=""><head></head><body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md antialiased selection:bg-primary-container selection:text-white"><svg class="inline-defs-container" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"></svg>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GuzoMate — Route Planning &amp; Highland Corridors</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;family=Noto+Sans+Ethiopic:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#663500",
+            "inverse-surface": "#2f312e",
+            "secondary-fixed": "#ffdcc3",
+            "inverse-on-surface": "#f1f1ec",
+            "surface-container-high": "#e8e8e3",
+            "on-secondary-fixed": "#2f1500",
+            "surface-container": "#eeeee9",
+            "tertiary-fixed": "#b9eaff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f4f4ef",
+            "on-error": "#ffffff",
+            "on-secondary-fixed-variant": "#6e3900",
+            "on-tertiary-fixed-variant": "#004d62",
+            "outline": "#717973",
+            "secondary-fixed-dim": "#ffb77d",
+            "error": "#ba1a1a",
+            "secondary-container": "#fe932c",
+            "inverse-primary": "#a5d0b9",
+            "background": "#fafaf4",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e3e3de",
+            "on-surface-variant": "#414844",
+            "surface-tint": "#3f6653",
+            "surface": "#fafaf4",
+            "on-primary": "#ffffff",
+            "on-tertiary-container": "#60b1cf",
+            "surface-dim": "#dadad5",
+            "on-tertiary-fixed": "#001f29",
+            "primary-container": "#1b4332",
+            "on-primary-fixed": "#002114",
+            "on-primary-fixed-variant": "#274e3d",
+            "primary-fixed-dim": "#a5d0b9",
+            "tertiary": "#002b37",
+            "primary-fixed": "#c1ecd4",
+            "error-container": "#ffdad6",
+            "surface-bright": "#fafaf4",
+            "on-secondary": "#ffffff",
+            "primary": "#012d1d",
+            "on-primary-container": "#86af99",
+            "on-surface": "#1a1c19",
+            "tertiary-container": "#004254",
+            "tertiary-fixed-dim": "#81d1f0",
+            "on-background": "#1a1c19",
+            "outline-variant": "#c1c8c2",
+            "secondary": "#904d00",
+            "on-tertiary": "#ffffff",
+            "surface-container-highest": "#e3e3de"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "margin-sm": "1rem",
+            "space-xs": "0.25rem",
+            "margin": "2rem",
+            "space-xl": "2.5rem",
+            "space-md": "1rem",
+            "margin-lg": "3.5rem",
+            "gutter": "1.5rem",
+            "space-sm": "0.5rem",
+            "gutter-sm": "1rem"
+          },
+          "fontFamily": {
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-lg-mobile": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "title-sm": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "title-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "label-md": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans Ethiopic", "sans-serif"],
+            "label-lg": ["Inter", "Noto Sans Ethiopic", "sans-serif"],
+            "label-sm": ["Inter", "Noto Sans Ethiopic", "sans-serif"]
+          },
+          "fontSize": {
+            "body-sm": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "headline-lg-mobile": ["26px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "title-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "title-md": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "body-md": ["15px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "600"}],
+            "display-lg": ["44px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+            "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600"}]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #fafaf4;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #c1c8c2;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #717973;
+    }
+  </style>
+
+
+<!-- ========================================================
+       SHARED COMPONENT: TopNavBar
+       ======================================================== -->
+<header class="bg-surface docked full-width top-0 sticky z-50 border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center w-full px-4 lg:px-8 max-w-7xl mx-auto h-16">
+<!-- Brand Logo -->
+<a class="text-headline-sm font-headline-sm font-bold text-primary flex items-center gap-2.5 active:scale-95 transition-transform duration-100" href="#">
+<img alt="GuzoMate Logo" class="w-9 h-9 object-contain rounded-lg shadow-xs" src="https://lh3.googleusercontent.com/aida/AEtjO1WxGs-V8mgXdcv6FuxW-57--1Fo87c-lmBVaqsiK3C-h8kdrfOg-xpKKQisjcY03XTcLeuwItvEtYtKNWNsDde8M-46EMpO-QWok0wZNtO7c97RP8ZFIUMN71fksN41Ygu5U6hsMJ1e6wx2E7gj55bkpHyJ2O_duw5-Pnk-54dWszn_twnOMFtZ-jvlPm8y0Y06_HP1cCN-tAkfVm6_H9rzsAUQEXR637t5astXGow5oWl-HPu3Z5JLPYg">
+<span class="tracking-tight text-primary font-headline-sm font-bold text-headline-sm">GuzoMate</span>
+<span class="text-label-sm font-label-sm px-1.5 py-0.5 rounded bg-surface-container text-outline ml-1 font-medium hidden sm:inline-block">Highlands</span>
+</a>
+<!-- Primary Navigation Links (Desktop) -->
+<nav class="hidden md:flex items-center gap-7">
+<a class="text-on-surface-variant pb-1 transition-colors hover:text-primary text-label-md font-label-md" href="#">Home</a>
+<a class="text-on-surface-variant pb-1 transition-colors hover:text-primary text-label-md font-label-md" href="#">Explore Map</a>
+<!-- ACTIVE LINK: Routes -->
+<a class="text-primary font-bold border-b-2 border-primary pb-1 text-label-md font-label-md" href="#">Routes</a>
+<a class="text-on-surface-variant pb-1 transition-colors hover:text-primary text-label-md font-label-md" href="#">Road Incidents</a>
+<a class="text-on-surface-variant pb-1 transition-colors hover:text-primary text-label-md font-label-md flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px] text-secondary">psychology</span>
+<span class="">AI Assistant</span>
+</a>
+</nav>
+<!-- Trailing Controls Cluster -->
+<div class="flex items-center gap-3">
+<!-- Language Switcher Segmented Control -->
+<div class="flex items-center bg-surface-container rounded-full p-1 border border-outline-variant/40 text-label-sm font-label-sm">
+<button class="px-2.5 py-0.5 rounded-full bg-surface-container-lowest font-bold text-primary shadow-xs transition-all">EN</button>
+<button class="px-2.5 py-0.5 rounded-full text-on-surface-variant hover:text-primary transition-all font-medium">አማ</button>
+<button class="px-2.5 py-0.5 rounded-full text-on-surface-variant hover:text-primary transition-all font-medium">OM</button>
+</div>
+<!-- Emergency Dial Quick Action -->
+<a class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-white text-label-sm font-label-sm hover:brightness-95 transition-all font-semibold active:scale-95" href="tel:991">
+<span class="material-symbols-outlined text-[16px] text-white" style="font-variation-settings: &quot;FILL&quot; 1;">emergency</span>
+<span class="">Emergency Contacts</span>
+</a>
+<!-- Notification Bell with Alert Dot -->
+<button class="relative p-2 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary ring-2 ring-surface"></span>
+</button>
+<!-- Profile Avatar -->
+<div class="flex items-center gap-2 pl-1 border-l border-outline-variant/40">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-label-sm border border-primary/20 shadow-xs">
+            DA
+          </div>
+<span class="text-label-md font-label-md text-on-surface font-semibold hidden xl:inline">Dawit A.</span>
+</div>
+</div>
+</div>
+</header>
+<!-- ========================================================
+       MAIN ROUTE PLANNING WORKSPACE (Two-Column Layout)
+       ======================================================== -->
+<main class="flex-1 max-w-[1440px] w-full mx-auto px-4 lg:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ==========================================
+         LEFT PANEL (~480px / 5 Columns on desktop)
+         ========================================== -->
+<section class="lg:col-span-5 flex flex-col gap-4 max-h-[calc(100vh-100px)] overflow-y-auto pr-1 custom-scroll">
+<!-- Corridor Selection & Waypoint Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/40 shadow-xs">
+<div class="flex items-center justify-between pb-3 mb-3 border-b border-outline-variant/30">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">alt_route</span>
+<h1 class="text-title-sm font-title-sm text-primary tracking-tight font-bold">Highland Corridor Planner</h1>
+</div>
+<span class="text-label-sm font-label-sm px-2 py-0.5 rounded-full bg-surface-container text-primary font-semibold border border-primary/20">
+            Route 2 / A2
+          </span>
+</div>
+<!-- Waypoint Inputs with Connected Vertical Rail -->
+<div class="relative flex flex-col gap-3">
+<!-- Continuous Connection Line -->
+<div class="absolute left-4 top-5 bottom-5 w-0.5 border-l-2 border-dashed border-outline-variant"></div>
+<!-- Origin Input -->
+<div class="relative flex items-center gap-3">
+<div class="w-8 h-8 bg-primary-container/10 border-2 border-primary flex items-center justify-center z-10 shrink-0 rounded-lg">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+</div>
+<div class="flex-1 bg-surface-container-low rounded-lg p-2.5 border border-outline-variant/30 focus-within:border-primary transition-all">
+<div class="flex justify-between items-center">
+<span class="text-label-sm font-label-sm text-outline uppercase font-semibold">Origin (መነሻ)</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant font-mono">Alt: 2,355m</span>
+</div>
+<input class="w-full bg-transparent border-none p-0 text-title-sm font-title-sm text-on-surface font-semibold focus:ring-0 truncate" readonly="" type="text" value="Meskel Square / Bole Medhane Alem, Addis Ababa">
+</div>
+</div>
+<!-- Mid-Way Swap Floating Button -->
+<div class="relative flex justify-end pr-5 -my-2.5 z-20">
+<button class="w-7 h-7 bg-surface-container-lowest border border-outline-variant/60 shadow-xs flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-all active:scale-95 rounded-md">
+<span class="material-symbols-outlined text-[16px]">swap_vert</span>
+</button>
+</div>
+<!-- Destination Input -->
+<div class="relative flex items-center gap-3">
+<div class="w-8 h-8 bg-primary-container text-white flex items-center justify-center z-10 shrink-0 shadow-xs rounded-lg">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">location_on</span>
+</div>
+<div class="flex-1 bg-surface-container-low rounded-lg p-2.5 border border-outline-variant/30 focus-within:border-primary transition-all">
+<div class="flex justify-between items-center">
+<span class="text-label-sm font-label-sm text-outline uppercase font-semibold">Destination (መድረሻ)</span>
+<span class="text-label-sm font-label-sm text-primary font-mono font-semibold">Alt: 2,840m</span>
+</div>
+<input class="w-full bg-transparent border-none p-0 text-title-sm font-title-sm text-on-surface font-semibold focus:ring-0 truncate" readonly="" type="text" value="Debre Birhan Highland Gateway (ደብረ ብርሃን)">
+</div>
+</div>
+</div>
+<!-- Quick Toggle Corridor Switch -->
+<div class="mt-3 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant text-label-sm font-label-sm">Alternative popular run:</span>
+<button class="text-label-sm font-label-sm text-primary font-semibold hover:underline flex items-center gap-1 active:scale-95 transition-all">
+<span class="">Addis Ababa ⇄ Hawassa Expressway</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+<!-- Travel Mode Segmented Bar -->
+<div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-outline-variant/20">
+<!-- Active Mode: 4WD Driving -->
+<button class="flex flex-col items-center justify-center p-2 rounded-lg bg-primary-container text-white shadow-xs">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">directions_car</span>
+<span class="text-label-sm font-label-sm font-bold mt-1">Driving / 4WD</span>
+<span class="text-[11px] text-primary-fixed opacity-90">2h 25m • 128 km</span>
+</button>
+<!-- Addis Transit -->
+<button class="flex flex-col items-center justify-center p-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all border border-outline-variant/30">
+<span class="material-symbols-outlined text-[20px]">directions_bus</span>
+<span class="text-label-sm font-label-sm font-semibold mt-1">Transit / Selam</span>
+<span class="text-[11px] text-outline">3h 10m • Sched</span>
+</button>
+<!-- Freight Transport -->
+<button class="flex flex-col items-center justify-center p-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all border border-outline-variant/30">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+<span class="text-label-sm font-label-sm font-semibold mt-1">Freight</span>
+<span class="text-[11px] text-outline">Pass Restricted</span>
+</button>
+</div>
+</div>
+<!-- Route Elevation Profile & Highland Gradient Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/40 shadow-xs flex flex-col gap-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">landscape</span>
+<span class="text-title-sm font-title-sm text-primary font-bold">Highland Elevation Gradient</span>
+</div>
+<span class="text-label-sm font-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-mono">
+            Max Ridge: 3,120m
+          </span>
+</div>
+<!-- Quick Metric Strip -->
+<div class="grid grid-cols-4 gap-2 text-center py-2 px-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<div>
+<p class="text-label-sm font-label-sm text-outline">Distance</p>
+<p class="text-title-sm font-title-sm font-bold text-primary">128 km</p>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline">Est. Time</p>
+<p class="text-title-sm font-title-sm font-bold text-primary">2h 25m</p>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline">Traffic Flow</p>
+<p class="text-title-sm font-title-sm font-bold text-emerald-700">Normal</p>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline">Tolls</p>
+<p class="text-title-sm font-title-sm font-bold text-primary">50 ETB</p>
+</div>
+</div>
+<!-- SVG Elevation Ascent Profile Chart -->
+<div class="relative w-full h-24 bg-surface-container-low rounded-lg p-2 border border-outline-variant/20 overflow-hidden flex flex-col justify-between">
+<div class="flex justify-between text-[11px] font-mono text-outline z-10 px-1">
+<span class="">Addis (2,355m)</span>
+<span class="text-primary font-bold">Termaber Ridge (3,120m)</span>
+<span class="">Debre Birhan (2,840m)</span>
+</div>
+<div class="relative w-full h-14">
+<svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 380 60">
+<defs>
+<linearGradient id="elevationGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1b4332" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#1b4332" stop-opacity="0.02"></stop>
+</linearGradient>
+</defs>
+<path d="M 0 52 Q 70 50, 110 38 T 210 8 T 300 24 L 380 32 L 380 60 L 0 60 Z" fill="url(#elevationGrad)"></path>
+<path d="M 0 52 Q 70 50, 110 38 T 210 8 T 300 24 L 380 32" fill="none" stroke="#1b4332" stroke-linecap="round" stroke-width="2.5"></path>
+<circle cx="210" cy="8" fill="#1b4332" r="4" stroke="#ffffff" stroke-width="1.5"></circle>
+</svg>
+<span class="absolute left-[54%] top-0 -translate-x-1/2 text-[10px] font-bold text-white bg-primary px-1.5 py-0.2 rounded shadow-xs border border-primary">
+              Summit Pass 3,120m
+            </span>
+</div>
+<div class="flex justify-between text-[10px] text-outline font-mono px-1">
+<span class="">0 km</span>
+<span class="">km 42</span>
+<span class="">km 98 (Summit)</span>
+<span class="">128 km</span>
+</div>
+</div>
+<!-- Microclimate & Visibility Advisory -->
+<div class="p-3 bg-surface-container-low rounded-lg border border-primary/40 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">foggy</span>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-label-sm font-label-sm font-bold text-primary">Mountain Fog Warning (Termaber Pass)</span>
+<span class="text-[10px] bg-primary text-white px-1.5 rounded-full font-bold">5:00 PM+</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5 leading-snug">
+              Sudden dense clouds and ~50m visibility past km 98. Use low-beam fog lights; carry highland <span class="font-semibold text-primary">Gabi / warm wool shawl</span> for rapid 12°C temperature drops.
+            </p>
+</div>
+</div>
+<!-- Surface Condition & Fuel Audit -->
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/30 flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span class="text-label-md font-label-md text-on-surface font-medium">Asphalt 94% Smooth • 6 km resurfacing near Legetafo</span>
+</div>
+<span class="text-label-sm font-label-sm text-primary font-bold bg-surface-container px-2 py-0.5 rounded border border-outline-variant/30">
+            3 Fuel Depots Open
+          </span>
+</div>
+</div>
+<!-- Multi-Route Alternatives Comparison -->
+<div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/40 shadow-xs flex flex-col gap-3">
+<h2 class="text-title-sm font-title-sm text-primary font-bold">Corridor Highway Options</h2>
+<!-- Option 1: Selected / Guild Verified -->
+<div class="p-3.5 rounded-lg border-2 border-primary bg-primary-fixed/15 flex flex-col gap-1.5 relative">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-primary ring-2 ring-primary-fixed-dim"></span>
+<span class="text-title-sm font-title-sm font-bold text-primary">A2 North Highway via Legetafo &amp; Sheno</span>
+</div>
+<span class="text-label-sm font-label-sm font-bold text-primary bg-primary-fixed px-2 py-0.5 rounded-full">Recommended</span>
+</div>
+<div class="flex items-center gap-3 text-label-sm font-label-sm text-on-surface-variant ml-4.5">
+<span class="font-semibold text-primary">2h 25m</span>
+<span class="">•</span>
+<span class="">128 km</span>
+<span class="">•</span>
+<span class="text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">shield</span> Transport Guild Verified
+            </span>
+</div>
+</div>
+<!-- Option 2: Alternative Scenic Incline -->
+<div class="p-3.5 rounded-lg border border-outline-variant/50 hover:border-outline bg-surface-container-low transition-all cursor-pointer flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full border-2 border-outline"></span>
+<span class="text-title-sm font-title-sm font-semibold text-on-surface">Old Italian Mountain Pass via Entoto Ridge</span>
+</div>
+<span class="text-label-sm font-label-sm text-outline font-medium">Scenic 4WD</span>
+</div>
+<div class="flex items-center gap-3 text-label-sm font-label-sm text-outline ml-4.5">
+<span class="">2h 55m</span>
+<span class="">•</span>
+<span class="">114 km</span>
+<span class="">•</span>
+<span class="">Steep gradients (+18%), unpaved sections</span>
+</div>
+</div>
+</div>
+<!-- Turn-by-Turn Waypoints & Checkpoints Preview -->
+<div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/40 shadow-xs flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<h2 class="text-title-sm font-title-sm text-primary font-bold">Turn-by-Turn Checkpoints</h2>
+<span class="text-label-sm font-label-sm text-outline font-medium">5 Key Milestones</span>
+</div>
+<div class="relative flex flex-col gap-3 pl-2">
+<!-- Step 1 -->
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-md bg-surface-container text-primary font-bold text-[12px] flex items-center justify-center shrink-0 mt-0.5 border border-outline-variant/40">1</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">Bole Medhane Alem → Megenagna Roundabout (መገናኛ)</p>
+<p class="text-body-sm font-body-sm text-outline">4.2 km • Urban highland traffic • Moderate pace</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-md bg-surface-container text-primary font-bold text-[12px] flex items-center justify-center shrink-0 mt-0.5 border border-outline-variant/40">2</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">Legetafo Toll Plaza &amp; A2 Highway Merge</p>
+<p class="text-body-sm font-body-sm text-outline">km 18.5 • Telebirr &amp; Cash (50 ETB) • 6 km road resurfacing lane restriction</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-md bg-primary text-white font-bold text-[12px] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">3</div>
+<div class="bg-surface-container-low p-2 rounded-lg border border-outline-variant/30 w-full">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md font-bold text-primary">Sheno Highland Rest Stop &amp; TotalEnergies</span>
+<span class="text-label-sm font-label-sm text-primary font-mono font-bold">km 74 • 2,750m</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Highland dairy butter, fresh injera lounges, and guaranteed low-sulfur diesel reserve.</p>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-md bg-surface-container text-primary font-bold text-[12px] flex items-center justify-center shrink-0 mt-0.5 border border-primary/40">4</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">Termaber Mountain Ridge Switchbacks (ቁልቁለት)</p>
+<p class="text-body-sm font-body-sm text-outline">km 108 • 3,120m summit • Check engine/brake temperatures on descending curve</p>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-md bg-primary text-white font-bold text-[12px] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">5</div>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">Debre Birhan Gateway &amp; Industrial Hub (ደብረ ብርሃን)</p>
+<p class="text-body-sm font-body-sm text-outline">km 128 • Destination arrival • 2,840m altitude</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Footer for Left Panel -->
+<div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/40 shadow-xs flex flex-col gap-2.5 sticky bottom-0 z-30">
+<button class="w-full h-12 rounded-full bg-primary-container text-white font-bold flex items-center justify-center gap-2 hover:bg-primary transition-all shadow-md active:scale-98">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">navigation</span>
+<span class="text-title-sm font-title-sm">Start Live Highland Navigation</span>
+</button>
+<div class="grid grid-cols-2 gap-2">
+<button class="h-10 rounded-full border border-outline-variant/60 bg-surface-container-low text-on-surface text-label-sm font-label-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-surface-container transition-all active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-primary">download</span>
+<span class="">Offline Pack (18 MB)</span>
+</button>
+<button class="h-10 rounded-full border border-outline-variant/60 bg-surface-container-low text-on-surface text-label-sm font-label-sm font-semibold flex items-center justify-center gap-1.5 hover:bg-surface-container transition-all active:scale-95">
+<span class="material-symbols-outlined text-[16px] text-primary">share</span>
+<span class="">Share Corridor Itinerary</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ==========================================
+         RIGHT PANEL (~960px / 7 Columns on desktop)
+         Expansive Topographic Vector Map & HUD
+         ========================================== -->
+<section class="lg:col-span-7 flex flex-col gap-4">
+<!-- Top Cartographic Map Floating HUD -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant/40 shadow-xs flex flex-wrap items-center justify-between gap-3">
+<!-- Corridor Selector -->
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary text-[18px]">route</span>
+<select class="bg-transparent border-none p-0 text-title-sm font-title-sm text-primary font-bold focus:ring-0 cursor-pointer">
+<option>Addis Ababa – Debre Birhan – Dessie (A2 Corridor)</option>
+<option>Addis Ababa – Hawassa Expressway (Southern Corridor)</option>
+<option>Addis Ababa – Ambo – Nekemte (Western Highland)</option>
+</select>
+</div>
+<!-- Filter Layers Controls -->
+<div class="flex items-center gap-2 flex-wrap">
+<button class="px-3 py-1.5 rounded-full bg-primary-container text-white text-label-sm font-label-sm font-semibold flex items-center gap-1 shadow-xs">
+<span class="material-symbols-outlined text-[15px]">terrain</span>
+<span class="">Elevation Relief</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-surface-container-low text-on-surface-variant hover:text-primary text-label-sm font-label-sm font-medium border border-outline-variant/30 flex items-center gap-1 transition-all">
+<span class="material-symbols-outlined text-[15px]">layers</span>
+<span class="">Satellite</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-surface-container-low text-primary text-label-sm font-label-sm font-bold border border-primary/40 flex items-center gap-1 hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-[15px] text-primary">warning</span>
+<span class="">2 Corridor Incidents</span>
+</button>
+</div>
+</div>
+<!-- Main Map Visual Canvas Canvas Container -->
+<div class="relative w-full h-[620px] rounded-2xl overflow-hidden border border-outline-variant/40 shadow-md bg-[#edf2e8]">
+<!-- Stylized Topographic Vector Map Background Graphic -->
+<svg class="absolute inset-0 w-full h-full object-cover" preserveAspectRatio="none" viewBox="0 0 900 620">
+<defs>
+<!-- Topo pattern lines -->
+<pattern height="120" id="topoContours" patternUnits="userSpaceOnUse" width="120">
+<path d="M 0 40 Q 60 10, 120 40" fill="none" stroke="#d5decb" stroke-dasharray="4 3" stroke-width="1.2"></path>
+<path d="M 0 80 Q 60 50, 120 80" fill="none" stroke="#d5decb" stroke-dasharray="4 3" stroke-width="1.2"></path>
+<path d="M 0 120 Q 60 90, 120 120" fill="none" stroke="#d5decb" stroke-dasharray="4 3" stroke-width="1.2"></path>
+</pattern>
+<linearGradient id="corridorGlow" x1="0" x2="1" y1="1" y2="0">
+<stop offset="0%" stop-color="#1b4332"></stop>
+<stop offset="60%" stop-color="#2d6a4f"></stop>
+<stop offset="100%" stop-color="#fe932c"></stop>
+</linearGradient>
+<!-- Elevation Contour Area Fill -->
+<radialGradient cx="65%" cy="35%" id="highlandMountainGrad" r="45%">
+<stop offset="0%" stop-color="#d6e4cb" stop-opacity="0.8"></stop>
+<stop offset="60%" stop-color="#e3ede0" stop-opacity="0.5"></stop>
+<stop offset="100%" stop-color="#edf2e8" stop-opacity="0"></stop>
+</radialGradient>
+</defs>
+<!-- Canvas Base -->
+<rect fill="#edf2e8" height="100%" width="100%"></rect>
+<rect fill="url(#highlandMountainGrad)" height="100%" width="100%"></rect>
+<rect fill="url(#topoContours)" height="100%" width="100%"></rect>
+<!-- Mountain Ridge Contours (Termaber range) -->
+<ellipse cx="600" cy="220" fill="none" rx="220" ry="140" stroke="#c0d2b2" stroke-dasharray="6 4" stroke-width="1.5"></ellipse>
+<ellipse cx="600" cy="220" fill="none" rx="160" ry="100" stroke="#b0c69f" stroke-width="1.5"></ellipse>
+<ellipse cx="600" cy="220" fill="#a4bd92" fill-opacity="0.25" rx="90" ry="55" stroke="#9bb687" stroke-width="1.5"></ellipse>
+<text fill="#414844" font-family="Plus Jakarta Sans" font-size="11" font-weight="600" opacity="0.65" x="590" y="210">TERMABER SUMMIT RIDGE (3,120m)</text>
+<!-- River Blue Filament (Legedadi Catchment) -->
+<path d="M 180 500 Q 230 460, 270 410 T 360 380 T 430 320" fill="none" stroke="#90c8dc" stroke-linecap="round" stroke-width="3"></path>
+<text fill="#004d62" font-family="Plus Jakarta Sans" font-size="10" opacity="0.5" x="280" y="420">Legedadi Reservoir Feed</text>
+<!-- Secondary Scenic Mountain Pass Highway (Old Italian Road) -->
+<path d="M 120 540 C 130 440, 260 380, 360 340 C 460 300, 520 250, 750 140" fill="none" stroke="#cbd5e1" stroke-dasharray="6 4" stroke-width="3"></path>
+<!-- Primary Highway A2 Corridor Line (Heavy Green/Amber Glow) -->
+<path d="M 110 535 C 160 490, 240 465, 305 440 C 370 415, 410 390, 480 330 C 550 270, 630 230, 710 190 C 740 175, 770 155, 795 130" fill="none" stroke="#1b4332" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"></path>
+<path d="M 110 535 C 160 490, 240 465, 305 440 C 370 415, 410 390, 480 330 C 550 270, 630 230, 710 190 C 740 175, 770 155, 795 130" fill="none" stroke="#ffdcc3" stroke-dasharray="8 6" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Urban Extents Outlines -->
+<!-- Addis Extent -->
+<circle cx="110" cy="535" fill="#1b4332" fill-opacity="0.08" r="50" stroke="#1b4332" stroke-width="1"></circle>
+<!-- Debre Birhan Extent -->
+<circle cx="795" cy="130" fill="#1b4332" fill-opacity="0.12" r="45" stroke="#1b4332" stroke-width="1.5"></circle>
+</svg>
+<!-- Dynamic Map Controls (Top Right Overlay) -->
+<div class="absolute top-4 right-4 flex flex-col gap-2 z-20">
+<div class="bg-surface-container-lowest/95 backdrop-blur-md rounded-lg p-1 border border-outline-variant/40 shadow-sm flex flex-col">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+<div class="w-full h-px bg-outline-variant/30"></div>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest/95 backdrop-blur-md border border-outline-variant/40 shadow-sm flex items-center justify-center text-on-surface hover:text-primary transition-all" title="Recenter on Corridor">
+<span class="material-symbols-outlined text-[18px]">my_location</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest/95 backdrop-blur-md border border-outline-variant/40 shadow-sm flex items-center justify-center text-primary hover:text-primary-container transition-all" title="Compass North">
+<span class="material-symbols-outlined text-[18px]">explore</span>
+</button>
+</div>
+<!-- ==============================================
+             INTERACTIVE PINNED MARKERS ON ROUTE CANVAS
+             ============================================== -->
+<!-- PIN 1: ORIGIN (Addis Ababa) -->
+<div class="absolute left-[85px] top-[495px] z-20 flex flex-col items-center group cursor-pointer">
+<div class="px-2.5 py-1 rounded bg-surface-container-lowest border border-outline-variant shadow-md text-label-sm font-label-sm font-bold text-primary flex items-center gap-1 mb-1">
+<span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+<span class="">Addis Ababa (2,355m)</span>
+</div>
+<div class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-lg border-2 border-white ring-2 ring-primary/20"><span class="material-symbols-outlined text-[18px]">play_arrow</span></div>
+</div>
+<!-- PIN 2: HAZARD / TOLL (Legetafo) -->
+<div class="absolute left-[270px] top-[405px] z-20 flex flex-col items-center group cursor-pointer">
+<div class="px-3 py-1.5 rounded-lg bg-surface-container-lowest border border-primary shadow-lg text-label-sm font-label-sm text-primary mb-1 min-w-[170px]">
+<div class="flex items-center gap-1 font-bold text-primary">
+<span class="material-symbols-outlined text-[15px]">construction</span>
+<span class="">Legetafo Toll &amp; Works</span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Lane narrowing • 10m delay • 50 ETB toll</p>
+</div>
+<div class="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center shadow-md border-2 border-white ring-2 ring-primary/20"><span class="material-symbols-outlined text-[16px]">warning</span></div>
+</div>
+<!-- PIN 3: WAYPOINT REST STOP (Sheno Highland Dairy & Fuel) -->
+<div class="absolute left-[445px] top-[300px] z-20 flex flex-col items-center group cursor-pointer">
+<!-- Popover Card -->
+<div class="px-3 py-2 rounded-lg bg-surface-container-lowest border border-primary/40 shadow-lg mb-1.5 min-w-[200px]">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-primary">local_gas_station</span>
+<span class="">Sheno Dairy &amp; Depot</span>
+</span>
+<span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1 rounded font-bold">100% Stock</span>
+</div>
+<p class="text-[11px] text-outline mt-0.5">Fresh highland yogurt, injera lounges &amp; diesel refill point.</p>
+</div>
+<div class="w-7 h-7 rounded-lg bg-primary-container text-primary-fixed flex items-center justify-center shadow-md border-2 border-white ring-2 ring-primary/20"><span class="material-symbols-outlined text-[16px]">local_cafe</span></div>
+</div>
+<!-- PIN 4: WEATHER / PASS ALERT (Termaber Fog Ridge) -->
+<div class="absolute left-[655px] top-[200px] z-20 flex flex-col items-center group cursor-pointer">
+<div class="px-2.5 py-1 rounded bg-surface-container-lowest text-primary border border-primary/50 shadow-md text-label-sm font-label-sm font-bold flex items-center gap-1 mb-1">
+<span class="material-symbols-outlined text-[14px] text-primary">cloud</span>
+<span class="">Fog Alert km 98–112 (3,120m)</span>
+</div>
+<div class="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center shadow-md border-2 border-white ring-2 ring-primary/30 animate-bounce"><span class="material-symbols-outlined text-[16px]">priority_high</span></div>
+</div>
+<!-- PIN 5: DESTINATION (Debre Birhan Gateway) -->
+<div class="absolute left-[770px] top-[95px] z-20 flex flex-col items-center group cursor-pointer">
+<div class="px-3 py-1.5 rounded-lg bg-surface-container-lowest border-2 border-primary shadow-xl text-label-sm font-label-sm font-bold text-primary flex items-center gap-1.5 mb-1">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">flag</span>
+<span class="">Debre Birhan (ደብረ ብርሃን)</span>
+</div>
+<div class="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center shadow-xl border-2 border-white ring-4 ring-primary/20"><span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">location_on</span></div>
+</div>
+<!-- Floating Corridor Atmospheric & Live Temperature Card (Bottom Right of Map) -->
+<div class="absolute bottom-4 right-4 z-20 bg-surface-container-lowest/95 backdrop-blur-md rounded-xl p-3.5 border border-outline-variant/40 shadow-lg max-w-[340px] flex flex-col gap-2.5">
+<div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+<span class="text-label-sm font-label-sm font-bold text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">thermostat</span>
+<span class="">Corridor Thermal Gradient</span>
+</span>
+<span class="text-[11px] font-mono text-outline">Live Telemetry</span>
+</div>
+<div class="flex items-center justify-between text-center gap-2">
+<div class="bg-surface-container-low p-1.5 rounded flex-1">
+<p class="text-[10px] text-outline">Addis</p>
+<p class="text-label-md font-label-md font-bold text-on-surface">22°C</p>
+<p class="text-[10px] text-primary font-medium">Clear</p>
+</div>
+<span class="material-symbols-outlined text-outline text-[14px]">arrow_forward</span>
+<div class="bg-surface-container-low p-1.5 rounded flex-1 border border-primary/40">
+<p class="text-[10px] text-primary font-bold">Summit</p>
+<p class="text-label-md font-label-md font-bold text-primary">14°C</p>
+<p class="text-[10px] text-primary font-medium">Chilly Fog</p>
+</div>
+<span class="material-symbols-outlined text-outline text-[14px]">arrow_forward</span>
+<div class="bg-surface-container-low p-1.5 rounded flex-1">
+<p class="text-[10px] text-outline">D. Birhan</p>
+<p class="text-label-md font-label-md font-bold text-on-surface">16°C</p>
+<p class="text-[10px] text-primary font-medium">Breezy</p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1 text-[11px] text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[15px]">local_police</span>
+<span class="">Federal Highway Patrol Unit 4 Active</span>
+</span>
+<a class="font-bold text-primary hover:underline" href="tel:991">Dial 991</a>
+</div>
+</div>
+<!-- Scale Legend (Bottom Left of Map) -->
+<div class="absolute bottom-4 left-4 z-20 bg-surface-container-lowest/90 backdrop-blur-xs rounded-md px-2.5 py-1 border border-outline-variant/30 text-[11px] font-mono text-outline flex items-center gap-2">
+<span class="">0</span>
+<div class="w-12 h-1 bg-primary/70"></div>
+<span class="">25 km</span>
+<span class="border-l border-outline-variant/40 pl-2">A2 Corridor</span>
+</div>
+</div>
+<!-- Hawassa Expressway Quick-Switch Bottom Banner Drawer -->
+<div class="bg-gradient-to-r from-surface-container to-surface-container-low rounded-xl p-4 border border-outline-variant/40 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-fixed/30 flex items-center justify-center shrink-0 text-primary border border-primary/20 rounded-lg">
+<span class="material-symbols-outlined text-[22px]">explore</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-title-sm font-title-sm text-primary font-bold">Going South? Addis Ababa – Mojo – Hawassa Expressway</h3>
+<span class="text-[11px] bg-primary text-white px-2 py-0.2 rounded-full font-bold">Rift Valley</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Toll 6-lane modern bypass • 275 km • 3h 15m • Direct access to Lake Awassa lakeside resorts.</p>
+</div>
+</div>
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest border border-outline-variant text-primary text-label-sm font-label-sm font-bold hover:bg-surface-container transition-all whitespace-nowrap shadow-xs active:scale-95">
+          Switch to Southern Route
+        </button>
+</div>
+<!-- Corridor Verification Guild & Local Fuel Transparency Badges -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+<!-- Guild Badge -->
+<div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/30 flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[22px]">verified_user</span>
+<div>
+<p class="text-label-sm font-label-sm font-bold text-primary">Ethiopian Transport Guild</p>
+<p class="text-[11px] text-outline">Corridor audited today 08:30 AM</p>
+</div>
+</div>
+<!-- Mountain Rescue -->
+<div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/30 flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[22px]">car_crash</span>
+<div>
+<p class="text-label-sm font-label-sm font-bold text-primary">Termaber Heavy Tow</p>
+<p class="text-[11px] text-outline">Flatbed recovery unit stationed at km 102</p>
+</div>
+</div>
+<!-- Telebirr Toll Ready -->
+<div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/30 flex items-center gap-2.5">
+<span class="material-symbols-outlined text-emerald-700 text-[22px]">contactless</span>
+<div>
+<p class="text-label-sm font-label-sm font-bold text-on-surface">Contactless Toll Enabled</p>
+<p class="text-[11px] text-outline">Legetafo Plaza QR fast lanes 1 &amp; 2</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- ========================================================
+       SHARED COMPONENT: Footer
+       ======================================================== -->
+<footer class="bg-surface-container-low w-full mt-auto border-t border-outline-variant/40">
+<div class="max-w-7xl mx-auto px-4 lg:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
+<!-- Brand & Copyright -->
+<div class="flex flex-col items-center md:items-start gap-1">
+<div class="text-title-md font-title-md font-bold text-primary flex items-center gap-2">
+<img alt="GuzoMate" class="w-6 h-6 object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WxGs-V8mgXdcv6FuxW-57--1Fo87c-lmBVaqsiK3C-h8kdrfOg-xpKKQisjcY03XTcLeuwItvEtYtKNWNsDde8M-46EMpO-QWok0wZNtO7c97RP8ZFIUMN71fksN41Ygu5U6hsMJ1e6wx2E7gj55bkpHyJ2O_duw5-Pnk-54dWszn_twnOMFtZ-jvlPm8y0Y06_HP1cCN-tAkfVm6_H9rzsAUQEXR637t5astXGow5oWl-HPu3Z5JLPYg">
+<span class="">GuzoMate</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-center md:text-left">
+          © 2024 GuzoMate Ethiopia — Verified Highland Travel Intelligence. Latin, አማርኛ &amp; Afaan Oromo parity.
+        </p>
+</div>
+<!-- Emergency Hotlines & Mandatory Links from Blueprint -->
+<div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-label-sm font-label-sm">
+<a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary font-semibold" href="tel:991">
+<span class="material-symbols-outlined text-[14px] text-primary">call</span>
+<span class="">Police 991</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary font-semibold" href="tel:907">
+<span class="material-symbols-outlined text-[14px] text-primary">local_hospital</span>
+<span class="">Medical 907</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary font-semibold" href="tel:922">
+<span class="material-symbols-outlined text-[14px] text-primary">health_and_safety</span>
+<span class="">Red Cross 922</span>
+</a>
+<span class="text-outline-variant hidden sm:inline">|</span>
+<a class="text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary" href="#">Emergency Dial</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary" href="#">Road Verification Guild</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary" href="#">Privacy Policy</a>
+</div>
+</div>
+</footer>
+
+
+
+
+
+
+</body></html>

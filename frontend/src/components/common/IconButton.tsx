@@ -23,7 +23,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   const shouldReduceMotion = useReducedMotion();
 
   const baseStyles =
-    'h-11 w-11 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:opacity-40 disabled:cursor-not-allowed select-none';
+    'h-11 w-11 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed select-none';
 
   const shapeStyles = {
     rounded: 'rounded-xl',
@@ -31,16 +31,16 @@ export const IconButton: React.FC<IconButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-sm',
-    secondary: 'bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-300',
-    outline: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:bg-gray-100 shadow-sm',
+    primary: 'bg-primary text-white hover:bg-primary-dark active:bg-primary-dark shadow-sm',
+    secondary: 'bg-surface-container text-on-surface hover:bg-surface-high active:bg-surface-highest',
+    outline: 'bg-white text-on-surface-variant border border-outline-variant/60 hover:bg-surface-low active:bg-surface-container shadow-sm',
     ghost: isActive
-      ? 'bg-indigo-50 text-indigo-600'
-      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 active:bg-gray-200/80',
+      ? 'bg-primary/10 text-primary font-bold'
+      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-low active:bg-surface-container',
     floating:
-      'bg-white text-gray-800 shadow-floating border border-gray-100 hover:bg-gray-50',
+      'bg-white text-on-surface shadow-floating border border-outline-variant/30 hover:bg-surface-low',
     glass:
-      'backdrop-blur-md bg-white/85 text-gray-800 border border-white/60 shadow-floating hover:bg-white/95',
+      'backdrop-blur-md bg-white/90 text-on-surface border border-white/60 shadow-floating hover:bg-white',
   };
 
   return (

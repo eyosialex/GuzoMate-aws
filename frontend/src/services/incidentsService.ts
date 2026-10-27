@@ -51,11 +51,13 @@ export const incidentsService = {
 
     const newIncident: Incident = {
       id: `inc-${Date.now()}`,
+      title: payload.title || payload.type.replace('_', ' '),
       type: payload.type,
       description: payload.description,
       status: 'PENDING',
       verification: 'UNVERIFIED',
       location: payload.location,
+      locationName: payload.locationName || `${payload.location.lat.toFixed(4)}, ${payload.location.lon.toFixed(4)}`,
       createdAt: new Date().toISOString(),
       confirmationsCount: 1,
     };
