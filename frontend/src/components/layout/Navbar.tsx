@@ -15,6 +15,7 @@ import { useAuth } from '../../features/AuthContext';
 import { useAppStore } from '../../features/useAppStore';
 import { Language } from '../../types';
 import { springTactile } from '../../lib/motion';
+import logoImg from '../../assets/logo.png';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -63,11 +64,11 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center gap-3 shrink-0">
           <Link to={isAuthenticated ? "/app" : "/"} className="flex items-center gap-2.5 group">
             <motion.div
-              whileHover={shouldReduceMotion ? undefined : { rotate: 20 }}
+              whileHover={shouldReduceMotion ? undefined : { rotate: 5, scale: 1.05 }}
               transition={springTactile}
-              className="h-9 w-9 rounded-xl bg-[#183a2b] text-white flex items-center justify-center shadow-sm"
+              className="h-10 w-10 rounded-xl overflow-hidden flex items-center justify-center shadow-sm bg-white border border-[#d1e2d8]"
             >
-              <Compass className="w-5 h-5 text-emerald-400" />
+              <img src={logoImg} alt="GuzoMate Logo" className="w-full h-full object-contain p-0.5" />
             </motion.div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
@@ -269,3 +270,5 @@ export const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+
+

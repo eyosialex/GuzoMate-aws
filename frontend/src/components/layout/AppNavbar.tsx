@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../../features/useAppStore';
 import { Language } from '../../types';
+import logoImg from '../../assets/logo.png';
 import { 
   Bell, 
   Globe, 
@@ -93,8 +94,8 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
           onClick={handleHomeClick}
           className="flex items-center gap-3 cursor-pointer group select-none"
         >
-          <div className="w-10 h-10 rounded-2xl bg-primary text-white flex items-center justify-center shadow-highland group-hover:bg-primary-dark transition-all duration-300 group-hover:scale-105 border border-primary-light/20">
-            <span className="material-symbols-outlined text-[22px]">landscape</span>
+          <div className="w-10 h-10 rounded-2xl bg-white overflow-hidden flex items-center justify-center shadow-highland transition-all duration-300 group-hover:scale-105 border border-primary-light/20">
+            <img src={logoImg} alt="GuzoMate Logo" className="w-full h-full object-contain p-0.5" />
           </div>
           <span className="font-display font-extrabold text-2xl tracking-tight text-primary group-hover:text-primary-dark transition-colors">
             GuzoMate
@@ -352,3 +353,5 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
 };
 
 export default AppNavbar;
+
+
