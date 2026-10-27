@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { 
@@ -18,7 +18,9 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../features/useAppStore';
 import { useAuth } from '../features/AuthContext';
-import { MOCK_PLACES, MOCK_INCIDENTS } from '../lib/mockData';
+import { placesService } from '../services/placesService';
+import { incidentsService } from '../services/incidentsService';
+import { Place, Incident } from '../types';
 import { springTactile, springGentle } from '../lib/motion';
 
 export const HomePage: React.FC = () => {
@@ -30,8 +32,23 @@ export const HomePage: React.FC = () => {
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
 
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  useEffect(() => {
+    let active = true;
+    placesService.getNearby({ lat: 9.0108, lon: 38.7618, limit: 12 }).then((res) => {
+      if (active) setPlaces(res.items);
+    });
+    incidentsService.getNearby({ lat: 9.0108, lon: 38.7618 }).then((res) => {
+      if (active) setIncidents(res.items);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +59,7 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  const filteredPlaces = MOCK_PLACES.filter((p) => {
+  const filteredPlaces = places.filter((p) => {
     const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
     const matchesQuery = !searchQuery.trim() || 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -369,7 +386,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {MOCK_INCIDENTS.slice(0, 3).map((incident) => {
+          {incidents.slice(0, 3).map((incident) => {
             const isClosure = incident.type === 'ROAD_CLOSURE' || incident.type === 'ACCIDENT';
             return (
               <motion.div

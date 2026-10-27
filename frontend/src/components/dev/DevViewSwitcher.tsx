@@ -18,16 +18,6 @@ export const DevViewSwitcher: React.FC = () => {
       nextView = 'landing';
     }
 
-    if (nextView !== 'landing' && !currentUser) {
-      setCurrentUser({
-        id: 'dev-user-01',
-        name: 'Developer',
-        email: 'dev@guzomate.et',
-        preferredLanguage: 'en',
-        isGuildVerified: true,
-      });
-    }
-
     setPageView(nextView);
   };
 

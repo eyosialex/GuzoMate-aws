@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Compass, Mail, Lock, User as UserIcon, Eye, EyeOff, ArrowRight, Globe } from 'lucide-react';
+import { Compass, Mail, Lock, User as UserIcon, Eye, EyeOff, ArrowRight, Globe, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '../features/AuthContext';
-import { Language } from '../types';
+import { SupportedLanguage } from '../types/auth';
+import { AuthApiError } from '../services/authService';
 import { springTactile, springGentle } from '../lib/motion';
 
 export const RegisterPage: React.FC = () => {
@@ -11,50 +12,84 @@ export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
 
+  // Determine initial language from browser locale
+  const detectInitialLanguage = (): SupportedLanguage => {
+    if (typeof navigator !== 'undefined') {
+      const lang = navigator.language?.toLowerCase() || '';
+      if (lang.startsWith('am')) return 'am';
+      if (lang.startsWith('om')) return 'om';
+    }
+    return 'en';
+  };
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [preferredLanguage, setPreferredLanguage] = useState<Language>('en');
+  const [preferredLanguage, setPreferredLanguage] = useState<SupportedLanguage>(detectInitialLanguage());
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Real-time password criteria
+  const hasMinLength = password.length >= 8;
+  const hasLetter = /[A-Za-z]/.test(password);
+  const hasDigit = /[0-9]/.test(password);
+  const isPasswordValid = hasMinLength && hasLetter && hasDigit;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
 
-    if (!fullName.trim()) {
-      setError('Please enter your full name.');
+    const emailNorm = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailNorm || !emailRegex.test(emailNorm)) {
+      setError('Please enter a valid email address (e.g. traveler@example.com).');
       return;
     }
 
-    if (!email.trim()) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (!isPasswordValid) {
+      setError('Password must be at least 8 characters and include at least one letter and one number.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('Passwords do not match. Please verify and re-type.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await register({
-        fullName: fullName.trim(),
-        email: email.trim(),
+        name: fullName.trim() || undefined,
+        fullName: fullName.trim() || undefined,
+        email: emailNorm,
         password,
         preferredLanguage,
       });
       navigate('/app', { replace: true });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Registration failed.');
+      if (err instanceof AuthApiError) {
+        if (err.code === 'CONFLICT') {
+          setError('An account with this email address already exists. Please sign in instead.');
+        } else if (err.code === 'VALIDATION_ERROR' && err.details && err.details.length > 0) {
+          const map: Record<string, string> = {};
+          err.details.forEach((d) => {
+            const field = String(d.path[0] || 'general');
+            map[field] = d.message;
+          });
+          setFieldErrors(map);
+          setError(err.message || 'Please correct the highlighted errors.');
+        } else if (err.code === 'RATE_LIMIT_EXCEEDED') {
+          setError('Too many registration attempts from your network. Please wait 15 minutes before trying again.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError(err instanceof Error ? err.message : 'Registration failed. Please check your network connection.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -82,11 +117,11 @@ export const RegisterPage: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Create Scout Account</h1>
             <span className="text-[10px] font-semibold bg-[#eef5f1] text-[#183a2b] border border-[#d1e2d8] px-2 py-0.5 rounded-full">
-              Ethiopian Guild
+              Verified Traveler
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-1 max-w-xs">
-            Join the verified highland travelers network to report road hazards and get priority advisories.
+            Join the verified highland travelers network to report road hazards and receive real-time alerts.
           </p>
         </div>
 
@@ -95,9 +130,19 @@ export const RegisterPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium"
+            className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium flex items-start gap-2"
           >
-            {error}
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <span>{error}</span>
+              {error.includes('already exists') && (
+                <div className="mt-1">
+                  <Link to="/login" className="underline font-bold text-red-800 hover:text-red-950">
+                    Go to Sign In →
+                  </Link>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 
@@ -105,7 +150,7 @@ export const RegisterPage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1" htmlFor="name-input">
-              Full Name
+              Full Name (Optional)
             </label>
             <div className="relative">
               <UserIcon className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -114,11 +159,13 @@ export const RegisterPage: React.FC = () => {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Dawit Alemayehu"
-                required
+                placeholder="Abebe Bikila"
                 className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#183a2b] focus:border-transparent transition-all"
               />
             </div>
+            {fieldErrors.name && (
+              <p className="text-[11px] text-red-600 mt-1">{fieldErrors.name}</p>
+            )}
           </div>
 
           <div>
@@ -132,11 +179,14 @@ export const RegisterPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="scout@guzomate.et"
+                placeholder="traveler@example.com"
                 required
                 className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#183a2b] focus:border-transparent transition-all"
               />
             </div>
+            {fieldErrors.email && (
+              <p className="text-[11px] text-red-600 mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div>
@@ -148,7 +198,7 @@ export const RegisterPage: React.FC = () => {
               <select
                 id="reg-lang"
                 value={preferredLanguage}
-                onChange={(e) => setPreferredLanguage(e.target.value as Language)}
+                onChange={(e) => setPreferredLanguage(e.target.value as SupportedLanguage)}
                 className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#183a2b] focus:border-transparent transition-all appearance-none cursor-pointer"
               >
                 <option value="en">English (International)</option>
@@ -169,7 +219,7 @@ export const RegisterPage: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder="Min 8 characters (1 letter & 1 digit)"
                 required
                 className="w-full pl-9 pr-10 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#183a2b] focus:border-transparent transition-all"
               />
@@ -182,6 +232,27 @@ export const RegisterPage: React.FC = () => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+
+            {/* Inline Password Strength Helper */}
+            {password.length > 0 && (
+              <div className="mt-2 p-2 bg-gray-50 border border-gray-200/80 rounded-lg text-[11px] space-y-1">
+                <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-700' : 'text-gray-500'}`}>
+                  <Check className={`w-3.5 h-3.5 ${hasMinLength ? 'text-emerald-600' : 'opacity-30'}`} />
+                  <span>At least 8 characters</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${hasLetter ? 'text-emerald-700' : 'text-gray-500'}`}>
+                  <Check className={`w-3.5 h-3.5 ${hasLetter ? 'text-emerald-600' : 'opacity-30'}`} />
+                  <span>At least one letter (a-z, A-Z)</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${hasDigit ? 'text-emerald-700' : 'text-gray-500'}`}>
+                  <Check className={`w-3.5 h-3.5 ${hasDigit ? 'text-emerald-600' : 'opacity-30'}`} />
+                  <span>At least one number (0-9)</span>
+                </div>
+              </div>
+            )}
+            {fieldErrors.password && (
+              <p className="text-[11px] text-red-600 mt-1">{fieldErrors.password}</p>
+            )}
           </div>
 
           <div>

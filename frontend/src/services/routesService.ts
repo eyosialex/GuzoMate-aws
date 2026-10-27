@@ -1,8 +1,5 @@
 import { request } from '../lib/apiClient';
-import { RoutesResponse, RouteOption, RouteTravelMode, Language } from '../types';
-import { MOCK_ROUTES } from '../lib/mockData';
-
-const isMockForced = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+import { RoutesResponse, RouteTravelMode, Language } from '../types';
 
 export interface RouteSearchParams {
   originLat: number;
@@ -16,34 +13,26 @@ export interface RouteSearchParams {
 
 export const routesService = {
   async getRoutes(params: RouteSearchParams): Promise<RoutesResponse> {
-    if (!isMockForced) {
-      try {
-        return await request<RoutesResponse>('/routes', {
-          method: 'GET',
-          params: {
-            originLat: params.originLat,
-            originLon: params.originLon,
-            destinationLat: params.destinationLat,
-            destinationLon: params.destinationLon,
-            mode: params.mode,
-            departAt: params.departAt,
-          },
-          language: params.language,
-        });
-      } catch (error) {
-        console.warn('Backend routing unavailable, using Addis Transit mock routes:', error);
-      }
+    try {
+      return await request<RoutesResponse>('/routes', {
+        method: 'GET',
+        params: {
+          originLat: params.originLat,
+          originLon: params.originLon,
+          destLat: params.destinationLat,
+          destLon: params.destinationLon,
+          mode: params.mode || 'transit',
+          language: params.language || 'en',
+          includeIncidents: true,
+        },
+        language: params.language,
+      });
+    } catch {
+      return {
+        provider: 'addis-transit',
+        routes: [],
+        limitations: [],
+      };
     }
-
-    let routes: RouteOption[] = [...MOCK_ROUTES];
-    if (params.mode) {
-      routes = routes.filter((r) => r.mode === params.mode);
-      if (routes.length === 0) routes = [...MOCK_ROUTES];
-    }
-    return {
-      provider: 'addis-transit',
-      routes,
-      limitations: ['Estimated transit timings based on typical schedule'],
-    };
   },
 };

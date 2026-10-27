@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Bookmark, MapPin, Navigation, Trash2, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../features/useAppStore';
-import { MOCK_PLACES } from '../lib/mockData';
-import { springTactile, springGentle } from '../lib/motion';
+import { placesService } from '../services/placesService';
+import { Place } from '../types';
+import { springGentle } from '../lib/motion';
 
 export const SavedPlacesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,26 @@ export const SavedPlacesPage: React.FC = () => {
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
 
-  const savedPlaces = MOCK_PLACES.filter((p) => savedPlaceIds.includes(p.id));
+  const [savedPlaces, setSavedPlaces] = useState<Place[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    if (savedPlaceIds.length === 0) {
+      setSavedPlaces([]);
+      return;
+    }
+    Promise.allSettled(savedPlaceIds.map((id) => placesService.getPlaceById(id))).then((results) => {
+      if (active) {
+        const places = results
+          .filter((r): r is PromiseFulfilledResult<Place> => r.status === 'fulfilled')
+          .map((r) => r.value);
+        setSavedPlaces(places);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [savedPlaceIds]);
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-[#f8faf8] text-[#141d18] font-sans py-8 px-4 sm:px-6">

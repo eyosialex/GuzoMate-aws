@@ -21,6 +21,11 @@ export interface GeoLocation {
   lon: number;
 }
 
+export const DEFAULT_ADDIS_COORDINATES: GeoLocation = {
+  lat: 9.0108,
+  lon: 38.7618,
+};
+
 export interface Place {
   id: string;
   name: string;
@@ -183,13 +188,15 @@ export interface AssistantSource {
 
 export interface AssistantQueryPayload {
   query: string;
-  language: Language;
-  location: GeoLocation;
+  language?: Language;
+  location?: GeoLocation;
   arrivalTime?: string;
   filters?: {
     radiusMeters?: number;
     categories?: string[];
   };
+  enableVoice?: boolean;
+  voiceId?: string;
 }
 
 export interface AssistantQueryResponse {

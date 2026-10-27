@@ -27,7 +27,7 @@ import { springTactile, springGentle } from '../lib/motion';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, quickDemoLogin } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const shouldReduceMotion = useReducedMotion();
 
   const language = useAppStore((state) => state.language);
@@ -36,11 +36,8 @@ export const LandingPage: React.FC = () => {
   const [activePreviewTab, setActivePreviewTab] = useState<'explore' | 'routes' | 'incidents' | 'emergency'>('explore');
   const [isLaunching, setIsLaunching] = useState(false);
 
-  const handleLaunchApp = async () => {
+  const handleLaunchApp = () => {
     setIsLaunching(true);
-    if (!isAuthenticated) {
-      await quickDemoLogin(0);
-    }
     navigate('/app');
   };
 
@@ -283,15 +280,6 @@ export const LandingPage: React.FC = () => {
                   <MapPin className="w-4 h-4 text-emerald-400" />
                   <span>{currentCopy.ctaSecondary}</span>
                 </Link>
-
-                <button
-                  type="button"
-                  onClick={() => quickDemoLogin(0).then(() => navigate('/app'))}
-                  className="py-3 px-4 bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-500/30 text-emerald-300 text-xs font-bold rounded-xl backdrop-blur-md transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <Zap className="w-4 h-4 text-emerald-400" />
-                  <span>{currentCopy.ctaDemo}</span>
-                </button>
               </motion.div>
 
               {/* Live Locks Banner */}

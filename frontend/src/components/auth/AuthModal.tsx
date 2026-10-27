@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../features/useAppStore';
+import { authService, AuthApiError } from '../../services/authService';
 import { 
   X, 
   Mail, 
@@ -31,44 +32,88 @@ export const AuthModal: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (authModalTab === 'signup' && !name.trim()) {
-      setErrorMsg('Please enter your full name.');
-      return;
-    }
-    if (!email.trim() || !password.trim()) {
-      setErrorMsg('Please enter your email and password.');
-      return;
-    }
-    if (password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters.');
+    setErrorMsg('');
+
+    const emailNorm = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailNorm || !emailRegex.test(emailNorm)) {
+      setErrorMsg('Please enter a valid email address.');
       return;
     }
 
-    // Success login/signup
-    const user = {
-      id: `user-${Date.now()}`,
-      name: name.trim() || email.split('@')[0],
-      email: email.trim(),
-      phone: phone.trim() || '',
-      preferredLanguage: language,
-      isGuildVerified: true,
-    };
+    if (!password) {
+      setErrorMsg('Please enter your password.');
+      return;
+    }
 
-    setCurrentUser(user);
-    closeAuthModal();
-    setPageView('home');
+    if (authModalTab === 'signup') {
+      const isPasswordValid = password.length >= 8 && /[A-Za-z]/.test(password) && /[0-9]/.test(password);
+      if (!isPasswordValid) {
+        setErrorMsg('Password must be at least 8 characters and contain at least one letter and one number.');
+        return;
+      }
+    }
 
-    confetti({
-      particleCount: 70,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#1b4332', '#d97706', '#0e7490'],
-    });
+    setIsSubmitting(true);
+    try {
+      let session;
+      if (authModalTab === 'signup') {
+        session = await authService.register({
+          name: name.trim() || undefined,
+          email: emailNorm,
+          password,
+          preferredLanguage: language as any,
+        });
+      } else {
+        session = await authService.login({
+          email: emailNorm,
+          password,
+        });
+      }
+
+      setCurrentUser({
+        id: session.user.id,
+        name: session.user.name || session.user.fullName || emailNorm.split('@')[0],
+        email: session.user.email,
+        phone: session.user.phone || phone.trim() || '',
+        preferredLanguage: session.user.preferredLanguage,
+        isGuildVerified: session.user.role !== 'USER' || session.user.trustRating !== undefined,
+      });
+
+      closeAuthModal();
+      setPageView('home');
+
+      confetti({
+        particleCount: 70,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#1b4332', '#d97706', '#0e7490'],
+      });
+    } catch (err: unknown) {
+      if (err instanceof AuthApiError) {
+        if (err.code === 'CONFLICT') {
+          setErrorMsg('An account with this email address already exists. Please sign in instead.');
+        } else if (err.code === 'UNAUTHORIZED') {
+          setErrorMsg('Invalid email or password.');
+        } else if (err.code === 'FORBIDDEN') {
+          setErrorMsg('Your account has been suspended by moderation.');
+        } else if (err.code === 'RATE_LIMIT_EXCEEDED') {
+          setErrorMsg('Too many attempts. Please try again in 15 minutes.');
+        } else {
+          setErrorMsg(err.message);
+        }
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : 'Authentication failed.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

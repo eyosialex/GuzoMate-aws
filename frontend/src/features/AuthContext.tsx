@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, LoginCredentials, RegisterPayload } from '../types/auth';
-import { authService, MOCK_USERS } from '../services/authService';
+import { authService } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
@@ -10,7 +10,6 @@ interface AuthContextType {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   updateUserPreferences: (prefs: Partial<User>) => void;
-  quickDemoLogin: (index?: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,18 +18,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Restore existing session on mount
+  // Restore existing session on mount & listen for global logout
   useEffect(() => {
+    let isMounted = true;
+
+    const handleGlobalLogout = () => {
+      if (isMounted) {
+        setUser(null);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('auth:logout', handleGlobalLogout);
+    }
+
     try {
       const session = authService.getStoredSession();
       if (session) {
         setUser(session.user);
+        // Refresh profile in background
+        authService.getCurrentUser().then((refreshed) => {
+          if (isMounted && refreshed) {
+            setUser(refreshed);
+          }
+        });
       }
     } catch (e) {
       console.error('Session restoration error', e);
     } finally {
       setIsLoading(false);
     }
+
+    return () => {
+      isMounted = false;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('auth:logout', handleGlobalLogout);
+      }
+    };
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
@@ -65,11 +89,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('guzo_user_session', JSON.stringify(updated));
   };
 
-  const quickDemoLogin = async (index = 0) => {
-    const demoUser = MOCK_USERS[index] || MOCK_USERS[0];
-    await login({ email: demoUser.email, password: 'Password123' });
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -80,7 +99,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         register,
         logout,
         updateUserPreferences,
-        quickDemoLogin,
       }}
     >
       {children}

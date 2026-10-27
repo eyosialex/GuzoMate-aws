@@ -39,7 +39,7 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     }
   }
 
-  const token = localStorage.getItem('guzo_access_token');
+  const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -55,6 +55,16 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('guzomate_token');
+        localStorage.removeItem('guzomate_user');
+        localStorage.removeItem('guzo_access_token');
+        localStorage.removeItem('guzo_user_session');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('auth:logout'));
+        }
+      }
+
       let errorData;
       try {
         errorData = await response.json();
@@ -72,7 +82,11 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
       return {} as T;
     }
 
-    return await response.json();
+    const result = await response.json();
+    if (result && typeof result === 'object' && 'data' in result && result.data !== undefined) {
+      return result.data as T;
+    }
+    return result as T;
   } catch (err: unknown) {
     if (err instanceof ApiError) {
       throw err;

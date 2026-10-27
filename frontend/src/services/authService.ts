@@ -1,215 +1,174 @@
-import { User, AuthSession, LoginCredentials, RegisterPayload } from '../types/auth';
+import { User, AuthSuccessData, LoginCredentials, RegisterPayload } from '../types/auth';
 
-const TOKEN_KEY = 'guzo_access_token';
-const USER_KEY = 'guzo_user_session';
-const USERS_REGISTRY_KEY = 'guzo_registered_users';
+const PRIMARY_TOKEN_KEY = 'guzomate_token';
+const PRIMARY_USER_KEY = 'guzomate_user';
+const FALLBACK_TOKEN_KEY = 'guzo_access_token';
+const FALLBACK_USER_KEY = 'guzo_user_session';
 
-// Pre-configured development mock users matching UI references
-export const MOCK_USERS: User[] = [
-  {
-    id: 'usr-dawit-01',
-    email: 'dawit@guzomate.et',
-    fullName: 'Dawit A.',
-    role: 'USER',
-    preferredLanguage: 'en',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    scoutGuildBadge: 'Selam Guild #418',
-    trustRating: 98.4,
-    phone: '+251 91 123 4567',
-  },
-  {
-    id: 'usr-eden-02',
-    email: 'traveler@guzomate.et',
-    fullName: 'Eden B.',
-    role: 'USER',
-    preferredLanguage: 'am',
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80',
-    scoutGuildBadge: 'Addis Explorer',
-    trustRating: 95.0,
-    phone: '+251 92 987 6543',
-  },
-  {
-    id: 'usr-fikru-03',
-    email: 'moderator@guzomate.et',
-    fullName: 'Lt. Fikru Tadesse',
-    role: 'MODERATOR',
-    preferredLanguage: 'om',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-    scoutGuildBadge: 'Sheno Sector Commander',
-    trustRating: 99.8,
-    phone: '+251 93 456 7890',
-  },
-];
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
-function getStoredUsers(): User[] {
-  try {
-    const raw = localStorage.getItem(USERS_REGISTRY_KEY);
-    if (!raw) return MOCK_USERS;
-    const custom = JSON.parse(raw);
-    return [...MOCK_USERS, ...custom];
-  } catch {
-    return MOCK_USERS;
+export class AuthApiError extends Error {
+  code: string;
+  status: number;
+  details?: Array<{ path: (string | number)[]; message: string }>;
+
+  constructor(message: string, code: string, status: number, details?: any) {
+    super(message);
+    this.name = 'AuthApiError';
+    this.code = code;
+    this.status = status;
+    this.details = details;
   }
 }
 
-function saveRegisteredUser(user: User) {
-  try {
-    const raw = localStorage.getItem(USERS_REGISTRY_KEY);
-    const custom: User[] = raw ? JSON.parse(raw) : [];
-    if (!custom.some(u => u.email.toLowerCase() === user.email.toLowerCase())) {
-      custom.push(user);
-      localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(custom));
-    }
-  } catch (e) {
-    console.error('Failed to save user to registry', e);
-  }
+export function formatBackendUser(raw: any): User {
+  const name = raw.name || raw.fullName || (raw.email ? raw.email.split('@')[0] : null);
+  return {
+    id: raw.id,
+    email: raw.email,
+    name,
+    fullName: name || 'Scout',
+    role: raw.role || 'USER',
+    status: raw.status || 'ACTIVE',
+    preferredLanguage: raw.preferredLanguage || 'en',
+    avatarUrl: raw.avatarUrl,
+    scoutGuildBadge: raw.scoutGuildBadge,
+    trustRating: raw.trustRating,
+    phone: raw.phone,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
 }
 
 export const authService = {
-  getStoredSession(): AuthSession | null {
+  getStoredToken(): string | null {
     try {
-      const token = localStorage.getItem(TOKEN_KEY);
-      const userRaw = localStorage.getItem(USER_KEY);
+      return localStorage.getItem(PRIMARY_TOKEN_KEY) || localStorage.getItem(FALLBACK_TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
+
+  getStoredSession(): AuthSuccessData | null {
+    try {
+      const token = this.getStoredToken();
+      const userRaw = localStorage.getItem(PRIMARY_USER_KEY) || localStorage.getItem(FALLBACK_USER_KEY);
       if (!token || !userRaw) return null;
-      const user = JSON.parse(userRaw) as User;
+      const user = formatBackendUser(JSON.parse(userRaw));
       return { accessToken: token, user };
     } catch {
       return null;
     }
   },
 
-  async login(credentials: LoginCredentials): Promise<AuthSession> {
+  async login(credentials: LoginCredentials): Promise<AuthSuccessData> {
     const emailNorm = credentials.email.trim().toLowerCase();
 
-    // 1. Attempt connection to real backend if available
-    try {
-      const res = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: emailNorm,
-          password: credentials.password,
-        }),
-      });
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: emailNorm,
+        password: credentials.password,
+      }),
+    });
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data?.accessToken && json?.data?.user) {
-          const session: AuthSession = {
-            accessToken: json.data.accessToken,
-            user: json.data.user,
-            isMock: false,
-          };
-          this.setSession(session);
-          return session;
-        }
-      }
-    } catch {
-      // Backend not running; proceed with development fallback
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok || !json?.success) {
+      const code = json?.error?.code || (res.status === 401 ? 'UNAUTHORIZED' : res.status === 403 ? 'FORBIDDEN' : 'AUTH_ERROR');
+      const message = json?.error?.message || json?.message || 'Invalid email or password.';
+      throw new AuthApiError(message, code, res.status, json?.error?.details);
     }
 
-    // 2. Development Mock Authentication Fallback
-    const users = getStoredUsers();
-    let found = users.find(u => u.email.toLowerCase() === emailNorm);
-
-    // If matching demo password or default test credentials
-    if (!found) {
-      if (credentials.password.length >= 6) {
-        // Create an on-the-fly local demo user for testing convenience
-        found = {
-          id: `usr-${Date.now()}`,
-          email: credentials.email,
-          fullName: credentials.email.split('@')[0].toUpperCase(),
-          role: 'USER',
-          preferredLanguage: 'en',
-          trustRating: 92.0,
-          scoutGuildBadge: 'Highland Traveler',
-        };
-        saveRegisteredUser(found);
-      } else {
-        throw new Error('Invalid email or password. Password must be at least 6 characters.');
-      }
-    } else if (credentials.password.length < 6) {
-      throw new Error('Invalid password. Minimum 6 characters required.');
-    }
-
-    const session: AuthSession = {
-      accessToken: `mock-jwt-${found.id}-${Date.now()}`,
-      user: found,
-      isMock: true,
+    const session: AuthSuccessData = {
+      accessToken: json.data.accessToken,
+      user: formatBackendUser(json.data.user),
     };
 
     this.setSession(session);
     return session;
   },
 
-  async register(payload: RegisterPayload): Promise<AuthSession> {
+  async register(payload: RegisterPayload): Promise<AuthSuccessData> {
     const emailNorm = payload.email.trim().toLowerCase();
 
-    // 1. Attempt connection to real backend if available
-    try {
-      const res = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: emailNorm,
+        password: payload.password,
+        name: payload.name || payload.fullName,
+        preferredLanguage: payload.preferredLanguage || 'en',
+      }),
+    });
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data?.accessToken && json?.data?.user) {
-          const session: AuthSession = {
-            accessToken: json.data.accessToken,
-            user: json.data.user,
-            isMock: false,
-          };
-          this.setSession(session);
-          return session;
-        }
-      }
-    } catch {
-      // Backend not running; proceed with development fallback
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok || !json?.success) {
+      const code = json?.error?.code || (res.status === 409 ? 'CONFLICT' : res.status === 400 ? 'VALIDATION_ERROR' : 'AUTH_ERROR');
+      const message = json?.error?.message || json?.message || 'Registration failed. Please verify your details.';
+      throw new AuthApiError(message, code, res.status, json?.error?.details);
     }
 
-    // 2. Development Mock Registration Fallback
-    const users = getStoredUsers();
-    const existing = users.find(u => u.email.toLowerCase() === emailNorm);
-    if (existing) {
-      throw new Error('An account with this email address already exists.');
-    }
-
-    const newUser: User = {
-      id: `usr-reg-${Date.now()}`,
-      email: payload.email,
-      fullName: payload.fullName,
-      role: 'USER',
-      preferredLanguage: payload.preferredLanguage || 'en',
-      trustRating: 90.0,
-      scoutGuildBadge: 'Verified Passenger',
-    };
-
-    saveRegisteredUser(newUser);
-
-    const session: AuthSession = {
-      accessToken: `mock-jwt-${newUser.id}-${Date.now()}`,
-      user: newUser,
-      isMock: true,
+    const session: AuthSuccessData = {
+      accessToken: json.data.accessToken,
+      user: formatBackendUser(json.data.user),
     };
 
     this.setSession(session);
     return session;
   },
 
-  setSession(session: AuthSession) {
-    localStorage.setItem(TOKEN_KEY, session.accessToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(session.user));
-    // Also sync preferred language
+  async getCurrentUser(): Promise<User | null> {
+    const token = this.getStoredToken();
+    if (!token) return null;
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          this.clearSession();
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('auth:logout'));
+          }
+        }
+        return null;
+      }
+
+      const json = await res.json();
+      if (json?.data?.user) {
+        const user = formatBackendUser(json.data.user);
+        localStorage.setItem(PRIMARY_USER_KEY, JSON.stringify(user));
+        localStorage.setItem(FALLBACK_USER_KEY, JSON.stringify(user));
+        return user;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  setSession(session: AuthSuccessData) {
+    localStorage.setItem(PRIMARY_TOKEN_KEY, session.accessToken);
+    localStorage.setItem(FALLBACK_TOKEN_KEY, session.accessToken);
+    localStorage.setItem(PRIMARY_USER_KEY, JSON.stringify(session.user));
+    localStorage.setItem(FALLBACK_USER_KEY, JSON.stringify(session.user));
     if (session.user.preferredLanguage) {
       localStorage.setItem('guzo_lang', session.user.preferredLanguage);
     }
   },
 
   clearSession() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(PRIMARY_TOKEN_KEY);
+    localStorage.removeItem(FALLBACK_TOKEN_KEY);
+    localStorage.removeItem(PRIMARY_USER_KEY);
+    localStorage.removeItem(FALLBACK_USER_KEY);
   },
 };

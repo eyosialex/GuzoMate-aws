@@ -8,9 +8,9 @@ import {
   ChatMessage, 
   GeoLocation,
   PageView,
-  UserProfile
+  UserProfile,
+  DEFAULT_ADDIS_COORDINATES
 } from '../types';
-import { MOCK_USER_LOCATION } from '../lib/mockData';
 
 export type BottomSheetSnap = 'collapsed' | 'half' | 'expanded';
 
@@ -101,8 +101,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
   },
 
-  userLocation: MOCK_USER_LOCATION,
-  mapCenter: [MOCK_USER_LOCATION.lat, MOCK_USER_LOCATION.lon],
+  userLocation: DEFAULT_ADDIS_COORDINATES,
+  mapCenter: [DEFAULT_ADDIS_COORDINATES.lat, DEFAULT_ADDIS_COORDINATES.lon],
   mapZoom: 14,
   setUserLocation: (loc: GeoLocation) => {
     set({ 

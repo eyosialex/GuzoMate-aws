@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { 
@@ -18,27 +18,24 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../features/AuthContext';
 import { Incident } from '../types';
-import { MOCK_INCIDENTS } from '../lib/mockData';
+import { incidentsService } from '../services/incidentsService';
 import { springTactile, springGentle } from '../lib/motion';
 
 export const IncidentsPage: React.FC = () => {
   const { user } = useAuth();
   const shouldReduceMotion = useReducedMotion();
 
-  const [incidents, setIncidents] = useState<Incident[]>([
-    {
-      id: 'inc-termaber-01',
-      type: 'LANDSLIDE',
-      description: 'Three large basalt boulders fell from cliff on Termaber hairpin curve #4. Descending lane blocked with slurry.',
-      status: 'ACTIVE',
-      verification: 'OFFICIALLY_VERIFIED',
-      location: { lat: 9.8500, lon: 39.7500 },
-      distanceMeters: 42000,
-      createdAt: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
-      confirmationsCount: 14,
-    },
-    ...MOCK_INCIDENTS,
-  ]);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    incidentsService.getNearby({ lat: 9.0108, lon: 38.7618 }).then((res) => {
+      if (active) setIncidents(res.items);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'ACTIVE' | 'PENDING' | 'RESOLVED'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');

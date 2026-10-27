@@ -23,7 +23,7 @@ import {
 import { GuzoMap } from '../components/map/GuzoMap';
 import { useAppStore } from '../features/useAppStore';
 import { Place } from '../types';
-import { MOCK_PLACES } from '../lib/mockData';
+import { placesService } from '../services/placesService';
 import { springGentle } from '../lib/motion';
 
 export const ExplorePage: React.FC = () => {
@@ -35,6 +35,7 @@ export const ExplorePage: React.FC = () => {
   const savedPlaceIds = useAppStore((state) => state.savedPlaceIds);
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
 
+  const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all');
   const [maxDistanceKm, setMaxDistanceKm] = useState<number>(10);
@@ -44,105 +45,27 @@ export const ExplorePage: React.FC = () => {
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
   useEffect(() => {
-    // If no place selected, select St. Paul's Hospital by default as in screen-2.png
-    if (!selectedPlace) {
-      const defaultPlace = MOCK_PLACES.find((p) => p.category === 'hospital') || MOCK_PLACES[0];
-      setSelectedPlace(defaultPlace);
-    }
-  }, [selectedPlace, setSelectedPlace]);
+    let active = true;
+    placesService.getNearby({
+      lat: 9.0108,
+      lon: 38.7618,
+      category: selectedCategory === 'all' ? undefined : selectedCategory,
+      query: searchQuery,
+      radiusMeters: maxDistanceKm * 1000,
+    }).then((res) => {
+      if (active) {
+        setPlaces(res.items);
+        if (!selectedPlace && res.items.length > 0) {
+          setSelectedPlace(res.items[0]);
+        }
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [selectedCategory, searchQuery, maxDistanceKm, selectedPlace, setSelectedPlace]);
 
-  // Extended place list matching screen-2.png
-  const placesDataset: Place[] = [
-    {
-      id: 'place-st-pauls',
-      name: "St. Paul's Hospital Millennium Medical College",
-      category: 'hospital',
-      location: { lat: 9.0410, lon: 38.7450 },
-      distanceMeters: 1800,
-      address: 'Swaziland St, Gulele Subcity, Addis Ababa',
-      tags: {
-        amenity: 'hospital',
-        trauma: '24/7 Level-1 Trauma',
-        elevation: '2,410 m',
-        oxygen: 'Available 100%',
-        phone: '011 275 0125',
-        staff: 'English, አማርኛ, Oromoo staff',
-        opening_hours: '24/7',
-        verified: 'Guild Verified',
-      },
-      source: 'openstreetmap',
-      osm: { type: 'way', id: 'osm_st_pauls' },
-    },
-    {
-      id: 'place-totalenergies-meskel',
-      name: 'TotalEnergies & Bonjour Mart',
-      category: 'fuel',
-      location: { lat: 9.0108, lon: 38.7628 },
-      distanceMeters: 1100,
-      address: 'Meskel Square Junction, Kirkos Subcity',
-      tags: {
-        amenity: 'fuel',
-        diesel: 'Verified Diesel',
-        charger: '50kW EV Fast Charger',
-        atm: 'CBE ATM Online',
-        opening_hours: 'Open 24/7',
-      },
-      source: 'openstreetmap',
-      osm: { type: 'node', id: 'osm_total_meskel' },
-    },
-    {
-      id: 'place-entoto-lodge',
-      name: 'Entoto Mountain Viewpoint Lodge & Traditional Cafe',
-      category: 'cafe',
-      location: { lat: 9.0830, lon: 38.7620 },
-      distanceMeters: 7800,
-      address: 'Entoto Park Ridge Pass • Alt: 3,020 m',
-      tags: {
-        amenity: 'cafe',
-        scenic: 'Scenic Haven',
-        coffee: 'Single-origin Sidama roasted on embers',
-        advisory: 'Warm gabi / shawl recommended',
-        opening_hours: 'Open Now',
-      },
-      source: 'openstreetmap',
-      osm: { type: 'node', id: 'osm_entoto_lodge' },
-    },
-    {
-      id: 'place-lion-pharmacy',
-      name: 'Lion Pharmacy (Bole Medhane Alem Branch)',
-      category: 'pharmacy',
-      location: { lat: 9.0068, lon: 38.7885 },
-      distanceMeters: 450,
-      address: 'Cameroon Street, Next to Edna Mall area',
-      tags: {
-        amenity: 'pharmacy',
-        stock: 'Medication in Stock',
-        altitude_relief: 'Altitude relief (Acetazolamide) & oxygen canisters',
-        opening_hours: 'Open 24/7',
-      },
-      source: 'openstreetmap',
-      osm: { type: 'node', id: 'osm_lion_pharm' },
-    },
-    {
-      id: 'place-lucy-dining',
-      name: 'Lucy Cultural Gazebo & Garden Dining',
-      category: 'restaurant',
-      location: { lat: 9.0360, lon: 38.7620 },
-      distanceMeters: 3200,
-      address: 'National Museum Compound, King George VI St',
-      tags: {
-        amenity: 'restaurant',
-        style: 'Local Dining',
-        opening_hours: 'Closes 10 PM',
-        cuisine: 'Authentic injera, kitfo, shiro, and coffee ceremony under cedar canopies',
-      },
-      source: 'openstreetmap',
-      osm: { type: 'node', id: 'osm_lucy' },
-    },
-    ...MOCK_PLACES,
-  ];
-
-  const filteredPlaces = placesDataset.filter((p) => {
+  const filteredPlaces = places.filter((p) => {
     const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
     const matchesSearch = !searchQuery.trim() || 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -489,7 +412,7 @@ export const ExplorePage: React.FC = () => {
 
         {/* Live Leaflet OpenStreetMap Canvas */}
         <GuzoMap 
-          customPlaces={placesDataset}
+          customPlaces={filteredPlaces}
           mapStyle={mapStyle}
           className="w-full h-full"
         />

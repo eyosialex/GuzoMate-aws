@@ -17,7 +17,7 @@ import { Language } from '../../types';
 import { springTactile } from '../../lib/motion';
 
 export const Navbar: React.FC = () => {
-  const { user, isAuthenticated, logout, quickDemoLogin } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
@@ -235,17 +235,10 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center gap-2">
               <Link
                 to="/login"
-                className="py-1.5 px-3 text-xs font-bold text-gray-700 hover:text-[#183a2b] transition-colors"
+                className="py-1.5 px-3 bg-[#183a2b] hover:bg-[#122e22] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
               >
                 Sign In
               </Link>
-              <button
-                type="button"
-                onClick={() => quickDemoLogin(0).then(() => navigate('/app'))}
-                className="py-1.5 px-3 bg-[#183a2b] hover:bg-[#122e22] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
-              >
-                Demo Scout
-              </button>
             </div>
           )}
         </div>

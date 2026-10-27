@@ -1,5 +1,4 @@
 import { GeoLocation } from '../types';
-import { MOCK_PLACES } from './mockData';
 
 export interface AddisLandmark {
   id: string;
@@ -9,12 +8,6 @@ export interface AddisLandmark {
 }
 
 export const ADDIS_LANDMARKS: AddisLandmark[] = [
-  ...MOCK_PLACES.map((p) => ({
-    id: p.id,
-    name: p.name,
-    address: p.address || 'Addis Ababa',
-    location: p.location,
-  })),
   {
     id: 'lm-bole-medhanialem',
     name: 'Bole Medhanialem',
