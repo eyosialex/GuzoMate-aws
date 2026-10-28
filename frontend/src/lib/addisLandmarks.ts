@@ -122,7 +122,134 @@ export const ADDIS_LANDMARKS: AddisLandmark[] = [
     address: 'Ayat, Yeka, Addis Ababa',
     location: { lat: 9.0275, lon: 38.8790 },
   },
+  {
+    id: 'lm-kality',
+    name: 'Kality Interchange',
+    address: 'Debre Zeit Rd / Ring Rd, Akaki-Kality',
+    location: { lat: 8.9180, lon: 38.7620 },
+  },
+  {
+    id: 'lm-summit',
+    name: 'Summit Condominium',
+    address: 'Summit, Bole, Addis Ababa',
+    location: { lat: 9.0125, lon: 38.8710 },
+  },
+  {
+    id: 'lm-bulbula',
+    name: 'Bole Bulbula',
+    address: 'Bulbula, Bole, Addis Ababa',
+    location: { lat: 8.9550, lon: 38.7920 },
+  },
+  {
+    id: 'lm-atlas',
+    name: 'Bole Atlas',
+    address: 'Cape Verde St, Bole, Addis Ababa',
+    location: { lat: 9.0020, lon: 38.7820 },
+  },
+  {
+    id: 'lm-shiromeda',
+    name: 'Shiromeda / Entoto',
+    address: 'Entoto Ave, Gulele, Addis Ababa',
+    location: { lat: 9.0620, lon: 38.7620 },
+  },
+  {
+    id: 'lm-jemo',
+    name: 'Jemo Michael',
+    address: 'Jemo 1, Nifas Silk-Lafto',
+    location: { lat: 8.9590, lon: 38.7050 },
+  },
+  {
+    id: 'lm-alert',
+    name: 'ALERT Hospital / Zenebework',
+    address: 'Zenebework, Kolfe Keranio',
+    location: { lat: 8.9880, lon: 38.7030 },
+  },
 ];
+
+export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function getClosestLandmark(coords: GeoLocation): { landmark: AddisLandmark; distanceKm: number } {
+  let closest = ADDIS_LANDMARKS[0];
+  let minDistance = calculateDistanceKm(coords.lat, coords.lon, closest.location.lat, closest.location.lon);
+
+  for (let i = 1; i < ADDIS_LANDMARKS.length; i++) {
+    const lm = ADDIS_LANDMARKS[i];
+    const dist = calculateDistanceKm(coords.lat, coords.lon, lm.location.lat, lm.location.lon);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = lm;
+    }
+  }
+
+  return { landmark: closest, distanceKm: minDistance };
+}
+
+export function formatLocationName(coords: GeoLocation): string {
+  const { landmark, distanceKm } = getClosestLandmark(coords);
+  if (distanceKm <= 0.6) {
+    return `${landmark.name}, Addis Ababa`;
+  }
+  if (distanceKm <= 3.5) {
+    return `Near ${landmark.name}, Addis Ababa`;
+  }
+  // Check if within wider Addis Ababa boundary
+  if (coords.lat >= 8.85 && coords.lat <= 9.15 && coords.lon >= 38.65 && coords.lon <= 38.95) {
+    return `${landmark.name} Area, Addis Ababa`;
+  }
+  return `GPS (${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)})`;
+}
+
+export function estimateElevationMeters(lat: number, _lon: number): number {
+  const base = 2355;
+  const delta = (lat - 8.98) * 4500;
+  const estimated = Math.round(base + delta);
+  return Math.min(Math.max(estimated, 2100), 3100);
+}
+
+export async function reverseGeocode(coords: GeoLocation): Promise<string> {
+  const fallback = formatLocationName(coords);
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}&zoom=16&addressdetails=1`,
+      {
+        headers: { 'Accept-Language': 'en' },
+        signal: controller.signal,
+      }
+    );
+    clearTimeout(timeoutId);
+    if (res.ok) {
+      const data = await res.json();
+      const addr = data.address;
+      if (addr) {
+        const placePart = addr.suburb || addr.neighbourhood || addr.quarter || addr.commercial || addr.road || addr.city_district;
+        const cityPart = addr.city || addr.town || addr.municipality || 'Addis Ababa';
+        if (placePart && cityPart) {
+          return `${placePart}, ${cityPart}`;
+        }
+        if (data.name) {
+          return `${data.name}, ${cityPart}`;
+        }
+      }
+    }
+  } catch {
+    // Gracefully ignore network error or abort
+  }
+  return fallback;
+}
 
 export function searchAddisLandmarks(query: string): AddisLandmark[] {
   const clean = query.trim().toLowerCase();

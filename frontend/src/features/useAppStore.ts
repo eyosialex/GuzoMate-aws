@@ -6,11 +6,12 @@ import {
   Incident, 
   RouteOption, 
   ChatMessage, 
-  GeoLocation,
-  PageView,
-  UserProfile,
-  DEFAULT_ADDIS_COORDINATES
+  GeoLocation, 
+  PageView, 
+  UserProfile, 
+  DEFAULT_ADDIS_COORDINATES 
 } from '../types';
+import { formatLocationName, estimateElevationMeters, reverseGeocode } from '../lib/addisLandmarks';
 
 export type BottomSheetSnap = 'collapsed' | 'half' | 'expanded';
 
@@ -37,10 +38,15 @@ interface AppState {
 
   // Location & Map State
   userLocation: GeoLocation;
+  userLocationName: string;
+  userAltitude: string;
+  isLocating: boolean;
+  locationError: string | null;
   mapCenter: [number, number];
   mapZoom: number;
-  setUserLocation: (loc: GeoLocation) => void;
+  setUserLocation: (loc: GeoLocation, name?: string) => void;
   setMapCenter: (center: [number, number], zoom?: number) => void;
+  requestCurrentLocation: () => Promise<GeoLocation | null>;
 
   // Selections
   selectedPlace: Place | null;
@@ -102,11 +108,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   userLocation: DEFAULT_ADDIS_COORDINATES,
+  userLocationName: 'Bole Medhane Alem, Addis Ababa',
+  userAltitude: '2,355m',
+  isLocating: false,
+  locationError: null,
   mapCenter: [DEFAULT_ADDIS_COORDINATES.lat, DEFAULT_ADDIS_COORDINATES.lon],
   mapZoom: 14,
-  setUserLocation: (loc: GeoLocation) => {
+  setUserLocation: (loc: GeoLocation, name?: string) => {
+    const locationName = name || formatLocationName(loc);
+    const altitude = `${estimateElevationMeters(loc.lat, loc.lon)}m`;
     set({ 
-      userLocation: loc, 
+      userLocation: loc,
+      userLocationName: locationName,
+      userAltitude: altitude,
       mapCenter: [loc.lat, loc.lon] 
     });
   },
@@ -115,6 +129,60 @@ export const useAppStore = create<AppState>((set, get) => ({
       mapCenter: center, 
       mapZoom: zoom !== undefined ? zoom : state.mapZoom 
     }));
+  },
+  requestCurrentLocation: async (): Promise<GeoLocation | null> => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      set({ locationError: 'Geolocation is not supported by your browser.' });
+      return null;
+    }
+
+    set({ isLocating: true, locationError: null });
+
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords: GeoLocation = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          };
+          const name = formatLocationName(coords);
+          const altitude = position.coords.altitude != null
+            ? `${Math.round(position.coords.altitude)}m`
+            : `${estimateElevationMeters(coords.lat, coords.lon)}m`;
+
+          set({
+            userLocation: coords,
+            userLocationName: name,
+            userAltitude: altitude,
+            mapCenter: [coords.lat, coords.lon],
+            mapZoom: 16,
+            isLocating: false,
+            locationError: null,
+          });
+
+          // Asynchronously attempt to get more granular street/district address if available
+          reverseGeocode(coords).then((refinedName) => {
+            if (refinedName && refinedName !== name) {
+              set({ userLocationName: refinedName });
+            }
+          }).catch(() => {});
+
+          resolve(coords);
+        },
+        (error) => {
+          set({
+            isLocating: false,
+            locationError: error.message || 'Unable to retrieve your location.',
+          });
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0, // Force fresh hardware/sensor GPS reading
+        }
+      );
+    });
   },
 
   selectedPlace: null,

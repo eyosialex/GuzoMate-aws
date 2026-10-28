@@ -31,6 +31,9 @@ export const HomePage: React.FC = () => {
   const savedPlaceIds = useAppStore((state) => state.savedPlaceIds);
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
+  const userLocation = useAppStore((state) => state.userLocation);
+  const userLocationName = useAppStore((state) => state.userLocationName);
+  const userAltitude = useAppStore((state) => state.userAltitude);
 
   const [places, setPlaces] = useState<Place[]>([]);
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -39,16 +42,16 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    placesService.getNearby({ lat: 9.0108, lon: 38.7618, limit: 12 }).then((res) => {
+    placesService.getNearby({ lat: userLocation.lat, lon: userLocation.lon, limit: 12 }).then((res) => {
       if (active) setPlaces(res.items);
     });
-    incidentsService.getNearby({ lat: 9.0108, lon: 38.7618 }).then((res) => {
+    incidentsService.getNearby({ lat: userLocation.lat, lon: userLocation.lon }).then((res) => {
       if (active) setIncidents(res.items);
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [userLocation.lat, userLocation.lon]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,9 +112,9 @@ export const HomePage: React.FC = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
               </span>
-              <span>Current GPS: Bole Medhane Alem, Addis Ababa</span>
+              <span>Current GPS: {userLocationName}</span>
               <span className="text-gray-400">•</span>
-              <span className="font-mono text-[11px] text-[#25563e]">Alt: 2,355m</span>
+              <span className="font-mono text-[11px] text-[#25563e]">Alt: {userAltitude}</span>
             </div>
 
             {/* Scout Status Pill */}

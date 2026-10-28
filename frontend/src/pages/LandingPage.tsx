@@ -32,6 +32,8 @@ export const LandingPage: React.FC = () => {
 
   const language = useAppStore((state) => state.language);
   const setLanguage = useAppStore((state) => state.setLanguage);
+  const userLocationName = useAppStore((state) => state.userLocationName);
+  const userAltitude = useAppStore((state) => state.userAltitude);
 
   const [activePreviewTab, setActivePreviewTab] = useState<'explore' | 'routes' | 'incidents' | 'emergency'>('explore');
   const [isLaunching, setIsLaunching] = useState(false);
@@ -583,8 +585,8 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="lg:col-span-7 bg-white/5 rounded-2xl border border-emerald-500/20 p-5 space-y-3 backdrop-blur-md">
                     <div className="flex items-center justify-between text-xs text-gray-300">
-                      <span>GPS Telemetry: <strong>Bole Medhane Alem</strong></span>
-                      <span className="font-mono text-[10px] bg-black/40 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">Alt: 2,355m</span>
+                      <span>GPS Telemetry: <strong>{userLocationName}</strong></span>
+                      <span className="font-mono text-[10px] bg-black/40 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">Alt: {userAltitude}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="p-2.5 bg-black/30 rounded-xl border border-white/10">

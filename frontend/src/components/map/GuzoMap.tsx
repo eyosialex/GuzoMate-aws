@@ -331,6 +331,10 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   className = '',
 }) => {
   const userLocation = useAppStore((state) => state.userLocation);
+  const userLocationName = useAppStore((state) => state.userLocationName);
+  const userAltitude = useAppStore((state) => state.userAltitude);
+  const isLocating = useAppStore((state) => state.isLocating);
+  const requestCurrentLocation = useAppStore((state) => state.requestCurrentLocation);
   const mapCenter = useAppStore((state) => state.mapCenter);
   const mapZoom = useAppStore((state) => state.mapZoom);
   const setMapCenter = useAppStore((state) => state.setMapCenter);
@@ -361,8 +365,24 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
     return coords;
   }, [customRoute, selectedRoute]);
 
-  const recenterToUser = () => {
-    setMapCenter([userLocation.lat, userLocation.lon], 15);
+  // Check if browser already granted geolocation permission and sync location on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'permissions' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        if (result.state === 'granted') {
+          requestCurrentLocation();
+        }
+      }).catch(() => {});
+    }
+  }, [requestCurrentLocation]);
+
+  const recenterToUser = async () => {
+    const loc = await requestCurrentLocation();
+    if (loc) {
+      setMapCenter([loc.lat, loc.lon], 16);
+    } else {
+      setMapCenter([userLocation.lat, userLocation.lon], 15);
+    }
   };
 
   // OpenStreetMap Tile Layer URL with fail-safe fallbacks
@@ -431,7 +451,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
         >
           <Popup className="rounded-xl font-medium text-xs">
             <span className="font-bold text-[#183a2b] block leading-tight">GPS Telemetry Locked</span>
-            <span className="text-gray-600">Bole Medhane Alem, Addis Ababa (2,355m)</span>
+            <span className="text-gray-600">{userLocationName} ({userAltitude})</span>
           </Popup>
         </Marker>
 
@@ -542,11 +562,12 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2.5">
         <IconButton
           aria-label="Recenter map to my location"
-          icon={<Crosshair className="w-5 h-5 text-gray-800" />}
+          icon={<Crosshair className={`w-5 h-5 text-gray-800 transition-transform ${isLocating ? 'animate-spin text-emerald-600' : ''}`} />}
           variant="glass"
           shape="circle"
           onClick={recenterToUser}
-          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md"
+          disabled={isLocating}
+          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md cursor-pointer disabled:opacity-70"
         />
 
         {showIncidents && (

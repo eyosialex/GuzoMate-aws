@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useWeather } from '../../hooks/useWeather';
 import { useI18n } from '../../hooks/useI18n';
+import { useAppStore } from '../../features/useAppStore';
 import { IconButton } from '../common/IconButton';
 import { springGentle, springTactile, tactilePress, cardEnter } from '../../lib/motion';
 
@@ -19,6 +20,7 @@ export const WeatherWidget: React.FC = () => {
   const { t } = useI18n();
   const shouldReduceMotion = useReducedMotion();
   const { weather, isLoading, refresh } = useWeather();
+  const userLocationName = useAppStore((state) => state.userLocationName);
 
   const formattedTime = weather?.retrievedAt
     ? new Date(weather.retrievedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -58,8 +60,8 @@ export const WeatherWidget: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-primary tracking-wider uppercase leading-none block">
-              Addis Ababa Central
+            <span className="text-xs font-bold text-primary tracking-wider uppercase leading-none block truncate max-w-[220px]" title={userLocationName}>
+              {userLocationName}
             </span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-4xl font-extrabold text-on-surface tracking-tight leading-none font-display">
