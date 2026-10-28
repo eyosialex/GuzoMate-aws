@@ -27,7 +27,10 @@ export class WeatherApiProvider implements IWeatherProvider {
 
   constructor() {
     this.apiKey = env.WEATHER_API_KEY;
-    this.weatherApiBaseUrl = env.WEATHER_URL || 'https://api.weatherapi.com/v1';
+    this.weatherApiBaseUrl =
+      env.WEATHER_URL && !env.WEATHER_URL.includes('open-meteo')
+        ? env.WEATHER_URL
+        : 'https://api.weatherapi.com/v1';
     this.timeoutMs = env.WEATHER_REQUEST_TIMEOUT_MS || 10000;
   }
 
@@ -111,6 +114,7 @@ export class WeatherApiProvider implements IWeatherProvider {
           condition: this.translateConditionText(current?.condition?.text || 'Clear', language),
           precipitationMm: current?.precip_mm ?? 0,
           windKph: current?.wind_kph ?? 0,
+          humidity: current?.humidity != null ? Math.round(current.humidity) : null,
         },
         forecast,
         provider: 'weatherapi',
@@ -134,7 +138,7 @@ export class WeatherApiProvider implements IWeatherProvider {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m&forecast_days=${days}&timezone=Africa/Addis_Ababa`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m&forecast_days=${days}&timezone=Africa/Addis_Ababa`;
 
     try {
       const res = await fetch(url, { signal: controller.signal });
@@ -186,9 +190,10 @@ export class WeatherApiProvider implements IWeatherProvider {
           condition: this.getWmoDescription(currentCode, language),
           precipitationMm: current?.precipitation ?? 0,
           windKph: Math.round(current?.wind_speed_10m ?? 0),
+          humidity: current?.relative_humidity_2m != null ? Math.round(current.relative_humidity_2m) : null,
         },
         forecast,
-        provider: 'weatherapi',
+        provider: 'open-meteo',
         retrievedAt: new Date().toISOString(),
       };
     } catch (err: any) {

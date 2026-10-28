@@ -56,6 +56,17 @@ interface AppState {
   setSelectedIncident: (incident: Incident | null) => void;
   setSelectedRoute: (route: RouteOption | null) => void;
 
+  // Destination Picker & Map Selection Flow
+  isPickingDestination: boolean;
+  destinationLocation: GeoLocation | null;
+  destinationName: string;
+  draftDestination: { location: GeoLocation; name: string } | null;
+  startPickingDestination: () => void;
+  setDraftDestination: (draft: { location: GeoLocation; name: string } | null) => void;
+  confirmDestination: () => void;
+  cancelPickingDestination: () => void;
+  setDestination: (loc: GeoLocation, name?: string) => void;
+
   // Incident Modal & Draft
   isReportingIncident: boolean;
   incidentDraftLocation: GeoLocation | null;
@@ -208,12 +219,76 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   setSelectedRoute: (route: RouteOption | null) => {
     set({ selectedRoute: route });
-    if (route && route.segments.length > 0) {
-      const firstCoord = route.segments[0].coordinates[0];
+    if (route && Array.isArray(route.segments) && route.segments.length > 0) {
+      const firstCoord = route.segments[0]?.coordinates?.[0];
       if (firstCoord) {
         set({ mapCenter: [firstCoord[0], firstCoord[1]], mapZoom: 13 });
       }
     }
+  },
+
+  // Destination Picking State & Actions
+  isPickingDestination: false,
+  destinationLocation: { lat: 9.0340, lon: 38.7510 }, // Default Piazza St George
+  destinationName: 'Piazza St George, Addis Ababa',
+  draftDestination: null,
+
+  startPickingDestination: () => {
+    const currentLoc = get().destinationLocation;
+    const currentName = get().destinationName;
+    set({
+      isPickingDestination: true,
+      draftDestination: currentLoc ? { location: currentLoc, name: currentName } : null,
+      bottomSheetSnap: 'collapsed',
+    });
+    if (currentLoc) {
+      set({ mapCenter: [currentLoc.lat, currentLoc.lon], mapZoom: 15 });
+    }
+  },
+
+  setDraftDestination: (draft: { location: GeoLocation; name: string } | null) => {
+    set({ draftDestination: draft });
+    if (draft) {
+      set({ mapCenter: [draft.location.lat, draft.location.lon] });
+    }
+  },
+
+  confirmDestination: () => {
+    const draft = get().draftDestination;
+    if (draft) {
+      set({
+        destinationLocation: draft.location,
+        destinationName: draft.name,
+        draftDestination: null,
+        isPickingDestination: false,
+        activeTab: 'routes',
+        bottomSheetSnap: 'half',
+      });
+    } else {
+      set({
+        isPickingDestination: false,
+        activeTab: 'routes',
+        bottomSheetSnap: 'half',
+      });
+    }
+  },
+
+  cancelPickingDestination: () => {
+    set({
+      isPickingDestination: false,
+      draftDestination: null,
+      bottomSheetSnap: 'half',
+    });
+  },
+
+  setDestination: (loc: GeoLocation, name?: string) => {
+    const resolvedName = name || formatLocationName(loc);
+    set({
+      destinationLocation: loc,
+      destinationName: resolvedName,
+      draftDestination: null,
+      isPickingDestination: false,
+    });
   },
 
   isReportingIncident: false,

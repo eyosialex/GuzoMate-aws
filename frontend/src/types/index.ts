@@ -245,7 +245,7 @@ export interface UserPreferences {
 
 export type ActiveTab = 'assistant' | 'places' | 'routes' | 'weather' | 'incidents';
 
-export type PageView = 'landing' | 'app' | 'about' | 'contact' | 'home' | 'explore' | 'incidents';
+export type PageView = 'landing' | 'app' | 'about' | 'contact' | 'home' | 'explore' | 'incidents' | 'routes';
 
 export interface UserProfile {
   id: string;

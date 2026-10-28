@@ -6,15 +6,18 @@ import { GuzoMap } from '../map/GuzoMap';
 import { useAppStore } from '../../features/useAppStore';
 
 export const ExplorePage: React.FC = () => {
+  const pageView = useAppStore((state) => state.pageView);
   const activeTab = useAppStore((state) => state.activeTab);
   const setActiveTab = useAppStore((state) => state.setActiveTab);
 
-  // If activeTab is currently set to 'incidents', default to 'places' on explore page
+  // If navigating via routes pageView, switch activeTab to 'routes'; if 'incidents', default to 'places'
   useEffect(() => {
-    if (activeTab === 'incidents') {
+    if (pageView === 'routes') {
+      setActiveTab('routes');
+    } else if (activeTab === 'incidents') {
       setActiveTab('places');
     }
-  }, [activeTab, setActiveTab]);
+  }, [pageView, activeTab, setActiveTab]);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-surface text-on-surface font-sans">

@@ -10,6 +10,7 @@ export interface WeatherCurrentConditions {
   condition: string;
   precipitationMm: number | null;
   windKph: number | null;
+  humidity?: number | null;
 }
 
 export interface WeatherHourlyItem {

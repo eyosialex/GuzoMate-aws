@@ -35,7 +35,7 @@ export const App: React.FC = () => {
           <HomePage />
         )}
 
-        {(pageView === 'app' || pageView === 'explore') && (
+        {(pageView === 'app' || pageView === 'explore' || pageView === 'routes') && (
           <ExplorePage />
         )}
 
