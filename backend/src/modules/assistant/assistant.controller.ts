@@ -11,10 +11,16 @@ export class AssistantController {
     const requestId = (req.headers['x-request-id'] as string) || `req_${Date.now()}`;
     const rawBody = req.body || {};
     const effectiveUserId = rawBody.userId || (req.headers['x-user-id'] as string) || undefined;
+    const queryText = (typeof rawBody.query === 'string' && rawBody.query.trim())
+      ? rawBody.query
+      : (typeof rawBody.message === 'string' && rawBody.message.trim())
+        ? rawBody.message
+        : (typeof rawBody.text === 'string' ? rawBody.text : '');
 
     // 1. Schema validation
     const validationResult = AssistantQuerySchema.safeParse({
       ...rawBody,
+      query: queryText,
       userId: effectiveUserId,
     });
 

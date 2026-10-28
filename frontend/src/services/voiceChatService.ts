@@ -22,23 +22,35 @@ export const voiceChatService = {
   async sendVoiceRecording(params: SendVoiceParams): Promise<VoiceChatResponse> {
     const { audioBlob, recognizedTranscript, language, userLocation } = params;
 
-    let userText = recognizedTranscript?.trim() || '';
+    let userText = '';
 
-    // If browser speech recognition did not produce transcript, transcribe audio blob
-    if (!userText && audioBlob) {
+    // 1. Transcribe the full recorded audio blob using the backend STT engine
+    let backendText = '';
+    if (audioBlob && audioBlob.size > 100) {
       try {
         const transRes = await assistantService.transcribeAudio(audioBlob, language);
-        userText = transRes.text?.trim() || '';
+        backendText = transRes.text?.trim() || '';
       } catch (err) {
-        console.warn('Transcription failed:', err);
+        console.warn('Backend audio transcription failed, falling back to local recognition:', err);
       }
+    }
+
+    const browserText = recognizedTranscript?.trim() || '';
+
+    // Pick the best transcript between backend STT and browser recognition
+    if (backendText && backendText.length >= browserText.length) {
+      userText = backendText;
+    } else if (browserText) {
+      userText = browserText;
+    } else if (backendText) {
+      userText = backendText;
     }
 
     if (!userText) {
       throw new Error('No voice recognized. Please speak clearly into your microphone.');
     }
 
-    // Query AI assistant with the transcribed text
+    // Query AI assistant with the transcribed text (voice generation is handled server-side)
     const assistantRes = await assistantService.query({
       query: userText,
       language,
@@ -64,6 +76,13 @@ export const voiceChatService = {
         console.warn('Audio synthesis fallback failed:', err);
       }
     }
+
+    // Guarantee audioUrl is always present so the audio response is ALWAYS rendered in chat and played
+    if (!audioUrl && assistantRes.answer) {
+      audioUrl = `speech:${encodeURIComponent(assistantRes.answer)}?lang=${language}`;
+    }
+
+    const audioDurationSeconds: number | undefined = voiceData?.durationSeconds ?? 4;
 
     return {
       transcript: userText,

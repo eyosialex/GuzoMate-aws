@@ -19,6 +19,7 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
 
   const cleanupRef = useRef<(() => void) | null>(null);
   const hasAutoPlayedRef = useRef(false);
+  const isPlayingRef = useRef(false);
   const onPlaybackEndRef = useRef(onPlaybackEnd);
 
   useEffect(() => {
@@ -26,23 +27,36 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
   }, [onPlaybackEnd]);
 
   const startPlayback = async () => {
+    if (isPlayingRef.current) return;
+    isPlayingRef.current = true;
     setIsPlaying(true);
-    const stopFn = await playAudioBuffer(
-      audioUrl,
-      (curr, dur) => {
-        setCurrentTime(curr);
-        if (dur) setDuration(dur);
-      },
-      () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-        onPlaybackEndRef.current?.();
-      }
-    );
-    cleanupRef.current = stopFn;
+
+    try {
+      const stopFn = await playAudioBuffer(
+        audioUrl,
+        (curr, dur) => {
+          setCurrentTime(curr);
+          if (dur && !isNaN(dur) && isFinite(dur)) {
+            setDuration(dur);
+          }
+        },
+        () => {
+          isPlayingRef.current = false;
+          setIsPlaying(false);
+          setCurrentTime(0);
+          onPlaybackEndRef.current?.();
+        }
+      );
+      cleanupRef.current = stopFn;
+    } catch (err) {
+      console.warn('[AudioMessagePlayer] Playback failed:', err);
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+    }
   };
 
   const pausePlayback = () => {
+    isPlayingRef.current = false;
     if (cleanupRef.current) {
       cleanupRef.current();
       cleanupRef.current = null;
@@ -56,11 +70,13 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
       hasAutoPlayedRef.current = true;
       startPlayback();
     }
+  }, [autoPlay, audioUrl]);
 
+  useEffect(() => {
     return () => {
       pausePlayback();
     };
-  }, [audioUrl, autoPlay]);
+  }, []);
 
   const togglePlay = () => {
     if (isPlaying) {

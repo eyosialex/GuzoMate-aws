@@ -46,6 +46,7 @@ export interface RouteOption {
   fareExplanation?: string;
   geometry?: string | any; // GeoJSON or polyline
   legs: RouteLeg[];
+  segments?: any[];
   transitStops?: string[];
   transfersCount?: number;
   source: 'osrm' | 'addis-transit-static' | 'addis-transit';

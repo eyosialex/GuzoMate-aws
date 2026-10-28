@@ -34,6 +34,9 @@ export const ExplorePage: React.FC = () => {
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
   const savedPlaceIds = useAppStore((state) => state.savedPlaceIds);
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
+  const userLocation = useAppStore((state) => state.userLocation);
+  const userLocationName = useAppStore((state) => state.userLocationName);
+  const userAltitude = useAppStore((state) => state.userAltitude);
 
   const [places, setPlaces] = useState<Place[]>([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -47,8 +50,8 @@ export const ExplorePage: React.FC = () => {
   useEffect(() => {
     let active = true;
     placesService.getNearby({
-      lat: 9.0108,
-      lon: 38.7618,
+      lat: userLocation.lat,
+      lon: userLocation.lon,
       category: selectedCategory === 'all' ? undefined : selectedCategory,
       query: searchQuery,
       radiusMeters: maxDistanceKm * 1000,
@@ -63,7 +66,7 @@ export const ExplorePage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [selectedCategory, searchQuery, maxDistanceKm, selectedPlace, setSelectedPlace]);
+  }, [userLocation.lat, userLocation.lon, selectedCategory, searchQuery, maxDistanceKm, selectedPlace, setSelectedPlace]);
 
   const filteredPlaces = places.filter((p) => {
     const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
@@ -149,10 +152,10 @@ export const ExplorePage: React.FC = () => {
               <span className="relative flex h-2 w-2">
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
               </span>
-              <span>Current GPS: <strong>Bole Medhane Alem</strong></span>
+              <span>Current GPS: <strong>{userLocationName}</strong></span>
             </div>
             <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 text-[10px]">
-              Alt: 2,355m
+              Alt: {userAltitude}
             </span>
           </div>
         </div>

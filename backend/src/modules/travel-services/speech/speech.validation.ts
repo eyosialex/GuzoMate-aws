@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { env } from '../../../config/env.js';
 
-const ALLOWED_AUDIO_FORMATS = ['wav', 'mp3', 'webm', 'ogg', 'm4a'] as const;
+const ALLOWED_AUDIO_FORMATS = ['wav', 'mp3', 'webm', 'ogg', 'm4a', 'mp4'] as const;
 const ALLOWED_MIME_TYPES = [
   'audio/wav',
   'audio/wave',
@@ -11,6 +11,7 @@ const ALLOWED_MIME_TYPES = [
   'audio/webm',
   'audio/ogg',
   'audio/x-m4a',
+  'audio/mp4',
   'audio/aac',
 ] as const;
 

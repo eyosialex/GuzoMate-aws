@@ -9,6 +9,17 @@ import {
 } from '../types/assistant';
 import { Language } from '../types';
 
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 export const assistantService = {
   /**
    * Submits a conversational query in English, Amharic, or Afaan Oromo.
@@ -104,7 +115,8 @@ export const assistantService = {
     );
 
     if (!response.ok) {
-      throw new Error(`Audio transcription failed: ${response.statusText}`);
+      const errJson = await response.json().catch(() => ({}));
+      throw new Error(errJson?.error?.message || `Audio transcription failed: ${response.statusText}`);
     }
 
     const json = await response.json();

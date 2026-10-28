@@ -24,6 +24,8 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
   const { 
     pageView, 
     setPageView, 
+    activeTab,
+    setActiveTab,
     language, 
     setLanguage, 
     currentUser, 
@@ -87,6 +89,12 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
     setMobileMenuOpen(false);
   };
 
+  const handleRoutesClick = () => {
+    setActiveTab('routes');
+    setPageView('explore');
+    setMobileMenuOpen(false);
+  };
+
   const handleIncidentsClick = () => {
     setPageView('incidents');
     setMobileMenuOpen(false);
@@ -127,12 +135,23 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
           <button 
             onClick={handleExploreClick} 
             className={`pb-1 transition-colors flex items-center gap-1 ${
-              effectiveActive === 'explore'
+              effectiveActive === 'explore' && activeTab !== 'routes'
                 ? 'text-primary font-extrabold border-b-2 border-primary'
                 : 'text-on-surface-variant hover:text-primary'
             }`}
           >
             {language === 'am' ? 'አስስ' : language === 'om' ? 'Daawwadhu' : 'Explore'}
+          </button>
+
+          <button 
+            onClick={handleRoutesClick} 
+            className={`pb-1 transition-colors flex items-center gap-1 ${
+              effectiveActive === 'explore' && activeTab === 'routes'
+                ? 'text-primary font-extrabold border-b-2 border-primary'
+                : 'text-on-surface-variant hover:text-primary'
+            }`}
+          >
+            {language === 'am' ? 'መስመሮች' : language === 'om' ? 'Daandii' : 'Routes'}
           </button>
 
           <button 
@@ -323,10 +342,18 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
             <button 
               onClick={handleExploreClick} 
               className={`w-full py-2.5 px-3 text-left font-bold rounded-xl transition-colors ${
-                effectiveActive === 'explore' ? 'text-primary bg-primary/10' : 'text-on-surface hover:bg-surface-low'
+                effectiveActive === 'explore' && activeTab !== 'routes' ? 'text-primary bg-primary/10' : 'text-on-surface hover:bg-surface-low'
               }`}
             >
               {language === 'am' ? 'አስስ' : language === 'om' ? 'Daawwadhu' : 'Explore'}
+            </button>
+            <button 
+              onClick={handleRoutesClick} 
+              className={`w-full py-2.5 px-3 text-left font-bold rounded-xl transition-colors ${
+                effectiveActive === 'explore' && activeTab === 'routes' ? 'text-primary bg-primary/10' : 'text-on-surface hover:bg-surface-low'
+              }`}
+            >
+              {language === 'am' ? 'መስመሮች' : language === 'om' ? 'Daandii' : 'Routes'}
             </button>
             <button 
               onClick={handleIncidentsClick} 

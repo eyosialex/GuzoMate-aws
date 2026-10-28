@@ -78,13 +78,13 @@ export interface SourceItem {
 }
 
 export interface AddisVoiceResult {
-  provider: 'addis-ai';
+  provider: string; // 'addis-ai' | 'gemini' | 'browser-fallback'
   voiceId: string;
   language: SupportedLanguage;
-  audioUrl: string;
-  audioBase64?: string;
+  audioUrl?: string | null;
+  audioBase64?: string | null;
   mimeType: string;
-  durationSeconds?: number;
+  durationSeconds?: number | null;
 }
 
 export interface AssistantQueryResponse {

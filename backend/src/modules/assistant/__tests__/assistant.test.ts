@@ -179,7 +179,7 @@ async function runTests() {
     assert.strictEqual(voiceResult.provider, 'addis-ai');
     assert.strictEqual(voiceResult.language, 'am');
     assert.strictEqual(voiceResult.voiceId, 'am-hamen');
-    assert.ok(voiceResult.audioUrl.startsWith('https://'));
+    assert.ok(voiceResult.audioUrl && voiceResult.audioUrl.startsWith('https://'));
     assert.ok(typeof voiceResult.durationSeconds === 'number' && voiceResult.durationSeconds > 0);
   });
 
@@ -194,7 +194,7 @@ async function runTests() {
     assert.strictEqual(response.language, 'am');
     assert.ok(response.voice !== null && response.voice !== undefined);
     assert.strictEqual(response.voice?.provider, 'addis-ai');
-    assert.ok(response.voice?.audioUrl.startsWith('https://'));
+    assert.ok(response.voice?.audioUrl && response.voice.audioUrl.startsWith('https://'));
   });
 
   console.log('\n[Task 6: Live Weather Forecast & Destination Arrival Advice]');

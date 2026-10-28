@@ -50,11 +50,17 @@ export const ChatInterface: React.FC = () => {
 
   const voiceTranscriptRef = useRef('');
   const lastSpokeTimeRef = useRef<number>(Date.now());
+  const hasSpokenRef = useRef(false);
+  const isSendingVoiceRef = useRef(false); // guard against double-fire
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
   const silenceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  // Ref so the setInterval closure always calls the latest handleSendVoice
+  const handleSendVoiceRef = useRef<() => Promise<void>>(async () => {});
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -70,6 +76,13 @@ export const ChatInterface: React.FC = () => {
       if (silenceIntervalRef.current) clearInterval(silenceIntervalRef.current);
       if (mediaStream) {
         mediaStream.getTracks().forEach((track) => track.stop());
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch {
+          // ignore
+        }
       }
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         try {
@@ -94,6 +107,14 @@ export const ChatInterface: React.FC = () => {
       }
       recognitionRef.current = null;
     }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch {
+        // ignore
+      }
+      mediaRecorderRef.current = null;
+    }
     if (mediaStream) {
       mediaStream.getTracks().forEach((track) => track.stop());
       setMediaStream(null);
@@ -111,18 +132,57 @@ export const ChatInterface: React.FC = () => {
     setIsSpeaking(false);
     setSilenceSeconds(null);
     voiceTranscriptRef.current = '';
+    recordedChunksRef.current = [];
+    hasSpokenRef.current = false;
+    isSendingVoiceRef.current = false;
   };
 
   const handleSendVoice = async () => {
-    const transcriptToSend = voiceTranscriptRef.current;
+    warmUpAudio();
+    // Prevent double-fire from the silence interval
+    if (isSendingVoiceRef.current) return;
+    isSendingVoiceRef.current = true;
+    // Stop silence monitoring immediately
+    if (silenceIntervalRef.current) {
+      clearInterval(silenceIntervalRef.current);
+      silenceIntervalRef.current = null;
+    }
+    // 1. Gather audio blob from MediaRecorder
+    const recorder = mediaRecorderRef.current;
+    let audioBlob: Blob | undefined;
+
+    if (recorder && recorder.state !== 'inactive') {
+      await new Promise<void>((resolve) => {
+        recorder.onstop = () => resolve();
+        try {
+          recorder.requestData();
+          recorder.stop();
+        } catch {
+          resolve();
+        }
+      });
+    }
+
+    if (recordedChunksRef.current.length > 0) {
+      const mime = recorder?.mimeType || 'audio/webm';
+      audioBlob = new Blob(recordedChunksRef.current, { type: mime });
+    }
+
+    const transcriptToSend = voiceTranscriptRef.current.trim();
     cancelVoiceMode();
+
+    if (!transcriptToSend && (!audioBlob || audioBlob.size === 0)) {
+      return;
+    }
 
     setAssistantLoading(true);
 
     try {
       const response = await voiceChatService.sendVoiceRecording({
+        audioBlob,
         recognizedTranscript: transcriptToSend,
         language,
+        userLocation,
       });
 
       // 1. Display user message in chat section as if user texted it
@@ -152,18 +212,38 @@ export const ChatInterface: React.FC = () => {
         sources: response.sources,
       };
       addMessage(assistantMsg);
-    } catch {
+    } catch (err: any) {
+      console.error('[ChatInterface] Voice recording error:', err);
+      const noVoice = err?.message?.includes('No voice');
+      let errorContent: string;
+      if (noVoice) {
+        if (language === 'am') {
+          errorContent = 'ምንም ድምፅ አልተሰማም። እባክዎን ማይክሮፎኑን ተጭነው በግልጽ ይናገሩ።';
+        } else if (language === 'om') {
+          errorContent = 'Sagaleen hin dhagayamne. Maaloo af-dubbii kee ifatti dubbadhu.';
+        } else {
+          errorContent = 'No voice was recognized. Please speak clearly into your microphone.';
+        }
+      } else {
+        errorContent = 'Unable to process voice recording right now. Please verify your connection.';
+      }
       const fallbackMsg: ChatMessage = {
         id: `asst-err-${Date.now()}`,
         sender: 'assistant',
-        content: 'Unable to process voice recording right now. Please verify your connection.',
+        content: errorContent,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       addMessage(fallbackMsg);
     } finally {
       setAssistantLoading(false);
+      isSendingVoiceRef.current = false;
     }
   };
+
+  // Keep the ref up-to-date after every render so the setInterval closure is never stale
+  useEffect(() => {
+    handleSendVoiceRef.current = handleSendVoice;
+  });
 
   const startVoiceMode = async () => {
     if (isAssistantLoading) return;
@@ -172,7 +252,9 @@ export const ChatInterface: React.FC = () => {
     setIsSpeaking(true);
     setSilenceSeconds(null);
     voiceTranscriptRef.current = '';
+    hasSpokenRef.current = false;
     lastSpokeTimeRef.current = Date.now();
+    recordedChunksRef.current = [];
 
     // 1. Request microphone stream
     let stream: MediaStream | null = null;
@@ -181,8 +263,32 @@ export const ChatInterface: React.FC = () => {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         setMediaStream(stream);
 
+        // Instantiate MediaRecorder to capture audio bytes
+        let mimeType = 'audio/webm';
+        if (typeof MediaRecorder !== 'undefined') {
+          if (!MediaRecorder.isTypeSupported('audio/webm')) {
+            if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+            else if (MediaRecorder.isTypeSupported('audio/ogg')) mimeType = 'audio/ogg';
+            else mimeType = '';
+          }
+          const recorder = mimeType
+            ? new MediaRecorder(stream, { mimeType })
+            : new MediaRecorder(stream);
+
+          recorder.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) {
+              recordedChunksRef.current.push(event.data);
+            }
+          };
+
+          recorder.start(100);
+          mediaRecorderRef.current = recorder;
+        }
+
         // Connect audio analyser to detect user voice volume
-        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         if (AudioCtx) {
           const audioCtx = new AudioCtx();
           const analyser = audioCtx.createAnalyser();
@@ -212,12 +318,15 @@ export const ChatInterface: React.FC = () => {
         recognition.onresult = (event: any) => {
           let text = '';
           for (let i = 0; i < event.results.length; i++) {
-            text += event.results[i][0].transcript;
+            text += event.results[i][0].transcript + ' ';
           }
-          voiceTranscriptRef.current = text;
-          lastSpokeTimeRef.current = Date.now();
-          setIsSpeaking(true);
-          setSilenceSeconds(null);
+          if (text.trim()) {
+            voiceTranscriptRef.current = text.trim();
+            hasSpokenRef.current = true;
+            lastSpokeTimeRef.current = Date.now();
+            setIsSpeaking(true);
+            setSilenceSeconds(null);
+          }
         };
 
         recognition.onerror = () => {};
@@ -229,7 +338,7 @@ export const ChatInterface: React.FC = () => {
       }
     }
 
-    // 3. Monitor for 3 to 4 seconds of silence
+    // 3. Monitor for volume & silence after user has spoken
     if (silenceIntervalRef.current) clearInterval(silenceIntervalRef.current);
 
     silenceIntervalRef.current = setInterval(() => {
@@ -242,7 +351,7 @@ export const ChatInterface: React.FC = () => {
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
         const avg = sum / dataArray.length;
-        if (avg > 14) {
+        if (avg > 5) {
           isLoud = true;
         }
       }
@@ -250,19 +359,20 @@ export const ChatInterface: React.FC = () => {
       const now = Date.now();
       if (isLoud) {
         lastSpokeTimeRef.current = now;
+        hasSpokenRef.current = true;
         setIsSpeaking(true);
         setSilenceSeconds(null);
-      } else {
+      } else if (hasSpokenRef.current) {
+        // Only count down to auto-send AFTER user has actually spoken!
         const quietMs = now - lastSpokeTimeRef.current;
-        // User has been quiet for more than 1 second
-        if (quietMs >= 1000) {
+        if (quietMs >= 2000) {
           setIsSpeaking(false);
-          const remainingSecs = Math.max(0, Math.ceil((3600 - quietMs) / 1000));
+          const remainingSecs = Math.max(0, Math.ceil((5000 - quietMs) / 1000));
           setSilenceSeconds(remainingSecs);
 
-          // 3.5 seconds silence elapsed -> automatically send to backend!
-          if (quietMs >= 3500) {
-            handleSendVoice();
+          // 5 seconds of silence after speaking -> auto-send!
+          if (quietMs >= 5000) {
+            handleSendVoiceRef.current();
           }
         }
       }
@@ -276,6 +386,8 @@ export const ChatInterface: React.FC = () => {
     if (isVoiceActive) {
       cancelVoiceMode();
     }
+
+    warmUpAudio();
 
     const userMsg: ChatMessage = {
       id: `usr-${Date.now()}`,
@@ -310,7 +422,7 @@ export const ChatInterface: React.FC = () => {
       );
 
       const assistantMsg: ChatMessage = {
-        id: `asst-${Date.now()}`,
+        id: assistantMsgId,
         sender: 'assistant',
         content: response.answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -328,7 +440,8 @@ export const ChatInterface: React.FC = () => {
       }
 
       addMessage(assistantMsg);
-    } catch {
+    } catch (err) {
+      console.error('[ChatInterface] Assistant query error:', err);
       const fallbackMsg: ChatMessage = {
         id: `asst-err-${Date.now()}`,
         sender: 'assistant',
@@ -586,7 +699,7 @@ export const ChatInterface: React.FC = () => {
           {/* Dynamic Text Input OR Real-time Sound Wave Indicator */}
           {isVoiceActive ? (
             <SoundWaveVisualizer
-              stream={mediaStream}
+              analyser={analyserRef.current}
               silenceSeconds={silenceSeconds}
               isSpeaking={isSpeaking}
               onCancel={cancelVoiceMode}
@@ -617,7 +730,7 @@ export const ChatInterface: React.FC = () => {
                 <Mic className="w-5 h-5 text-on-surface-variant hover:text-primary transition-colors" />
               )
             }
-            onClick={isVoiceActive ? cancelVoiceMode : startVoiceMode}
+            onClick={isVoiceActive ? handleSendVoice : startVoiceMode}
             variant={isVoiceActive ? 'primary' : 'outline'}
             shape="circle"
             className={

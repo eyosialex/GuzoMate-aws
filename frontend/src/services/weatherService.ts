@@ -90,9 +90,11 @@ export const weatherService = {
         arrivalTime ? this.getArrivalAdvice(lat, lon, arrivalTime, language) : Promise.resolve(null),
       ]);
 
-      if (currentRes.status !== 'fulfilled') {
-        return null;
-      }
+    // 2. Concurrently fetch forecast and arrival advice
+    const [forecastSettled, adviceSettled] = await Promise.allSettled([
+      this.getForecast(lat, lon, 3, language),
+      arrivalTime ? this.getArrivalAdvice(lat, lon, arrivalTime, language) : Promise.resolve(null),
+    ]);
 
       const current = currentRes.value;
       const forecast = forecastRes.status === 'fulfilled' ? forecastRes.value.forecast : [];

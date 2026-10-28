@@ -293,15 +293,64 @@ function MapAutoFitter({
   return null;
 }
 
+const destinationPinIcon = L.divIcon({
+  className: 'custom-destination-pin',
+  html: `
+    <div style="
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div style="
+        background-color: #dc2626;
+        color: #ffffff;
+        border: 3px solid #ffffff;
+        border-radius: 9999px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+        font-size: 15px;
+      ">
+        🎯
+      </div>
+    </div>
+  `,
+  iconSize: [44, 44],
+  iconAnchor: [22, 22],
+});
+
 /**
- * Handle map click to drop pin or select coordinates
+ * Handle map click to drop pin or select coordinates (Destination or Incidents)
  */
 function MapEventsHandler({ onMapClick }: { onMapClick?: (loc: GeoLocation) => void }) {
+  const isPickingDestination = useAppStore((state) => state.isPickingDestination);
+  const setDraftDestination = useAppStore((state) => state.setDraftDestination);
   const setIncidentDraftLocation = useAppStore((state) => state.setIncidentDraftLocation);
 
   useMapEvents({
     click(e) {
       const loc = { lat: e.latlng.lat, lon: e.latlng.lng };
+
+      if (isPickingDestination) {
+        const initialName = formatLocationName(loc);
+        setDraftDestination({ location: loc, name: initialName });
+
+        // Asynchronously refine address via reverse geocoding
+        reverseGeocode(loc)
+          .then((refinedName) => {
+            if (refinedName && refinedName !== initialName) {
+              setDraftDestination({ location: loc, name: refinedName });
+            }
+          })
+          .catch(() => {});
+        return;
+      }
+
       setIncidentDraftLocation(loc);
       onMapClick?.(loc);
     },
@@ -334,6 +383,10 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   className = '',
 }) => {
   const userLocation = useAppStore((state) => state.userLocation);
+  const userLocationName = useAppStore((state) => state.userLocationName);
+  const userAltitude = useAppStore((state) => state.userAltitude);
+  const isLocating = useAppStore((state) => state.isLocating);
+  const requestCurrentLocation = useAppStore((state) => state.requestCurrentLocation);
   const mapCenter = useAppStore((state) => state.mapCenter);
   const mapZoom = useAppStore((state) => state.mapZoom);
   const setMapCenter = useAppStore((state) => state.setMapCenter);
@@ -350,22 +403,38 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   const selectedRoute = useAppStore((state) => state.selectedRoute);
   const openIncidentModal = useAppStore((state) => state.openIncidentModal);
 
+  // Destination Picker Store Hooks
+  const isPickingDestination = useAppStore((state) => state.isPickingDestination);
+  const draftDestination = useAppStore((state) => state.draftDestination);
+  const destinationLocation = useAppStore((state) => state.destinationLocation);
+  const destinationName = useAppStore((state) => state.destinationName);
+  const confirmDestination = useAppStore((state) => state.confirmDestination);
+  const cancelPickingDestination = useAppStore((state) => state.cancelPickingDestination);
+
   const { places: storePlaces } = usePlaces();
   const { incidents, handleVoteResult } = useIncidents();
 
   // Use custom places if provided, otherwise fallback to store places
   const displayedPlaces = customPlaces && customPlaces.length > 0 ? customPlaces : storePlaces;
 
-  // Extract route polyline coordinates if selected from store or passed via props
+  // Extract route polyline coordinates safely
   const routeCoordinates = useMemo(() => {
     if (customRoute && customRoute.length > 0) {
       return customRoute;
     }
     if (!selectedRoute) return [];
     const coords: [number, number][] = [];
-    selectedRoute.segments.forEach((seg) => {
-      seg.coordinates.forEach((c) => coords.push(c));
-    });
+    if (Array.isArray(selectedRoute.segments)) {
+      selectedRoute.segments.forEach((seg) => {
+        if (Array.isArray(seg.coordinates)) {
+          seg.coordinates.forEach((c) => {
+            if (Array.isArray(c) && c.length >= 2 && isFinite(c[0]) && isFinite(c[1])) {
+              coords.push([c[0], c[1]]);
+            }
+          });
+        }
+      });
+    }
     return coords;
   }, [customRoute, selectedRoute]);
 
@@ -469,6 +538,39 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
           </Marker>
         )}
 
+        {/* Active Destination Pin (Draft when selecting on map, or Confirmed Destination) */}
+        {draftDestination ? (
+          <Marker
+            position={[draftDestination.location.lat, draftDestination.location.lon]}
+            icon={destinationPinIcon}
+          >
+            <Popup className="rounded-xl font-bold text-xs" autoPan>
+              <span className="text-red-600 font-bold block">Selected Destination</span>
+              <span className="text-gray-800 text-[11px] block mt-0.5 font-medium">
+                {draftDestination.name}
+              </span>
+              <span className="text-gray-400 font-mono text-[10px] block mt-0.5">
+                {draftDestination.location.lat.toFixed(5)}, {draftDestination.location.lon.toFixed(5)}
+              </span>
+            </Popup>
+          </Marker>
+        ) : destinationLocation && selectedRoute ? (
+          <Marker
+            position={[destinationLocation.lat, destinationLocation.lon]}
+            icon={destinationPinIcon}
+          >
+            <Popup className="rounded-xl font-bold text-xs">
+              <span className="text-red-600 font-bold block">Route Destination</span>
+              <span className="text-gray-800 text-[11px] block mt-0.5 font-medium">
+                {destinationName || 'Destination'}
+              </span>
+              <span className="text-gray-400 font-mono text-[10px] block mt-0.5">
+                {destinationLocation.lat.toFixed(5)}, {destinationLocation.lon.toFixed(5)}
+              </span>
+            </Popup>
+          </Marker>
+        ) : null}
+
         {/* User Location Marker */}
         <Marker
           position={[userLocation.lat, userLocation.lon]}
@@ -476,7 +578,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
         >
           <Popup className="rounded-xl font-medium text-xs">
             <span className="font-bold text-[#183a2b] block leading-tight">GPS Telemetry Locked</span>
-            <span className="text-gray-600">Bole Medhane Alem, Addis Ababa (2,355m)</span>
+            <span className="text-gray-600">{userLocationName} ({userAltitude})</span>
           </Popup>
         </Marker>
 
@@ -591,6 +693,61 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
           />
         )}
       </MapContainer>
+
+      {/* Destination Picker Floating Overlay & Confirmation Card */}
+      {isPickingDestination && (
+        <div className="absolute inset-x-0 bottom-6 z-30 flex flex-col items-center px-4 pointer-events-none">
+          {draftDestination ? (
+            <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-2xl border border-red-500/30 flex flex-col gap-3 pointer-events-auto transition-all animate-in fade-in duration-200">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5 text-red-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider block leading-none">
+                    Selected Destination
+                  </span>
+                  <h4 className="text-sm font-extrabold text-on-surface truncate leading-tight mt-1">
+                    {draftDestination.name}
+                  </h4>
+                  <span className="font-mono text-[11px] text-gray-500 block mt-0.5">
+                    {draftDestination.location.lat.toFixed(5)}, {draftDestination.location.lon.toFixed(5)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={confirmDestination}
+                  className="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Use As Destination</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelPickingDestination}
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-stone-900/95 text-white backdrop-blur-md px-4 py-2.5 rounded-full shadow-2xl border border-white/20 flex items-center gap-2.5 text-xs font-bold pointer-events-auto animate-bounce">
+              <Crosshair className="w-4 h-4 text-emerald-400 animate-spin" />
+              <span>Tap anywhere on the map to set your destination</span>
+              <button
+                type="button"
+                onClick={cancelPickingDestination}
+                className="ml-2 text-gray-400 hover:text-white underline cursor-pointer text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Floating Action Controls on Map */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2.5">

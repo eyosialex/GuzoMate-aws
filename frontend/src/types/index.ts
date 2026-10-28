@@ -229,6 +229,16 @@ export interface AssistantQueryPayload {
   voiceId?: string;
 }
 
+export interface AssistantVoiceData {
+  provider: string;
+  voiceId?: string;
+  language?: Language;
+  audioUrl?: string | null;
+  audioBase64?: string | null;
+  mimeType?: string;
+  durationSeconds?: number | null;
+}
+
 export interface AssistantQueryResponse {
   answer: string;
   language: Language;
@@ -239,6 +249,7 @@ export interface AssistantQueryResponse {
   routes?: RouteOption[];
   sources?: AssistantSource[];
   limitations?: string[];
+  voice?: AssistantVoiceData | null;
 }
 
 export interface ChatMessage {
@@ -265,7 +276,7 @@ export interface UserPreferences {
 
 export type ActiveTab = 'assistant' | 'places' | 'routes' | 'weather' | 'incidents';
 
-export type PageView = 'landing' | 'app' | 'about' | 'contact' | 'home' | 'explore' | 'incidents';
+export type PageView = 'landing' | 'app' | 'about' | 'contact' | 'home' | 'explore' | 'incidents' | 'routes';
 
 export interface UserProfile {
   id: string;

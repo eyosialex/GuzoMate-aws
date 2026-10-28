@@ -17,6 +17,7 @@ import {
   Share2
 } from 'lucide-react';
 import { useAuth } from '../features/AuthContext';
+import { useAppStore } from '../features/useAppStore';
 import { Incident } from '../types';
 import { incidentsService } from '../services/incidentsService';
 import { springTactile, springGentle } from '../lib/motion';
@@ -24,18 +25,19 @@ import { springTactile, springGentle } from '../lib/motion';
 export const IncidentsPage: React.FC = () => {
   const { user } = useAuth();
   const shouldReduceMotion = useReducedMotion();
+  const userLocation = useAppStore((state) => state.userLocation);
 
   const [incidents, setIncidents] = useState<Incident[]>([]);
 
   useEffect(() => {
     let active = true;
-    incidentsService.getNearby({ lat: 9.0108, lon: 38.7618 }).then((res) => {
+    incidentsService.getNearby({ lat: userLocation.lat, lon: userLocation.lon }).then((res) => {
       if (active) setIncidents(res.items);
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [userLocation.lat, userLocation.lon]);
 
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'ACTIVE' | 'PENDING' | 'RESOLVED'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');

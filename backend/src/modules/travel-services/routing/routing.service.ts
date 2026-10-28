@@ -91,6 +91,13 @@ export class RoutingService {
       }
     }
 
+    // 6. Ensure all routes provide normalized segments compatible with frontend UI contract
+    for (const r of routes) {
+      if (!r.segments || r.segments.length === 0) {
+        r.segments = this.buildSegmentsFromRoute(r);
+      }
+    }
+
     const transitStatus: TransitFeedStatus = {
       liveTrackingAvailable: false,
       gtfsRealtimeAvailable: false,
@@ -224,7 +231,56 @@ export class RoutingService {
   }
 
   /**
+   * Builds flattened, UI-compatible segments from RouteOption legs and steps.
+   */
+  private buildSegmentsFromRoute(route: RouteOption): any[] {
+    const segments: any[] = [];
+    const legs = route.legs || [];
+
+    for (let legIdx = 0; legIdx < legs.length; legIdx++) {
+      const leg = legs[legIdx];
+      const steps = leg.steps || [];
+
+      for (let stepIdx = 0; stepIdx < steps.length; stepIdx++) {
+        const step = steps[stepIdx];
+        const maneuver = step.maneuver;
+        const coords: [number, number][] = [];
+
+        if (maneuver?.location && Array.isArray(maneuver.location)) {
+          // OSRM maneuver is [lon, lat] -> convert to Leaflet [lat, lon]
+          coords.push([maneuver.location[1], maneuver.location[0]]);
+        }
+
+        segments.push({
+          id: `${route.id}-seg-${legIdx}-${stepIdx}`,
+          instruction: maneuver?.instruction || step.name || 'Proceed along path',
+          mode: route.mode,
+          distanceMeters: step.distanceMeters || 0,
+          durationSeconds: step.durationSeconds || 0,
+          lineName: step.name && step.name !== 'Road' && step.name !== 'Pedestrian Path' ? step.name : undefined,
+          coordinates: coords,
+        });
+      }
+    }
+
+    // Fallback if no steps were found: create at least one summary segment
+    if (segments.length === 0) {
+      segments.push({
+        id: `${route.id}-seg-summary`,
+        instruction: route.summary || 'Proceed along designated corridor',
+        mode: route.mode,
+        distanceMeters: route.distanceMeters || 0,
+        durationSeconds: route.durationSeconds || 0,
+        coordinates: [],
+      });
+    }
+
+    return segments;
+  }
+
+  /**
    * Queries Member 4's road incidents near origin, midpoint, and destination.
+   * Runs in parallel with a timeout guard to avoid blocking routing responses.
    */
   private async findIncidentsNearRoute(
     origin: RouteCoordinates,
@@ -241,17 +297,21 @@ export class RoutingService {
 
     const alertsMap = new Map<string, RouteIncidentAlert>();
 
-    for (const pt of checkPoints) {
+    const queryPromises = checkPoints.map(async (pt) => {
       try {
-        const { items } = await IncidentsRepository.findNearby({
+        const timeoutPromise = new Promise<{ items: any[] }>((_, reject) =>
+          setTimeout(() => reject(new Error('Incident query timeout')), 2500)
+        );
+        const fetchPromise = IncidentsRepository.findNearby({
           lat: pt.lat,
           lon: pt.lon,
-          radius: 1000, // 1km search radius around key route points
+          radius: 1000,
           limit: 5,
           page: 1,
         });
 
-        for (const item of items) {
+        const res = await Promise.race([fetchPromise, timeoutPromise]);
+        for (const item of res.items || []) {
           if (!alertsMap.has(item.id)) {
             alertsMap.set(item.id, {
               incidentId: item.id,
@@ -267,10 +327,11 @@ export class RoutingService {
           }
         }
       } catch {
-        // Best-effort incident alert fetch
+        // Best-effort incident alert fetch; ignore timeouts or pooler latency
       }
-    }
+    });
 
+    await Promise.allSettled(queryPromises);
     return Array.from(alertsMap.values());
   }
 
