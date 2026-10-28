@@ -61,11 +61,13 @@ export const voiceChatService = {
     // Prefer the voice URL/base64 already returned by the assistant response.
     // Only fall back to a separate TTS call if the server did not return audio.
     let audioUrl: string | undefined;
-    const voiceData = (assistantRes as any).voice;
-    if (voiceData?.audioUrl) {
+    const voiceData = assistantRes.voice;
+    if (voiceData?.audioBase64) {
+      audioUrl = voiceData.audioBase64.startsWith('data:')
+        ? voiceData.audioBase64
+        : `data:${voiceData.mimeType || 'audio/mpeg'};base64,${voiceData.audioBase64}`;
+    } else if (voiceData?.audioUrl) {
       audioUrl = voiceData.audioUrl;
-    } else if (voiceData?.audioBase64 && voiceData?.mimeType) {
-      audioUrl = `data:${voiceData.mimeType};base64,${voiceData.audioBase64}`;
     } else {
       // Fallback: request TTS separately (covers cases where server-side voice is disabled)
       try {

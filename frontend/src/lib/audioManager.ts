@@ -8,6 +8,7 @@
 let sharedCtx: AudioContext | null = null;
 let currentSource: AudioBufferSourceNode | null = null;
 let currentAudio: HTMLAudioElement | null = null;
+let sharedAudio: HTMLAudioElement | null = null;
 let activeUtterance: SpeechSynthesisUtterance | null = null;
 
 export function getUnlockedAudioContext(): AudioContext | null {
@@ -35,6 +36,35 @@ export function warmUpAudio(): void {
   if (ctx && ctx.state === 'suspended') {
     ctx.resume().catch(() => {});
   }
+  // 1. Prime Web Audio with silent 1-sample buffer (permanently unblocks AudioContext in Chrome/Safari/Firefox)
+  if (ctx) {
+    try {
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+    } catch {
+      // ignore
+    }
+  }
+
+  // 2. Prime HTML5 Audio element during user gesture
+  if (typeof window !== 'undefined') {
+    try {
+      if (!sharedAudio) {
+        sharedAudio = new Audio();
+      }
+      sharedAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+      sharedAudio.play().then(() => {
+        sharedAudio?.pause();
+      }).catch(() => {});
+    } catch {
+      // ignore
+    }
+  }
+
+  // 3. Prime Web Speech Synthesis
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
       const dummy = new SpeechSynthesisUtterance('');
@@ -140,6 +170,9 @@ export async function playAudioBuffer(
       const startTime = ctx.currentTime;
       const duration = audioBuffer.duration;
 
+      // Report initial duration immediately
+      onProgress?.(0, duration);
+
       // Progress interval
       const interval = setInterval(() => {
         if (!currentSource) {
@@ -173,8 +206,10 @@ export async function playAudioBuffer(
   }
 
   // Fallback: standard HTML5 Audio
-  const audio = new Audio(audioUrl);
+  const audio = sharedAudio || new Audio();
   currentAudio = audio;
+  audio.src = audioUrl;
+  audio.currentTime = 0;
   audio.play().catch((err) => console.warn('HTML5 Audio play blocked:', err));
 
   const handleTimeUpdate = () => {

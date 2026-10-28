@@ -134,6 +134,7 @@ export const ChatInterface: React.FC = () => {
   };
 
   const handleSendVoice = async () => {
+    warmUpAudio();
     // Prevent double-fire from the silence interval
     if (isSendingVoiceRef.current) return;
     isSendingVoiceRef.current = true;
@@ -403,9 +404,13 @@ export const ChatInterface: React.FC = () => {
         enableVoice: true,
       });
 
-      let audioUrl: string | undefined = response.voice?.audioUrl || undefined;
-      if (!audioUrl && response.voice?.audioBase64) {
-        audioUrl = `data:${response.voice.mimeType || 'audio/wav'};base64,${response.voice.audioBase64}`;
+      let audioUrl: string | undefined = undefined;
+      if (response.voice?.audioBase64) {
+        audioUrl = response.voice.audioBase64.startsWith('data:')
+          ? response.voice.audioBase64
+          : `data:${response.voice.mimeType || 'audio/mpeg'};base64,${response.voice.audioBase64}`;
+      } else if (response.voice?.audioUrl) {
+        audioUrl = response.voice.audioUrl;
       }
       if (!audioUrl && response.answer) {
         audioUrl = `speech:${encodeURIComponent(response.answer)}?lang=${language}`;
