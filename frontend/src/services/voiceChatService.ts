@@ -58,25 +58,22 @@ export const voiceChatService = {
       enableVoice: true,
     });
 
-    // Prefer the voice URL/base64 already returned by the assistant response.
-    // Only fall back to a separate TTS call if the server did not return audio.
-    let audioUrl: string | undefined;
-    const voiceData = assistantRes.voice;
-    if (voiceData?.audioBase64) {
-      audioUrl = voiceData.audioBase64.startsWith('data:')
-        ? voiceData.audioBase64
-        : `data:${voiceData.mimeType || 'audio/mpeg'};base64,${voiceData.audioBase64}`;
-    } else if (voiceData?.audioUrl) {
-      audioUrl = voiceData.audioUrl;
-    } else {
-      // Fallback: request TTS separately (covers cases where server-side voice is disabled)
+    // Check if voice was returned directly in assistant response
+    let audioUrl: string | undefined = assistantRes.voice?.audioUrl || (
+      assistantRes.voice?.audioBase64
+        ? `data:${assistantRes.voice.mimeType || 'audio/mpeg'};base64,${assistantRes.voice.audioBase64}`
+        : undefined
+    );
+
+    if (!audioUrl) {
       try {
-        const synthAudio = await assistantService.synthesizeSpeech(assistantRes.answer, language);
-        if (synthAudio) {
-          audioUrl = synthAudio;
-        }
+        const speechRes = await assistantService.synthesizeSpeech({
+          text: assistantRes.answer,
+          language,
+        });
+        audioUrl = speechRes?.audioUrl;
       } catch (err) {
-        console.warn('[voiceChatService] Fallback TTS synthesis failed:', err);
+        console.warn('Audio synthesis fallback failed:', err);
       }
     }
 
@@ -91,9 +88,9 @@ export const voiceChatService = {
       transcript: userText,
       answer: assistantRes.answer,
       audioUrl,
-      audioDurationSeconds,
-      places: assistantRes.places,
-      weather: assistantRes.weather,
+      audioDurationSeconds: assistantRes.voice?.durationSeconds || 4,
+      places: assistantRes.places as any,
+      weather: assistantRes.weather as any,
       sources: assistantRes.sources,
     };
   },

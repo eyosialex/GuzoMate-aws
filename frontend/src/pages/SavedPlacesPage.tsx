@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Bookmark, MapPin, Navigation, Trash2, ArrowRight } from 'lucide-react';
+import { Bookmark, MapPin, Navigation, Trash2, ArrowRight, Loader2 } from 'lucide-react';
 import { useAppStore } from '../features/useAppStore';
 import { placesService } from '../services/placesService';
 import { Place } from '../types';
@@ -15,13 +15,57 @@ export const SavedPlacesPage: React.FC = () => {
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
 
   const [savedPlaces, setSavedPlaces] = useState<Place[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleRemovePlace = async (placeId: string) => {
+    toggleSavePlace(placeId);
+    setSavedPlaces((prev) => prev.filter((p) => p.id !== placeId));
+    await placesService.deleteSavedPlace(placeId);
+  };
 
   useEffect(() => {
     let active = true;
+    const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
+
+    if (token) {
+      setLoading(true);
+      placesService
+        .getSavedPlaces()
+        .then((res) => {
+          if (active) {
+            if (res.items && res.items.length > 0) {
+              const mapped: Place[] = res.items.map((item) => ({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                address: item.address,
+                location: { lat: Number(item.latitude), lon: Number(item.longitude) },
+                distanceMeters: null,
+                tags: {},
+                source: 'openstreetmap',
+                osm: { type: 'node', id: item.id },
+                isSaved: true,
+              }));
+              setSavedPlaces(mapped);
+            } else {
+              setSavedPlaces([]);
+            }
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (active) setLoading(false);
+        });
+      return () => {
+        active = false;
+      };
+    }
+
     if (savedPlaceIds.length === 0) {
       setSavedPlaces([]);
       return;
     }
+
     Promise.allSettled(savedPlaceIds.map((id) => placesService.getPlaceById(id))).then((results) => {
       if (active) {
         const places = results
@@ -57,7 +101,12 @@ export const SavedPlacesPage: React.FC = () => {
           </span>
         </div>
 
-        {savedPlaces.length === 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center max-w-md mx-auto space-y-3">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+            <p className="text-xs text-gray-500 font-medium">Loading your bookmarked places...</p>
+          </div>
+        ) : savedPlaces.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center max-w-md mx-auto space-y-3">
             <Bookmark className="w-12 h-12 text-gray-300 mx-auto" />
             <h3 className="text-base font-bold text-gray-900">No saved places yet</h3>
@@ -89,7 +138,7 @@ export const SavedPlacesPage: React.FC = () => {
                     </span>
                     <button
                       type="button"
-                      onClick={() => toggleSavePlace(place.id)}
+                      onClick={() => handleRemovePlace(place.id)}
                       className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
                       title="Remove bookmark"
                     >

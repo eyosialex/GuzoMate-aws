@@ -16,12 +16,14 @@ import {
 
 const INCIDENT_TYPES: { type: IncidentType; labelKey: string }[] = [
   { type: 'ACCIDENT', labelKey: 'incidents.types.ACCIDENT' },
+  { type: 'ROAD_BLOCK', labelKey: 'incidents.types.ROAD_BLOCK' },
   { type: 'ROAD_CLOSURE', labelKey: 'incidents.types.ROAD_CLOSURE' },
   { type: 'FLOODING', labelKey: 'incidents.types.FLOODING' },
   { type: 'LANDSLIDE', labelKey: 'incidents.types.LANDSLIDE' },
   { type: 'ROAD_DAMAGE', labelKey: 'incidents.types.ROAD_DAMAGE' },
   { type: 'CONSTRUCTION', labelKey: 'incidents.types.CONSTRUCTION' },
   { type: 'HEAVY_TRAFFIC', labelKey: 'incidents.types.HEAVY_TRAFFIC' },
+  { type: 'HAZARD', labelKey: 'incidents.types.HAZARD' },
   { type: 'OTHER', labelKey: 'incidents.types.OTHER' },
 ];
 

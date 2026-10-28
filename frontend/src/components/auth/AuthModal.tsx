@@ -143,7 +143,7 @@ export const AuthModal: React.FC = () => {
             {authModalTab === 'login' ? 'Welcome Back' : 'Create Your Account'}
           </h2>
           <p className="text-xs text-on-surface-variant mt-1">
-            Access verified highland routes, saved places, and live hazard alerts.
+            Access verified highland routes, saved places, and hazard alerts.
           </p>
         </div>
 

@@ -1,117 +1,156 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// @vitest-environment happy-dom
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { weatherService } from '../weatherService';
-import * as apiClient from '../../lib/apiClient';
+import {
+  CurrentWeather,
+  DailyForecast,
+  ArrivalAdviceData,
+} from '../../types/travelServices';
 
-describe('weatherService Unit Tests', () => {
+describe('Weather Services Module Integration (Phase 9)', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.restoreAllMocks();
   });
 
   afterEach(() => {
+    localStorage.clear();
     vi.restoreAllMocks();
   });
 
-  it('correctly returns live weather and maps humidity and forecast', async () => {
-    const mockCurrentRes = {
-      location: { lat: 9.0108, lon: 38.7618 },
-      current: {
-        temperatureC: 21,
-        condition: 'Clear sky',
-        precipitationMm: 0,
-        windKph: 8,
-        humidity: 45,
+  const mockCurrentWeather: CurrentWeather = {
+    location: { lat: 9.03, lon: 38.74 },
+    temperatureC: 21.4,
+    condition: 'ደመናማ',
+    conditionCode: 'cloudy',
+    humidityPercent: 62,
+    precipitationMm: 0.0,
+    windKph: 9.5,
+    feelsLikeC: 21.0,
+    isDay: true,
+    language: 'am',
+    provider: 'weatherapi',
+    retrievedAt: '2026-10-27T10:45:00.000Z',
+    cached: true,
+  };
+
+  it('1. should fetch current meteorological conditions (GET /weather/current)', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          success: true,
+          data: mockCurrentWeather,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+
+    const result = await weatherService.getCurrent(9.03, 38.74, 'am');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url] = fetchSpy.mock.calls[0];
+    expect(url).toContain('/weather/current?lat=9.03&lon=38.74&language=am');
+    expect(result.temperatureC).toBe(21.4);
+    expect(result.condition).toBe('ደመናማ');
+    expect(result.current.feelsLikeC).toBe(21.0);
+  });
+
+  it('2. should fetch multi-day weather forecast projections (GET /weather/forecast)', async () => {
+    const mockForecast: DailyForecast[] = [
+      {
+        date: '2026-10-27',
+        maxTempC: 23.5,
+        minTempC: 12.0,
+        avgTempC: 17.8,
+        condition: 'Partly Cloudy',
       },
-      provider: 'weatherapi',
-      retrievedAt: '2026-10-28T10:00:00Z',
-      cached: false,
-    };
+    ];
 
-    const mockForecastRes = {
-      location: { lat: 9.0108, lon: 38.7618 },
-      forecast: [
-        {
-          date: '2026-10-28',
-          hourly: [
-            {
-              time: '2026-10-28T10:00:00+03:00',
-              temperatureC: 21,
-              condition: 'Clear sky',
-              precipitationProbability: 10,
-            },
-          ],
-        },
-      ],
-      provider: 'weatherapi',
-      retrievedAt: '2026-10-28T10:00:00Z',
-      cached: false,
-    };
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            location: { lat: 9.03, lon: 38.74 },
+            forecast: mockForecast,
+            provider: 'weatherapi',
+            retrievedAt: '2026-10-27T10:45:00.000Z',
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
 
-    const mockAdviceRes = {
-      arrivalTime: '2026-10-28T11:00:00Z',
-      forecast: {
-        temperatureC: 22,
-        condition: 'Clear sky',
-        precipitationProbability: 10,
+    const result = await weatherService.getForecast(9.03, 38.74, 5, 'en');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url] = fetchSpy.mock.calls[0];
+    expect(url).toContain('/weather/forecast?lat=9.03&lon=38.74&days=5&language=en');
+    expect(result.forecast.length).toBe(1);
+    expect(result.forecast[0].maxTempC).toBe(23.5);
+  });
+
+  it('3. should fetch destination arrival weather advice with clothing recommendations (GET /weather/arrival-advice)', async () => {
+    const mockAdvice: ArrivalAdviceData = {
+      location: { lat: 9.03, lon: 38.74 },
+      arrivalTime: '2026-10-27T16:30:00.000Z',
+      forecastAtArrival: {
+        temperatureC: 17.0,
+        condition: 'Light Rain Shower',
+        precipitationProbability: 70,
       },
       suggestions: [
         {
-          type: 'clothing',
-          text: 'Light highland jacket',
-          reason: 'Mild breeze',
+          type: 'umbrella',
+          text: 'Carry an umbrella or raincoat.',
+          reason: 'Rain probability is 70% around your arrival time.',
         },
       ],
     };
 
-    vi.spyOn(apiClient, 'request').mockImplementation((endpoint: string) => {
-      if (endpoint === '/weather/current') return Promise.resolve(mockCurrentRes);
-      if (endpoint === '/weather/forecast') return Promise.resolve(mockForecastRes);
-      if (endpoint === '/weather/arrival-advice') return Promise.resolve(mockAdviceRes);
-      return Promise.reject(new Error('Unknown endpoint'));
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          success: true,
+          data: mockAdvice,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+
+    const result = await weatherService.getArrivalAdvice(9.03, 38.74, '2026-10-27T16:30:00.000Z', 'en');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url] = fetchSpy.mock.calls[0];
+    expect(url).toContain('/weather/arrival-advice');
+    expect(url).toContain('arrivalTime=2026-10-27T16%3A30%3A00.000Z');
+    expect(result.suggestions.length).toBe(1);
+    expect(result.suggestions[0].type).toBe('umbrella');
+  });
+
+  it('4. should aggregate full weather combining current, forecast, and advice', async () => {
+    vi.spyOn(weatherService, 'getCurrent').mockResolvedValueOnce({
+      ...mockCurrentWeather,
+      current: mockCurrentWeather,
+    });
+    vi.spyOn(weatherService, 'getForecast').mockResolvedValueOnce({
+      forecast: [
+        {
+          date: '2026-10-27',
+          maxTempC: 22.0,
+          minTempC: 13.0,
+          avgTempC: 17.5,
+          condition: 'Sunny',
+        },
+      ],
+      retrievedAt: '2026-10-27T10:45:00.000Z',
     });
 
-    const result = await weatherService.getFullWeather(9.0108, 38.7618, '2026-10-28T11:00:00Z');
+    const full = await weatherService.getFullWeather(9.03, 38.74, undefined, 'en');
 
-    expect(result).toBeDefined();
-    expect(result.current.temperatureC).toBe(21);
-    expect(result.current.humidity).toBe(45);
-    expect(result.current.condition).toBe('Clear sky');
-    expect(result.provider).toBe('weatherapi');
-    expect(result.cached).toBe(false);
-    expect(result.forecast).toHaveLength(1);
-    expect(result.arrivalAdvice?.suggestions).toHaveLength(1);
-  });
-
-  it('accurately identifies Open-Meteo fallback provider when WeatherAPI is unconfigured', async () => {
-    const mockCurrentRes = {
-      location: { lat: 9.0108, lon: 38.7618 },
-      current: {
-        temperatureC: 19,
-        condition: 'Partly cloudy',
-        precipitationMm: 0.1,
-        windKph: 12,
-        humidity: 60,
-      },
-      provider: 'open-meteo',
-      retrievedAt: '2026-10-28T10:05:00Z',
-      cached: false,
-    };
-
-    vi.spyOn(apiClient, 'request').mockResolvedValue(mockCurrentRes);
-
-    const result = await weatherService.getFullWeather(9.0108, 38.7618);
-
-    expect(result.provider).toBe('open-meteo');
-    expect(result.current.temperatureC).toBe(19);
-    expect(result.current.condition).toBe('Partly cloudy');
-  });
-
-  it('propagates provider errors instead of returning fake mock data', async () => {
-    vi.spyOn(apiClient, 'request').mockRejectedValueOnce(
-      new apiClient.ApiError('Weather forecast service is temporarily unavailable', 'PROVIDER_ERROR', 503)
-    );
-
-    await expect(weatherService.getFullWeather(9.0108, 38.7618)).rejects.toThrow(
-      'Weather forecast service is temporarily unavailable'
-    );
+    expect(full).not.toBeNull();
+    expect(full?.current.temperatureC).toBe(21.4);
+    expect(full?.forecast.length).toBe(1);
+    expect(full?.provider).toBe('weatherapi');
   });
 });

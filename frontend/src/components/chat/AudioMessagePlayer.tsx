@@ -128,7 +128,7 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
               animationDuration: `${0.4 + (i % 3) * 0.2}s`,
             }}
             className={`w-[2.5px] rounded-full transition-all duration-150 ${
-              isPlaying ? 'bg-primary animate-pulse' : 'bg-primary/30'
+              isPlaying ? 'bg-primary' : 'bg-primary/30'
             }`}
           />
         ))}

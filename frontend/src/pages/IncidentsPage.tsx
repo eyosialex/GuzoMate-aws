@@ -90,7 +90,7 @@ export const IncidentsPage: React.FC = () => {
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
-              Live highway telemetry and community verified roadblocks. Submissions automatically activate upon 3 scout endorsements.
+              Highway telemetry and community verified roadblocks. Submissions automatically activate upon 3 scout endorsements.
             </p>
           </div>
 

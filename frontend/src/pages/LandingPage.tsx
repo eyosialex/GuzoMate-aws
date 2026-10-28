@@ -235,7 +235,6 @@ export const LandingPage: React.FC = () => {
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-xs font-bold text-emerald-300 backdrop-blur-md shadow-lg"
               >
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                 </span>
                 <span>{currentCopy.badge}</span>
@@ -284,7 +283,7 @@ export const LandingPage: React.FC = () => {
                 </Link>
               </motion.div>
 
-              {/* Live Locks Banner */}
+              {/* Telemetry Locks Banner */}
               <motion.div
                 initial={shouldReduceMotion ? undefined : { opacity: 0 }}
                 animate={shouldReduceMotion ? undefined : { opacity: 1 }}
@@ -297,7 +296,7 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-1.5 font-semibold">
                   <Radio className="w-4 h-4 text-emerald-400" />
-                  <span>24/7 Federal Police (991) Hotline Live</span>
+                  <span>24/7 Federal Police (991) Hotline Active</span>
                 </div>
               </motion.div>
             </div>
@@ -328,7 +327,7 @@ export const LandingPage: React.FC = () => {
                   <img
                     src={heroLayerImg}
                     alt="Highland Geospatial Layers"
-                    className="w-44 h-auto object-contain drop-shadow-2xl animate-pulse"
+                    className="w-44 h-auto object-contain drop-shadow-2xl"
                   />
                 </div>
 
@@ -363,7 +362,7 @@ export const LandingPage: React.FC = () => {
         </section>
 
         {/* --------------------------------------------------------------------- */}
-        {/* 3. LIVE SYSTEM METRICS COUNTERS */}
+        {/* 3. SYSTEM METRICS COUNTERS */}
         {/* --------------------------------------------------------------------- */}
         <section className="max-w-[1560px] mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 bg-[#0c2419]/80 backdrop-blur-2xl rounded-2xl border border-emerald-500/30 p-6 shadow-2xl">
@@ -490,7 +489,7 @@ export const LandingPage: React.FC = () => {
                 to="/incidents"
                 className="mt-6 pt-3 border-t border-emerald-500/20 flex items-center justify-between text-xs font-bold text-red-400 hover:text-red-300 transition-colors"
               >
-                <span>Live Hazard Radar</span>
+                <span>Recent Incidents Radar</span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </motion.div>
@@ -1018,7 +1017,7 @@ export const LandingPage: React.FC = () => {
                   to="/explore"
                   className="py-3 px-5 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-bold rounded-xl border border-white/20 transition-colors"
                 >
-                  Open Live Map
+                  Open Interactive Map
                 </Link>
 
                 <Link

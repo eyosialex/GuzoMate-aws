@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   MapContainer, 
   TileLayer, 
@@ -9,13 +9,13 @@ import {
   useMapEvents 
 } from 'react-leaflet';
 import L from 'leaflet';
-import { Crosshair, AlertTriangle, MapPin, Check } from 'lucide-react';
+import { Crosshair, AlertTriangle, Loader2 } from 'lucide-react';
 import { GeoLocation } from '../../types';
 import { useAppStore } from '../../features/useAppStore';
 import { usePlaces } from '../../hooks/usePlaces';
 import { useIncidents } from '../../hooks/useIncidents';
 import { IconButton } from '../common/IconButton';
-import { formatLocationName, reverseGeocode } from '../../lib/addisLandmarks';
+import { IncidentVoteButtons } from '../incidents/IncidentVoteButtons';
 import { Place, Incident } from '../../types';
 
 export interface CorridorWaypoint {
@@ -182,7 +182,7 @@ const userLocationIcon = L.divIcon({
       align-items: center;
       justify-content: center;
     ">
-      <div class="user-location-pulse" style="
+      <div style="
         width: 18px;
         height: 18px;
         border-radius: 50%;
@@ -363,6 +363,7 @@ export interface GuzoMapProps {
   showIncidents?: boolean;
   draftLocation?: GeoLocation | null;
   onMapClick?: (loc: GeoLocation) => void;
+  onReportIncidentClick?: () => void;
   customPlaces?: Place[];
   customRoute?: [number, number][];
   waypoints?: CorridorWaypoint[];
@@ -374,6 +375,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   showIncidents = true,
   draftLocation,
   onMapClick,
+  onReportIncidentClick,
   customPlaces,
   customRoute,
   waypoints,
@@ -388,6 +390,11 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   const mapCenter = useAppStore((state) => state.mapCenter);
   const mapZoom = useAppStore((state) => state.mapZoom);
   const setMapCenter = useAppStore((state) => state.setMapCenter);
+  const setUserLocation = useAppStore((state) => state.setUserLocation);
+  const setPageView = useAppStore((state) => state.setPageView);
+  const setIncidentSubpage = useAppStore((state) => state.setIncidentSubpage);
+
+  const [isLocating, setIsLocating] = useState(false);
 
   const selectedPlace = useAppStore((state) => state.selectedPlace);
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
@@ -405,7 +412,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   const cancelPickingDestination = useAppStore((state) => state.cancelPickingDestination);
 
   const { places: storePlaces } = usePlaces();
-  const { incidents } = useIncidents();
+  const { incidents, handleVoteResult } = useIncidents();
 
   // Use custom places if provided, otherwise fallback to store places
   const displayedPlaces = customPlaces && customPlaces.length > 0 ? customPlaces : storePlaces;
@@ -431,23 +438,44 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
     return coords;
   }, [customRoute, selectedRoute]);
 
-  // Check if browser already granted geolocation permission and sync location on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'permissions' in navigator) {
-      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-        if (result.state === 'granted') {
-          requestCurrentLocation();
-        }
-      }).catch(() => {});
-    }
-  }, [requestCurrentLocation]);
-
-  const recenterToUser = async () => {
-    const loc = await requestCurrentLocation();
-    if (loc) {
-      setMapCenter([loc.lat, loc.lon], 16);
+  const handleUseCurrentLocation = () => {
+    setIsLocating(true);
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const newLoc: GeoLocation = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          };
+          try {
+            localStorage.setItem('guzo_last_location', JSON.stringify({
+              coords: newLoc,
+              timestamp: Date.now(),
+            }));
+          } catch {}
+          setUserLocation(newLoc);
+          setMapCenter([newLoc.lat, newLoc.lon], 16);
+          setIsLocating(false);
+        },
+        (err) => {
+          console.warn('Geolocation permission denied or failed:', err);
+          setMapCenter([userLocation.lat, userLocation.lon], 15);
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
     } else {
       setMapCenter([userLocation.lat, userLocation.lon], 15);
+      setIsLocating(false);
+    }
+  };
+
+  const handleReportIncident = () => {
+    if (onReportIncidentClick) {
+      onReportIncidentClick();
+    } else {
+      setIncidentSubpage('submit');
+      setPageView('incidents');
     }
   };
 
@@ -626,16 +654,25 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
             }}
           >
             <Popup className="rounded-2xl p-1 text-xs">
-              <div className="space-y-1">
-                <span className="font-bold text-red-600 block leading-tight">
-                  ⚠️ {inc.title || inc.type.replace('_', ' ')}
-                </span>
-                <p className="text-gray-700 leading-relaxed">{inc.description}</p>
-                {inc.locationName && (
-                  <span className="text-primary font-semibold text-[11px] block leading-none">
-                    📍 {inc.locationName}
+              <div className="space-y-2 p-1 min-w-[200px]">
+                <div>
+                  <span className="font-bold text-red-600 block leading-tight">
+                    ⚠️ {inc.title || inc.type.replace(/_/g, ' ')}
                   </span>
-                )}
+                  <p className="text-gray-700 leading-relaxed text-xs mt-1">{inc.description}</p>
+                  {inc.locationName && (
+                    <span className="text-primary font-semibold text-[11px] block mt-1 leading-none">
+                      📍 {inc.locationName}
+                    </span>
+                  )}
+                </div>
+                <div className="pt-2 border-t border-gray-100">
+                  <IncidentVoteButtons
+                    incident={inc}
+                    onVoteSuccess={handleVoteResult}
+                    size="sm"
+                  />
+                </div>
               </div>
             </Popup>
           </Marker>
@@ -715,25 +752,24 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
       {/* Floating Action Controls on Map */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2.5">
         <IconButton
-          aria-label="Recenter map to my location"
-          icon={<Crosshair className={`w-5 h-5 text-gray-800 transition-transform ${isLocating ? 'animate-spin text-emerald-600' : ''}`} />}
+          aria-label="Use current location"
+          title="Use current location"
+          icon={isLocating ? <Loader2 className="w-5 h-5 text-primary animate-spin" /> : <Crosshair className="w-5 h-5 text-gray-800" />}
           variant="glass"
           shape="circle"
-          onClick={recenterToUser}
-          disabled={isLocating}
-          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md cursor-pointer disabled:opacity-70"
+          onClick={handleUseCurrentLocation}
+          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md hover:bg-white"
         />
 
-        {showIncidents && (
-          <IconButton
-            aria-label="Report road incident"
-            icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
-            variant="glass"
-            shape="circle"
-            onClick={() => openIncidentModal()}
-            className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
-          />
-        )}
+        <IconButton
+          aria-label="Report road incident"
+          title="Report road incident"
+          icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
+          variant="glass"
+          shape="circle"
+          onClick={handleReportIncident}
+          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.12)] bg-white/95 backdrop-blur-md hover:bg-white"
+        />
       </div>
     </div>
   );

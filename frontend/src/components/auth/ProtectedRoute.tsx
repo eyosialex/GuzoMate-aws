@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f8faf8] text-[#141d18]">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-[#183a2b] text-white flex items-center justify-center shadow-lg shadow-[#183a2b]/20 animate-pulse">
+          <div className="h-14 w-14 rounded-2xl bg-[#183a2b] text-white flex items-center justify-center shadow-lg shadow-[#183a2b]/20">
             <Compass className="w-8 h-8 animate-[spin_10s_linear_infinite]" />
           </div>
           <div className="text-center">

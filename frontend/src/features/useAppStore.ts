@@ -27,6 +27,9 @@ interface AppState {
   authModalTab: 'login' | 'signup';
   openAuthModal: (tab?: 'login' | 'signup') => void;
   closeAuthModal: () => void;
+  isProfileModalOpen: boolean;
+  openProfileModal: () => void;
+  closeProfileModal: () => void;
 
   // Localization
   language: Language;
@@ -68,6 +71,8 @@ interface AppState {
   setDestination: (loc: GeoLocation, name?: string) => void;
 
   // Incident Modal & Draft
+  incidentSubpage: 'list' | 'submit';
+  setIncidentSubpage: (sub: 'list' | 'submit') => void;
   isReportingIncident: boolean;
   incidentDraftLocation: GeoLocation | null;
   openIncidentModal: (loc?: GeoLocation) => void;
@@ -76,6 +81,7 @@ interface AppState {
 
   // Saved Places
   savedPlaceIds: string[];
+  setSavedPlaceIds: (ids: string[]) => void;
   toggleSavePlace: (id: string) => void;
 
   // Chat State
@@ -102,6 +108,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   authModalTab: 'login',
   openAuthModal: (tab: 'login' | 'signup' = 'login') => set({ isAuthModalOpen: true, authModalTab: tab }),
   closeAuthModal: () => set({ isAuthModalOpen: false }),
+  isProfileModalOpen: false,
+  openProfileModal: () => set({ isProfileModalOpen: true }),
+  closeProfileModal: () => set({ isProfileModalOpen: false }),
 
   language: (localStorage.getItem('guzo_lang') as Language) || 'en',
   setLanguage: (lang: Language) => {
@@ -227,69 +236,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // Destination Picking State & Actions
-  isPickingDestination: false,
-  destinationLocation: { lat: 9.0340, lon: 38.7510 }, // Default Piazza St George
-  destinationName: 'Piazza St George, Addis Ababa',
-  draftDestination: null,
-
-  startPickingDestination: () => {
-    const currentLoc = get().destinationLocation;
-    const currentName = get().destinationName;
-    set({
-      isPickingDestination: true,
-      draftDestination: currentLoc ? { location: currentLoc, name: currentName } : null,
-      bottomSheetSnap: 'collapsed',
-    });
-    if (currentLoc) {
-      set({ mapCenter: [currentLoc.lat, currentLoc.lon], mapZoom: 15 });
-    }
-  },
-
-  setDraftDestination: (draft: { location: GeoLocation; name: string } | null) => {
-    set({ draftDestination: draft });
-    if (draft) {
-      set({ mapCenter: [draft.location.lat, draft.location.lon] });
-    }
-  },
-
-  confirmDestination: () => {
-    const draft = get().draftDestination;
-    if (draft) {
-      set({
-        destinationLocation: draft.location,
-        destinationName: draft.name,
-        draftDestination: null,
-        isPickingDestination: false,
-        activeTab: 'routes',
-        bottomSheetSnap: 'half',
-      });
-    } else {
-      set({
-        isPickingDestination: false,
-        activeTab: 'routes',
-        bottomSheetSnap: 'half',
-      });
-    }
-  },
-
-  cancelPickingDestination: () => {
-    set({
-      isPickingDestination: false,
-      draftDestination: null,
-      bottomSheetSnap: 'half',
-    });
-  },
-
-  setDestination: (loc: GeoLocation, name?: string) => {
-    const resolvedName = name || formatLocationName(loc);
-    set({
-      destinationLocation: loc,
-      destinationName: resolvedName,
-      draftDestination: null,
-      isPickingDestination: false,
-    });
-  },
+  incidentSubpage: 'list',
+  setIncidentSubpage: (sub: 'list' | 'submit') => set({ incidentSubpage: sub }),
 
   isReportingIncident: false,
   incidentDraftLocation: null,
@@ -307,6 +255,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   savedPlaceIds: initialSavedPlaces,
+  setSavedPlaceIds: (ids: string[]) => {
+    localStorage.setItem('guzo_saved_places', JSON.stringify(ids));
+    set({ savedPlaceIds: ids });
+  },
   toggleSavePlace: (id: string) => {
     set((state) => {
       const exists = state.savedPlaceIds.includes(id);

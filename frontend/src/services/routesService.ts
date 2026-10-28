@@ -1,14 +1,21 @@
 import { request } from '../lib/apiClient';
-import { RoutesResponse, RouteTravelMode, Language, RouteOption, RouteSegment } from '../types';
+import { Language } from '../types';
+import {
+  RoutesResponseData,
+  RouteMode,
+} from '../types/travelServices';
 
 export interface RouteSearchParams {
   originLat: number;
   originLon: number;
-  destinationLat: number;
-  destinationLon: number;
-  mode?: RouteTravelMode;
+  destinationLat?: number;
+  destLat?: number;
+  destinationLon?: number;
+  destLon?: number;
+  mode?: RouteMode;
   departAt?: string;
   language?: Language;
+  includeIncidents?: boolean;
 }
 
 /**
@@ -91,34 +98,57 @@ function normalizeRouteOption(raw: any, mode: RouteTravelMode): RouteOption {
 }
 
 export const routesService = {
-  async getRoutes(params: RouteSearchParams): Promise<RoutesResponse> {
-    const rawResponse = await request<any>('/routes', {
-      method: 'GET',
-      params: {
-        originLat: params.originLat,
-        originLon: params.originLon,
-        destLat: params.destinationLat,
-        destLon: params.destinationLon,
-        mode: params.mode || 'transit',
-        language: params.language || 'en',
-        includeIncidents: true,
-      },
-      language: params.language,
-    });
+  /**
+   * Calculates multimodal routes (driving, walking, transit) with live incident intersection alerts.
+   * GET /api/v1/routes
+   */
+  async getRoutes(params: RouteSearchParams): Promise<RoutesResponseData & { routes: any[] }> {
+    const destLat = params.destinationLat ?? params.destLat ?? 0;
+    const destLon = params.destinationLon ?? params.destLon ?? 0;
 
-    const mode = params.mode || 'transit';
-    const rawRoutes: any[] = Array.isArray(rawResponse?.routes)
-      ? rawResponse.routes
-      : Array.isArray(rawResponse?.data?.routes)
-      ? rawResponse.data.routes
-      : [];
+    try {
+      const res = await request<RoutesResponseData>('/routes', {
+        method: 'GET',
+        params: {
+          originLat: params.originLat,
+          originLon: params.originLon,
+          destLat,
+          destLon,
+          mode: params.mode || 'driving',
+          language: params.language || 'en',
+          includeIncidents: params.includeIncidents ?? true,
+        },
+        language: params.language,
+      });
 
-    const normalizedRoutes: RouteOption[] = rawRoutes.map((r) => normalizeRouteOption(r, mode));
-
-    return {
-      provider: rawResponse?.provider || rawResponse?.data?.provider || 'addis-transit',
-      routes: normalizedRoutes,
-      limitations: rawResponse?.limitations || rawResponse?.data?.limitations || [],
-    };
+      return {
+        provider: res?.provider || 'guzomate-routing',
+        origin: res?.origin || { lat: params.originLat, lon: params.originLon },
+        destination: res?.destination || { lat: destLat, lon: destLon },
+        mode: res?.mode || params.mode || 'driving',
+        routes: res?.routes || [],
+        transitStatus: res?.transitStatus || {
+          liveTrackingAvailable: false,
+          notice: 'Transit schedules based on standard routes.',
+          coveredOperators: ['Minibus Taxi', 'Anbessa City Bus', 'Sheger Express', 'Addis Light Rail'],
+        },
+        limitations: res?.limitations || [],
+        retrievedAt: res?.retrievedAt || new Date().toISOString(),
+      };
+    } catch {
+      return {
+        provider: 'guzomate-routing',
+        origin: { lat: params.originLat, lon: params.originLon },
+        destination: { lat: destLat, lon: destLon },
+        mode: params.mode || 'driving',
+        routes: [],
+        transitStatus: {
+          liveTrackingAvailable: false,
+          notice: 'Routing service temporarily unavailable.',
+          coveredOperators: [],
+        },
+        limitations: ['Unable to calculate routes right now.'],
+      };
+    }
   },
 };

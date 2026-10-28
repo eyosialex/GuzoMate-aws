@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../../features/useAppStore';
+import { useAuth } from '../../features/AuthContext';
+import { useNotifications } from '../../hooks/useNotifications';
+import { NotificationCenter } from '../notifications/NotificationCenter';
 import { Language } from '../../types';
+import logoImg from '../../assets/logo.png';
 import { 
   Bell, 
   Globe, 
   ChevronDown, 
   Check, 
   Menu, 
-  X 
+  X,
+  User,
+  Sliders 
 } from 'lucide-react';
 
 interface AppNavbarProps {
@@ -23,8 +29,12 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
     language, 
     setLanguage, 
     currentUser, 
-    setCurrentUser 
+    setCurrentUser,
+    openProfileModal 
   } = useAppStore();
+  const { user: authUser } = useAuth();
+  const displayedName = currentUser?.name || authUser?.name || authUser?.fullName || 'My Profile';
+  const { unreadCount } = useNotifications();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -101,8 +111,8 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
           onClick={handleHomeClick}
           className="flex items-center gap-3 cursor-pointer group select-none"
         >
-          <div className="w-10 h-10 rounded-2xl bg-primary text-white flex items-center justify-center shadow-highland group-hover:bg-primary-dark transition-all duration-300 group-hover:scale-105 border border-primary-light/20">
-            <span className="material-symbols-outlined text-[22px]">landscape</span>
+          <div className="w-10 h-10 rounded-2xl bg-white overflow-hidden flex items-center justify-center shadow-highland transition-all duration-300 group-hover:scale-105 border border-primary-light/20">
+            <img src={logoImg} alt="GuzoMate Logo" className="w-full h-full object-contain p-0.5" />
           </div>
           <span className="font-display font-extrabold text-2xl tracking-tight text-primary group-hover:text-primary-dark transition-colors">
             GuzoMate
@@ -153,15 +163,12 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
             }`}
           >
             <span>{language === 'am' ? 'አደጋዎች' : language === 'om' ? 'Balaa' : 'Incidents'}</span>
-            <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.2 rounded border border-primary-light/30">
-              3
-            </span>
           </button>
         </nav>
 
         {/* Far Top Right Side: Notifications, Language Dropdown & User Profile / Sign Out */}
         <div className="hidden md:flex items-center gap-3">
-          {/* Notification Bell (In the position of the previous audio button) */}
+          {/* Notification Bell */}
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -171,45 +178,22 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
                   : 'bg-surface-low text-ash hover:text-primary hover:bg-surface-high border-outline-variant/40'
               }`}
               aria-label="Highland Alerts & Notifications"
-              title="Highland Travel Alerts"
+              title={unreadCount > 0 ? `${unreadCount} unread travel alerts` : 'Travel Alerts'}
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface animate-pulse" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500/70 ring-2 ring-surface" />
+              )}
             </button>
 
             {/* Notification Popover Dropdown */}
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-outline-variant/40 shadow-xl p-3.5 z-50 animate-in fade-in-50 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20 mb-2.5 font-bold text-primary">
-                  <span className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-primary">notifications_active</span>
-                    Highland Travel Alerts
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">3 active</span>
-                </div>
-                <div className="space-y-2">
-                  <div className="p-2.5 rounded-xl bg-surface-low hover:bg-surface-container transition-colors">
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-on-surface">Gotera Interchange resurfacing</p>
-                      <span className="text-[10px] text-ash">10m ago</span>
-                    </div>
-                    <p className="text-ash text-[11px] mt-0.5">1 lane reduced; traffic flowing steadily.</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-surface-low hover:bg-surface-container transition-colors">
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-on-surface">Entoto Pass fog advisory</p>
-                      <span className="text-[10px] text-ash">25m ago</span>
-                    </div>
-                    <p className="text-ash text-[11px] mt-0.5">Heavy highland fog near mountain summit.</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-surface-low hover:bg-surface-container transition-colors">
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-on-surface">Meskel Square corridor</p>
-                      <span className="text-[10px] text-ash">1h ago</span>
-                    </div>
-                    <p className="text-ash text-[11px] mt-0.5">All lanes open; normal traffic flow reported.</p>
-                  </div>
-                </div>
+              <div className="absolute right-0 mt-2 z-50">
+                <NotificationCenter onClose={() => setNotificationsOpen(false)} />
               </div>
             )}
           </div>
@@ -254,15 +238,20 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
 
           {/* User Profile & Sign Out Button */}
           <div className="flex items-center gap-2">
-            {currentUser?.name && (
-              <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-low border border-outline-variant/40 text-xs font-semibold text-primary">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="max-w-[120px] truncate">{currentUser.name}</span>
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={openProfileModal}
+              className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-low hover:bg-surface-high border border-outline-variant/40 text-xs font-semibold text-primary transition-colors cursor-pointer shadow-xs"
+              title="Open Profile & Settings"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="max-w-[120px] truncate">{displayedName}</span>
+              <Sliders className="w-3.5 h-3.5 text-ash ml-0.5" />
+            </button>
+
             <button
               onClick={handleSignOut}
-              className="px-5 py-2 rounded-full text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 transition-colors shadow-sm"
+              className="px-5 py-2 rounded-full text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 transition-colors shadow-sm cursor-pointer"
             >
               {language === 'am' ? 'ውጣ' : language === 'om' ? "Ba'i" : 'Sign Out'}
             </button>
@@ -272,14 +261,28 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
         {/* Mobile Actions: Notifications, Language Dropdown & Hamburger */}
         <div className="flex md:hidden items-center gap-2">
           {/* Mobile Notification Bell */}
-          <button
-            onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="relative p-2 rounded-xl bg-surface-low border border-outline-variant/40 text-on-surface-variant hover:text-primary transition-colors"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface animate-pulse" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="relative p-2 rounded-xl bg-surface-low border border-outline-variant/40 text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+              aria-label="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold min-w-[16px] h-[16px] px-0.5 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500/70 ring-2 ring-surface" />
+              )}
+            </button>
+
+            {notificationsOpen && (
+              <div className="fixed inset-x-3 top-16 z-50 flex justify-center md:hidden">
+                <NotificationCenter onClose={() => setNotificationsOpen(false)} />
+              </div>
+            )}
+          </div>
 
           {/* Mobile Language Dropdown */}
           <div className="relative">
@@ -354,12 +357,22 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
             </button>
             <button 
               onClick={handleIncidentsClick} 
-              className={`w-full py-2.5 px-3 text-left font-bold rounded-xl transition-colors flex items-center justify-between ${
+              className={`w-full py-2.5 px-3 text-left font-bold rounded-xl transition-colors ${
                 effectiveActive === 'incidents' ? 'text-primary bg-primary/10' : 'text-on-surface hover:bg-surface-low'
               }`}
             >
               <span>{language === 'am' ? 'አደጋዎች' : language === 'om' ? 'Balaa' : 'Incidents'}</span>
-              <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">3 new</span>
+            </button>
+
+            <button
+              onClick={() => {
+                openProfileModal();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full py-2.5 px-3 text-left font-bold rounded-xl text-primary hover:bg-surface-low flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              <span>{language === 'am' ? 'መገለጫ እና ቅንብሮች' : 'Profile & Settings'}</span>
             </button>
           </div>
 
@@ -379,3 +392,5 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
 };
 
 export default AppNavbar;
+
+

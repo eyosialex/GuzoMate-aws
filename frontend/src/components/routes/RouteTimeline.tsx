@@ -275,6 +275,15 @@ export const RouteTimeline: React.FC = () => {
                 <p className="text-xs text-on-surface-variant font-medium mt-1 truncate leading-relaxed">
                   {route.summary}
                 </p>
+
+                {route.incidentAlerts && route.incidentAlerts.length > 0 && (
+                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 flex items-center gap-1.5 font-medium leading-tight">
+                    <span className="text-amber-700 font-bold shrink-0">⚠️</span>
+                    <span className="truncate">
+                      {route.incidentAlerts.length} hazard(s) on route ({route.incidentAlerts.map((a: any) => a.type.replace(/_/g, ' ')).join(', ')})
+                    </span>
+                  </div>
+                )}
               </motion.div>
             );
           })}

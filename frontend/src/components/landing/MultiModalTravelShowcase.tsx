@@ -85,7 +85,7 @@ export const MultiModalTravelShowcase: React.FC = () => {
             : 'Traveling in Every Dimension.'}
         </h2>
         <p className="text-sm sm:text-base text-on-surface-variant mt-2 max-w-xl mx-auto">
-          Switch modes below and watch the vehicle, hiker, or train adapt to high-altitude elevation, terrain gradient, and live path contours in real-time.
+          Switch modes below and watch the vehicle, hiker, or train adapt to high-altitude elevation, terrain gradient, and path contours in real-time.
         </p>
       </div>
 
@@ -168,7 +168,7 @@ export const MultiModalTravelShowcase: React.FC = () => {
               disabled={isDetouring}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
                 isDetouring 
-                  ? 'bg-orange-100 text-orange-800 border-orange-300 animate-pulse'
+                  ? 'bg-orange-100 text-orange-800 border-orange-300'
                   : 'bg-white hover:bg-orange-50 text-orange-800 border-orange-200'
               }`}
             >
@@ -304,7 +304,7 @@ export const MultiModalTravelShowcase: React.FC = () => {
             {activeMode === 'walking' && (
               <div className="relative group cursor-pointer flex flex-col items-center">
                 <div className="w-12 h-12 bg-white text-primary rounded-2xl shadow-xl flex items-center justify-center border-2 border-primary">
-                  <Footprints className="w-6 h-6 text-primary animate-pulse" />
+                  <Footprints className="w-6 h-6 text-primary" />
                 </div>
                 {/* Trekking Altitude tag */}
                 <div className="absolute -top-6 whitespace-nowrap bg-emerald-800 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow">
@@ -319,7 +319,7 @@ export const MultiModalTravelShowcase: React.FC = () => {
                 <div className="w-24 h-10 bg-gradient-to-r from-cyan-900 to-primary text-white rounded-xl shadow-2xl flex items-center justify-between px-3 border border-cyan-400/40 relative">
                   {/* Pantograph with electric spark */}
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-3 border-t-2 border-cyan-400">
-                    <Zap className="w-3 h-3 text-cyan-300 animate-ping absolute -top-1.5 -left-1" />
+                    <Zap className="w-3 h-3 text-cyan-300 absolute -top-1.5 -left-1" />
                   </div>
                   <Train className="w-5 h-5 text-cyan-300" />
                   <span className="text-[10px] font-mono font-bold tracking-widest text-cyan-200">LRT-1</span>
@@ -355,7 +355,7 @@ export const MultiModalTravelShowcase: React.FC = () => {
 
         </div>
 
-        {/* Live Graphical Telemetry Dashboard Bottom Bar */}
+        {/* Graphical Telemetry Dashboard Bottom Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-surface-lowest border-t border-outline-variant/30 text-xs">
           
           {/* Velocity Telemetry */}
@@ -384,7 +384,7 @@ export const MultiModalTravelShowcase: React.FC = () => {
           <div className="flex items-center gap-2.5 p-2 rounded-xl bg-surface-low border border-outline-variant/30">
             <div className="w-9 h-9 rounded-lg bg-teal-50 text-tertiary flex items-center justify-center font-bold">
               {activeMode === 'walking' ? (
-                <Heart className="w-4 h-4 text-red-500 animate-ping" />
+                <Heart className="w-4 h-4 text-red-500" />
               ) : activeMode === 'train' ? (
                 <Zap className="w-4 h-4 text-cyan-600" />
               ) : (

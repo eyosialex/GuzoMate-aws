@@ -67,7 +67,7 @@ export const ContactUsPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center font-bold shadow-md">
-              <ShieldAlert className="w-6 h-6 animate-pulse" />
+              <ShieldAlert className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-xl font-display font-bold text-red-900">
@@ -223,7 +223,7 @@ export const ContactUsPage: React.FC = () => {
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-on-surface">Live Network Hours</p>
+              <p className="text-xs font-bold text-on-surface">Network Operating Hours</p>
               <p className="text-[11px] text-ash">Radar telemetry &amp; emergency dispatch operating 24/7/365.</p>
             </div>
           </div>

@@ -1,5 +1,13 @@
 import { request } from '../lib/apiClient';
-import { AssistantQueryPayload, AssistantQueryResponse, Language } from '../types';
+import {
+  AssistantQueryPayload,
+  AssistantResponse,
+  SpeechSynthesisPayload,
+  SpeechSynthesisResponse,
+  ClearMemoryResponse,
+  AssistantLanguage,
+} from '../types/assistant';
+import { Language } from '../types';
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -13,45 +21,96 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export const assistantService = {
-  async query(payload: AssistantQueryPayload): Promise<AssistantQueryResponse> {
+  /**
+   * Submits a conversational query in English, Amharic, or Afaan Oromo.
+   * Grounded with OpenStreetMap POIs, live incidents, and WeatherAPI data.
+   * POST /api/v1/assistant/query
+   */
+  async query(payload: AssistantQueryPayload): Promise<AssistantResponse> {
+    const headers: Record<string, string> = {};
+    if (payload.userId) {
+      headers['x-user-id'] = payload.userId;
+    }
+
     try {
-      return await request<AssistantQueryResponse>('/assistant/query', {
+      return await request<AssistantResponse>('/assistant/assistant/query', {
         method: 'POST',
+        headers,
         body: JSON.stringify(payload),
         language: payload.language,
       });
-    } catch (err: any) {
-      if (err?.status === 404) {
-        return await request<AssistantQueryResponse>('/assistant/assistant/query', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          language: payload.language,
-        });
-      }
-      throw err;
+    } catch {
+      return await request<AssistantResponse>('/assistant/query', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+        language: payload.language,
+      });
     }
   },
 
+  /**
+   * Direct text-to-speech synthesis (TTS) for localized navigation and advisory audio.
+   * POST /api/v1/assistant/speech/synthesis
+   */
+  async synthesizeSpeech(
+    input: SpeechSynthesisPayload | string,
+    language: AssistantLanguage = 'en'
+  ): Promise<SpeechSynthesisResponse> {
+    const payload: SpeechSynthesisPayload =
+      typeof input === 'string' ? { text: input, language } : input;
+
+    return await request<SpeechSynthesisResponse>('/assistant/speech/synthesis', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      language: payload.language,
+    });
+  },
+
+  /**
+   * Clears persistent multi-turn conversation memory for a user session.
+   * POST /api/v1/assistant/memory/clear
+   */
+  async clearMemory(userId?: string): Promise<ClearMemoryResponse> {
+    const headers: Record<string, string> = {};
+    if (userId) {
+      headers['x-user-id'] = userId;
+    }
+
+    try {
+      return await request<ClearMemoryResponse>('/assistant/assistant/memory/clear', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ userId: userId || 'default_traveler' }),
+      });
+    } catch {
+      return await request<ClearMemoryResponse>('/assistant/memory/clear', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ userId: userId || 'default_traveler' }),
+      });
+    }
+  },
+
+  /**
+   * Transcribes traveler speech recording (STT) for voice queries.
+   * POST /api/v1/speech/transcriptions
+   */
   async transcribeAudio(audioBlob: Blob, language: Language = 'en'): Promise<{ text: string }> {
-    const base64Data = await blobToBase64(audioBlob);
-    const mimeType = audioBlob.type || 'audio/webm';
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('language', language);
 
     const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
-    const endpoint = token ? '/speech/transcriptions' : '/assistant/speech/transcriptions';
     const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}${endpoint}`,
+      `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/speech/transcriptions`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Accept-Language': language,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
-          audio: base64Data,
-          mimeType,
-          language,
-        }),
+        body: formData,
       }
     );
 
@@ -62,45 +121,5 @@ export const assistantService = {
 
     const json = await response.json();
     return json?.data ?? json;
-  },
-
-  async synthesizeSpeech(text: string, language: Language = 'en'): Promise<string | null> {
-    try {
-      const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/speech/synthesis`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept-Language': language,
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ text, language }),
-        }
-      );
-
-      if (response.ok) {
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const json = await response.json();
-          const data = json?.data ?? json;
-          if (data?.audioUrl) return data.audioUrl;
-          if (data?.audioBase64) {
-            return `data:${data.mimeType || 'audio/wav'};base64,${data.audioBase64}`;
-          }
-        } else {
-          const blob = await response.blob();
-          if (blob.size > 100) {
-            return URL.createObjectURL(blob);
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('Backend speech synthesis fetch failed:', err);
-    }
-
-    // Reliable fallback: Web Speech API synthesis URI
-    return `speech:${encodeURIComponent(text)}?lang=${language}`;
   },
 };

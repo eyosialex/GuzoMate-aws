@@ -109,7 +109,7 @@ export const IntelligentAIShowcase: React.FC = () => {
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-12">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/15 text-secondary text-xs font-bold mb-3 border border-secondary/30">
-          <Cpu className="w-3.5 h-3.5 animate-pulse" />
+          <Cpu className="w-3.5 h-3.5" />
           <span>Interactive AI Graphical Telemetry &amp; Radar Engine</span>
         </div>
         <h2 className="text-3xl sm:text-5xl font-display font-extrabold text-on-surface tracking-tight">
@@ -120,7 +120,7 @@ export const IntelligentAIShowcase: React.FC = () => {
             : 'Intelligence in Motion.'}
         </h2>
         <p className="text-sm sm:text-base text-on-surface-variant mt-2 max-w-xl mx-auto">
-          Explore three interactive live simulations below. Test the 360° obstacle avoidance radar, observe neural script morphing, and dial elevation to see dynamic gear deployment.
+          Explore three interactive simulations below. Test the 360° obstacle avoidance radar, observe neural script morphing, and dial elevation to see dynamic gear deployment.
         </p>
       </div>
 
@@ -136,7 +136,7 @@ export const IntelligentAIShowcase: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
-                  <Radio className="w-4 h-4 text-emerald-300 animate-pulse" />
+                  <Radio className="w-4 h-4 text-emerald-300" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold font-display text-primary">Neural Radar &amp; Detour</h3>
@@ -144,7 +144,7 @@ export const IntelligentAIShowcase: React.FC = () => {
                 </div>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                 ACTIVE
               </span>
             </div>
@@ -202,7 +202,7 @@ export const IntelligentAIShowcase: React.FC = () => {
                 {/* Hazard Target Lock Indicator on Radar */}
                 {radarHazard !== 'none' && (
                   <g transform="translate(100, 100)">
-                    <circle r="12" fill="none" stroke="#ef4444" strokeWidth="2" className="animate-ping" />
+                    <circle r="12" fill="none" stroke="#ef4444" strokeWidth="2" opacity="0.6" />
                     <circle r="7" fill="#ef4444" />
                     <text x="0" y="-14" fill="#ef4444" fontSize="8" fontWeight="bold" textAnchor="middle">
                       {radarHazard.toUpperCase()}
@@ -215,7 +215,7 @@ export const IntelligentAIShowcase: React.FC = () => {
               <div className="w-3.5 h-3.5 rounded-full bg-cyan-400 border-2 border-white shadow-lg z-10" />
             </div>
 
-            {/* Radar Telemetry Live Ticker */}
+            {/* Radar Telemetry Ticker */}
             <div className="mt-4 p-2.5 rounded-xl bg-surface-low border border-outline-variant/30 flex items-center justify-between text-[11px] font-mono">
               <span className="text-ash">OBSTACLE DIST:</span>
               <span className="font-bold text-on-surface">
@@ -282,11 +282,11 @@ export const IntelligentAIShowcase: React.FC = () => {
               </span>
             </div>
 
-            {/* Simulated Live Audio Waveform Bars */}
+            {/* Simulated Audio Waveform Bars */}
             <div className="bg-surface-low rounded-2xl p-4 border border-outline-variant/40 space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5 font-bold text-primary">
-                  <Volume2 className="w-4 h-4 text-secondary animate-pulse" />
+                  <Volume2 className="w-4 h-4 text-secondary" />
                   <span>Acoustic Waveform Input</span>
                 </div>
                 <span className="text-[10px] font-mono text-ash bg-white px-2 py-0.5 rounded border border-outline-variant/30">
@@ -382,7 +382,7 @@ export const IntelligentAIShowcase: React.FC = () => {
                 </div>
               </div>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                isExtremeHighland ? 'bg-red-100 text-red-800 animate-pulse' : 'bg-cyan-100 text-cyan-800'
+                isExtremeHighland ? 'bg-red-100 text-red-800' : 'bg-cyan-100 text-cyan-800'
               }`}>
                 {isExtremeHighland ? 'HIGH ALTITUDE' : 'BALANCED'}
               </span>

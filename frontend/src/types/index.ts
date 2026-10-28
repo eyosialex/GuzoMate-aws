@@ -50,13 +50,17 @@ export interface PlacesNearbyResponse {
 
 export type IncidentType =
   | 'ACCIDENT'
+  | 'ROAD_BLOCK'
   | 'ROAD_CLOSURE'
   | 'FLOODING'
   | 'LANDSLIDE'
   | 'ROAD_DAMAGE'
   | 'CONSTRUCTION'
   | 'HEAVY_TRAFFIC'
+  | 'HAZARD'
   | 'OTHER';
+
+export type IncidentSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export type IncidentStatus = 
   | 'PENDING' 
@@ -68,6 +72,7 @@ export type IncidentStatus =
 export type IncidentVerification = 
   | 'UNVERIFIED' 
   | 'COMMUNITY_CONFIRMED' 
+  | 'MODERATOR_VERIFIED'
   | 'OFFICIALLY_VERIFIED';
 
 export interface Incident {
@@ -75,29 +80,46 @@ export interface Incident {
   title?: string;
   type: IncidentType;
   description: string;
+  severity?: IncidentSeverity;
   status: IncidentStatus;
   verification: IncidentVerification;
   location: GeoLocation;
   locationName?: string;
   distanceMeters?: number | null;
-  createdAt: string;
-  expiresAt?: string | null;
-  occurredAt?: string;
   confirmationsCount?: number;
+  disputesCount?: number;
+  occurredAt?: string;
+  expiresAt?: string | null;
+  evidenceUrl?: string | null;
+  reporter?: {
+    id: string;
+    name: string | null;
+  };
+  userVote?: 'CONFIRM' | 'DISPUTE' | null;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface IncidentSubmissionPayload {
   title?: string;
   type: IncidentType;
   description: string;
+  severity?: IncidentSeverity;
   location: GeoLocation;
   locationName?: string;
   occurredAt?: string;
+  evidenceUrl?: string;
 }
 
 export interface IncidentNearbyResponse {
   items: Incident[];
-  nextCursor: string | null;
+  nextCursor?: string | null;
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export type RouteTravelMode = 'transit' | 'driving' | 'walking';
@@ -124,6 +146,14 @@ export interface RouteOption {
   segments: RouteSegment[];
   sourceUpdatedAt: string | null;
   limitations?: string[];
+  incidentAlerts?: Array<{
+    incidentId: string;
+    type: string;
+    description: string;
+    severity?: string | null;
+    location?: { lat: number; lon: number };
+    distanceMeters?: number;
+  }>;
 }
 
 export interface RoutesResponse {
@@ -236,6 +266,7 @@ export interface ChatMessage {
   isStreaming?: boolean;
   audioUrl?: string;
   audioDurationSeconds?: number;
+  limitations?: string[];
 }
 
 export interface UserPreferences {
@@ -249,10 +280,19 @@ export type PageView = 'landing' | 'app' | 'about' | 'contact' | 'home' | 'explo
 
 export interface UserProfile {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   phone?: string;
   preferredLanguage: Language;
+  role?: 'USER' | 'MODERATOR' | 'ADMIN';
+  status?: 'ACTIVE' | 'SUSPENDED';
   isGuildVerified?: boolean;
   avatarUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  stats?: {
+    reportedIncidentsCount: number;
+    confirmationsCount: number;
+    savedPlacesCount: number;
+  };
 }

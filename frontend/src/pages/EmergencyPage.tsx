@@ -85,7 +85,7 @@ export const EmergencyPage: React.FC = () => {
             </p>
           </div>
           <span className="self-start sm:self-auto text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-600 animate-ping" />
+            <span className="h-2 w-2 rounded-full bg-emerald-600" />
             24/7 Monitored
           </span>
         </div>
