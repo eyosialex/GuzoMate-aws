@@ -11,7 +11,6 @@ import { ContactUsPage } from '../components/pages/ContactUsPage';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { AuthModal } from '../components/auth/AuthModal';
 import { UserProfileModal } from '../components/user/UserProfileModal';
-import { DevViewSwitcher } from '../components/dev/DevViewSwitcher';
 
 export const App: React.FC = () => {
   const { pageView } = useAppStore();
@@ -19,9 +18,6 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
-        {/* Development View Switcher: Bottom Right Corner */}
-        <DevViewSwitcher />
-
         {/* Global Authentication & User Profile Modals */}
         <AuthModal />
         <UserProfileModal />
