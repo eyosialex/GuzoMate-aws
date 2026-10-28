@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { assistantController } from './assistant.controller.js';
+import { speechController } from '../travel-services/speech/speech.controller.js';
 
 export const assistantRouter = Router();
 
@@ -10,6 +11,17 @@ export const assistantRouter = Router();
 assistantRouter.post('/', (req, res) => assistantController.handleQuery(req, res));
 assistantRouter.post('/query', (req, res) => assistantController.handleQuery(req, res));
 assistantRouter.post('/assistant/query', (req, res) => assistantController.handleQuery(req, res));
+
+/**
+ * POST /api/v1/assistant/speech/transcriptions & /api/v1/assistant/transcriptions
+ * Allows guest voice transcription for the assistant.
+ */
+assistantRouter.post('/speech/transcriptions', (req, res, next) =>
+  speechController.transcribe(req, res, next)
+);
+assistantRouter.post('/transcriptions', (req, res, next) =>
+  speechController.transcribe(req, res, next)
+);
 
 /**
  * POST /api/v1/speech/synthesis & /api/v1/assistant/speech/synthesis

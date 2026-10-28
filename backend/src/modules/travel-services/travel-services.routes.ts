@@ -31,8 +31,8 @@ travelServicesRouter.get('/routes', (req, res, next) =>
 // =============================================================================
 // Speech Services Endpoints (Member 3)
 // =============================================================================
-// Speech-to-Text: Optional authentication, allows guest voice queries
-travelServicesRouter.post('/speech/transcriptions', optionalAuthenticate, (req, res, next) =>
+// Speech-to-Text: Auth protected per specification
+travelServicesRouter.post('/speech/transcriptions', authenticate, (req, res, next) =>
   speechController.transcribe(req, res, next)
 );
 

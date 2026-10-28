@@ -96,7 +96,6 @@ export class AddisAiSpeechProvider implements ISpeechProvider {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`,
             'x-api-key': this.apiKey,
           },
           body: JSON.stringify({
@@ -241,13 +240,13 @@ Transcribe ONLY the words spoken. Do not translate. Do not add commentary, times
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`,
             'x-api-key': this.apiKey,
           },
           body: JSON.stringify({
             text: cleanText,
             voice_id: targetVoice,
             language,
+            client_request_id: `guzo-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
             output_format: 'mp3_44100',
           }),
           signal: controller.signal,
