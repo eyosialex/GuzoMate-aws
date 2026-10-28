@@ -199,6 +199,16 @@ export interface AssistantQueryPayload {
   voiceId?: string;
 }
 
+export interface AssistantVoiceData {
+  provider: string;
+  voiceId?: string;
+  language?: Language;
+  audioUrl?: string | null;
+  audioBase64?: string | null;
+  mimeType?: string;
+  durationSeconds?: number | null;
+}
+
 export interface AssistantQueryResponse {
   answer: string;
   language: Language;
@@ -209,6 +219,7 @@ export interface AssistantQueryResponse {
   routes?: RouteOption[];
   sources?: AssistantSource[];
   limitations?: string[];
+  voice?: AssistantVoiceData | null;
 }
 
 export interface ChatMessage {

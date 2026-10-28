@@ -382,6 +382,8 @@ export const ChatInterface: React.FC = () => {
       cancelVoiceMode();
     }
 
+    warmUpAudio();
+
     const userMsg: ChatMessage = {
       id: `usr-${Date.now()}`,
       sender: 'user',
@@ -398,13 +400,29 @@ export const ChatInterface: React.FC = () => {
         query: textToSend.trim(),
         language,
         location: userLocation,
+        enableVoice: true,
       });
 
+      let audioUrl: string | undefined = response.voice?.audioUrl || undefined;
+      if (!audioUrl && response.voice?.audioBase64) {
+        audioUrl = `data:${response.voice.mimeType || 'audio/wav'};base64,${response.voice.audioBase64}`;
+      }
+      if (!audioUrl && response.answer) {
+        audioUrl = `speech:${encodeURIComponent(response.answer)}?lang=${language}`;
+      }
+
+      const assistantMsgId = `asst-${Date.now()}`;
+      if (audioUrl) {
+        setAutoPlayAudioId(assistantMsgId);
+      }
+
       const assistantMsg: ChatMessage = {
-        id: `asst-${Date.now()}`,
+        id: assistantMsgId,
         sender: 'assistant',
         content: response.answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        audioUrl,
+        audioDurationSeconds: response.voice?.durationSeconds ?? undefined,
         places: response.places,
         weather: response.weather,
         incidents: response.incidents,

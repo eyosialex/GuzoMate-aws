@@ -37,8 +37,9 @@ export const assistantService = {
     const mimeType = audioBlob.type || 'audio/webm';
 
     const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
+    const endpoint = token ? '/speech/transcriptions' : '/assistant/speech/transcriptions';
     const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/speech/transcriptions`,
+      `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}${endpoint}`,
       {
         method: 'POST',
         headers: {
@@ -64,36 +65,42 @@ export const assistantService = {
   },
 
   async synthesizeSpeech(text: string, language: Language = 'en'): Promise<string | null> {
-    const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
-    const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/speech/synthesis`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Language': language,
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ text, language }),
-      }
-    );
+    try {
+      const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/speech/synthesis`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept-Language': language,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ text, language }),
+        }
+      );
 
-    if (!response.ok) {
-      return null;
+      if (response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const json = await response.json();
+          const data = json?.data ?? json;
+          if (data?.audioUrl) return data.audioUrl;
+          if (data?.audioBase64) {
+            return `data:${data.mimeType || 'audio/wav'};base64,${data.audioBase64}`;
+          }
+        } else {
+          const blob = await response.blob();
+          if (blob.size > 100) {
+            return URL.createObjectURL(blob);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Backend speech synthesis fetch failed:', err);
     }
 
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      const json = await response.json();
-      const data = json?.data ?? json;
-      if (data?.audioUrl) return data.audioUrl;
-      if (data?.audioBase64) {
-        return `data:${data.mimeType || 'audio/wav'};base64,${data.audioBase64}`;
-      }
-      return null;
-    }
-
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
+    // Reliable fallback: Web Speech API synthesis URI
+    return `speech:${encodeURIComponent(text)}?lang=${language}`;
   },
 };

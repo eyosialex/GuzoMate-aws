@@ -52,12 +52,25 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
   };
 
   useEffect(() => {
+    let active = true;
+
     if (autoPlay && !hasAutoPlayedRef.current) {
       hasAutoPlayedRef.current = true;
-      startPlayback();
+      const timer = setTimeout(() => {
+        if (active) {
+          startPlayback();
+        }
+      }, 60);
+
+      return () => {
+        active = false;
+        clearTimeout(timer);
+        pausePlayback();
+      };
     }
 
     return () => {
+      active = false;
       pausePlayback();
     };
   }, [audioUrl, autoPlay]);

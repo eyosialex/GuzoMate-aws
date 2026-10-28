@@ -78,7 +78,12 @@ export const voiceChatService = {
       }
     }
 
-    const audioDurationSeconds: number | undefined = voiceData?.durationSeconds ?? undefined;
+    // Guarantee audioUrl is always present so the audio response is ALWAYS rendered in chat and played
+    if (!audioUrl && assistantRes.answer) {
+      audioUrl = `speech:${encodeURIComponent(assistantRes.answer)}?lang=${language}`;
+    }
+
+    const audioDurationSeconds: number | undefined = voiceData?.durationSeconds ?? 4;
 
     return {
       transcript: userText,
