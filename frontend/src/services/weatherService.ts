@@ -1,5 +1,5 @@
 import { request } from '../lib/apiClient';
-import { Language } from '../types';
+import { Language, WeatherData } from '../types';
 import {
   CurrentWeather,
   DailyForecast,
@@ -82,32 +82,28 @@ export const weatherService = {
     lon: number,
     arrivalTime?: string,
     language?: Language
-  ): Promise<any | null> {
+  ): Promise<WeatherData | null> {
     try {
-      const [currentRes, forecastRes, adviceRes] = await Promise.allSettled([
-        this.getCurrent(lat, lon, language),
+      // 1. Fetch current conditions (primary requirement)
+      const currentRes = await this.getCurrent(lat, lon, language);
+
+      // 2. Concurrently fetch forecast and arrival advice
+      const [forecastSettled, adviceSettled] = await Promise.allSettled([
         this.getForecast(lat, lon, 3, language),
         arrivalTime ? this.getArrivalAdvice(lat, lon, arrivalTime, language) : Promise.resolve(null),
       ]);
 
-    // 2. Concurrently fetch forecast and arrival advice
-    const [forecastSettled, adviceSettled] = await Promise.allSettled([
-      this.getForecast(lat, lon, 3, language),
-      arrivalTime ? this.getArrivalAdvice(lat, lon, arrivalTime, language) : Promise.resolve(null),
-    ]);
-
-      const current = currentRes.value;
-      const forecast = forecastRes.status === 'fulfilled' ? forecastRes.value.forecast : [];
-      const arrivalAdvice = adviceRes.status === 'fulfilled' ? adviceRes.value : null;
+      const forecast = forecastSettled.status === 'fulfilled' ? forecastSettled.value.forecast : [];
+      const arrivalAdvice = adviceSettled.status === 'fulfilled' ? adviceSettled.value : null;
 
       return {
         location: { lat, lon },
-        current,
-        forecast,
-        arrivalAdvice,
-        provider: current.provider || 'weatherapi',
-        retrievedAt: current.retrievedAt || new Date().toISOString(),
-        cached: current.cached ?? false,
+        current: currentRes.current as any,
+        forecast: forecast as any,
+        arrivalAdvice: arrivalAdvice as any,
+        provider: currentRes.provider || 'weatherapi',
+        retrievedAt: currentRes.retrievedAt || new Date().toISOString(),
+        cached: Boolean(currentRes.cached),
       };
     } catch {
       return null;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { 
   MapContainer, 
   TileLayer, 
@@ -9,7 +9,7 @@ import {
   useMapEvents 
 } from 'react-leaflet';
 import L from 'leaflet';
-import { Crosshair, AlertTriangle, Loader2 } from 'lucide-react';
+import { Crosshair, AlertTriangle, Loader2, MapPin, Check } from 'lucide-react';
 import { GeoLocation } from '../../types';
 import { useAppStore } from '../../features/useAppStore';
 import { usePlaces } from '../../hooks/usePlaces';
@@ -17,6 +17,7 @@ import { useIncidents } from '../../hooks/useIncidents';
 import { IconButton } from '../common/IconButton';
 import { IncidentVoteButtons } from '../incidents/IncidentVoteButtons';
 import { Place, Incident } from '../../types';
+import { formatLocationName, reverseGeocode } from '../../lib/addisLandmarks';
 
 export interface CorridorWaypoint {
   name: string;
@@ -342,7 +343,7 @@ function MapEventsHandler({ onMapClick }: { onMapClick?: (loc: GeoLocation) => v
 
         // Asynchronously refine address via reverse geocoding
         reverseGeocode(loc)
-          .then((refinedName) => {
+          .then((refinedName: string) => {
             if (refinedName && refinedName !== initialName) {
               setDraftDestination({ location: loc, name: refinedName });
             }
@@ -394,8 +395,6 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   const setPageView = useAppStore((state) => state.setPageView);
   const setIncidentSubpage = useAppStore((state) => state.setIncidentSubpage);
 
-  const [isLocating, setIsLocating] = useState(false);
-
   const selectedPlace = useAppStore((state) => state.selectedPlace);
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
   const selectedIncident = useAppStore((state) => state.selectedIncident);
@@ -438,35 +437,18 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
     return coords;
   }, [customRoute, selectedRoute]);
 
-  const handleUseCurrentLocation = () => {
-    setIsLocating(true);
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const newLoc: GeoLocation = {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          };
-          try {
-            localStorage.setItem('guzo_last_location', JSON.stringify({
-              coords: newLoc,
-              timestamp: Date.now(),
-            }));
-          } catch {}
-          setUserLocation(newLoc);
-          setMapCenter([newLoc.lat, newLoc.lon], 16);
-          setIsLocating(false);
-        },
-        (err) => {
-          console.warn('Geolocation permission denied or failed:', err);
-          setMapCenter([userLocation.lat, userLocation.lon], 15);
-          setIsLocating(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
+  const handleUseCurrentLocation = async () => {
+    const loc = await requestCurrentLocation();
+    if (loc) {
+      try {
+        localStorage.setItem('guzo_last_location', JSON.stringify({
+          coords: loc,
+          timestamp: Date.now(),
+        }));
+      } catch {}
+      setMapCenter([loc.lat, loc.lon], 16);
     } else {
       setMapCenter([userLocation.lat, userLocation.lon], 15);
-      setIsLocating(false);
     }
   };
 
@@ -758,7 +740,8 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
           variant="glass"
           shape="circle"
           onClick={handleUseCurrentLocation}
-          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md hover:bg-white"
+          disabled={isLocating}
+          className="h-11 w-11 shadow-[0_8px_24px_rgba(0,0,0,0.14)] bg-white/95 backdrop-blur-md hover:bg-white disabled:opacity-60 cursor-pointer"
         />
 
         <IconButton

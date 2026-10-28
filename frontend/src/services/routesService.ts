@@ -1,5 +1,5 @@
 import { request } from '../lib/apiClient';
-import { Language } from '../types';
+import { Language, RoutesResponse, RouteTravelMode, RouteOption, RouteSegment } from '../types';
 import {
   RoutesResponseData,
   RouteMode,
@@ -12,7 +12,7 @@ export interface RouteSearchParams {
   destLat?: number;
   destinationLon?: number;
   destLon?: number;
-  mode?: RouteMode;
+  mode?: RouteTravelMode;
   departAt?: string;
   language?: Language;
   includeIncidents?: boolean;

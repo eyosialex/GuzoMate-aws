@@ -421,6 +421,7 @@ export const ChatInterface: React.FC = () => {
           : undefined
       );
 
+      const assistantMsgId = `asst-${Date.now()}`;
       const assistantMsg: ChatMessage = {
         id: assistantMsgId,
         sender: 'assistant',

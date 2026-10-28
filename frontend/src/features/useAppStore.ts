@@ -180,6 +180,13 @@ export const useAppStore = create<AppState>((set, get) => ({
             locationError: null,
           });
 
+          try {
+            localStorage.setItem('guzo_last_location', JSON.stringify({
+              coords,
+              timestamp: Date.now(),
+            }));
+          } catch {}
+
           // Asynchronously attempt to get more granular street/district address if available
           reverseGeocode(coords).then((refinedName) => {
             if (refinedName && refinedName !== name) {
@@ -234,6 +241,70 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ mapCenter: [firstCoord[0], firstCoord[1]], mapZoom: 13 });
       }
     }
+  },
+
+  // Destination Picking State & Actions
+  isPickingDestination: false,
+  destinationLocation: { lat: 9.0340, lon: 38.7510 }, // Default Piazza St George
+  destinationName: 'Piazza St George, Addis Ababa',
+  draftDestination: null,
+
+  startPickingDestination: () => {
+    const currentLoc = get().destinationLocation;
+    const currentName = get().destinationName;
+    set({
+      isPickingDestination: true,
+      draftDestination: currentLoc ? { location: currentLoc, name: currentName } : null,
+      bottomSheetSnap: 'collapsed',
+    });
+    if (currentLoc) {
+      set({ mapCenter: [currentLoc.lat, currentLoc.lon], mapZoom: 15 });
+    }
+  },
+
+  setDraftDestination: (draft: { location: GeoLocation; name: string } | null) => {
+    set({ draftDestination: draft });
+    if (draft) {
+      set({ mapCenter: [draft.location.lat, draft.location.lon] });
+    }
+  },
+
+  confirmDestination: () => {
+    const draft = get().draftDestination;
+    if (draft) {
+      set({
+        destinationLocation: draft.location,
+        destinationName: draft.name,
+        draftDestination: null,
+        isPickingDestination: false,
+        activeTab: 'routes',
+        bottomSheetSnap: 'half',
+      });
+    } else {
+      set({
+        isPickingDestination: false,
+        activeTab: 'routes',
+        bottomSheetSnap: 'half',
+      });
+    }
+  },
+
+  cancelPickingDestination: () => {
+    set({
+      isPickingDestination: false,
+      draftDestination: null,
+      bottomSheetSnap: 'half',
+    });
+  },
+
+  setDestination: (loc: GeoLocation, name?: string) => {
+    const resolvedName = name || formatLocationName(loc);
+    set({
+      destinationLocation: loc,
+      destinationName: resolvedName,
+      draftDestination: null,
+      isPickingDestination: false,
+    });
   },
 
   incidentSubpage: 'list',

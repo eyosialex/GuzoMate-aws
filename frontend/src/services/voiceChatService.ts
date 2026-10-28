@@ -82,13 +82,13 @@ export const voiceChatService = {
       audioUrl = `speech:${encodeURIComponent(assistantRes.answer)}?lang=${language}`;
     }
 
-    const audioDurationSeconds: number | undefined = voiceData?.durationSeconds ?? 4;
+    const audioDurationSeconds: number = assistantRes.voice?.durationSeconds || 4;
 
     return {
       transcript: userText,
       answer: assistantRes.answer,
       audioUrl,
-      audioDurationSeconds: assistantRes.voice?.durationSeconds || 4,
+      audioDurationSeconds,
       places: assistantRes.places as any,
       weather: assistantRes.weather as any,
       sources: assistantRes.sources,
