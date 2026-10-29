@@ -141,7 +141,7 @@ export class ConfirmationsService {
         triggeredActivation,
         incident: updatedIncident,
       };
-    }, { maxWait: 15000, timeout: 30000 });
+    }, { maxWait: 15000, timeout: 120000 });
 
     // If the incident just became active, dispatch alerts to nearby subscribed users
     if (result.triggeredActivation && result.incident) {
