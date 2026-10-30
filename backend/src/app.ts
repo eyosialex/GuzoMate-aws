@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { pool } from './config/database.js';
 import { env } from './config/env.js';
 import apiRoutes from './routes/index.js';
+import authRoutes from './modules/auth/auth.routes.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.middleware.js';
 import { apiLimiter } from './middleware/rate-limit.middleware.js';
@@ -240,6 +241,7 @@ app.get('/api/v1/places/:id', async (req: Request, res: Response) => {
 // -----------------------------------------------------------------------------
 // GuzoMate Complete API Routes
 // -----------------------------------------------------------------------------
+app.use('/auth', authRoutes);
 app.use('/api/v1', apiRoutes);
 
 // Root health redirect

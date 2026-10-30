@@ -122,12 +122,12 @@ export const swaggerDocument = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['email', 'phoneNumber', 'password'],
+                required: ['fullName', 'phoneNumber', 'password', 'confirmPassword'],
                 properties: {
-                  email: { type: 'string', format: 'email', example: 'traveler@gmail.com' },
+                  fullName: { type: 'string', example: 'Abebe Bikila' },
                   phoneNumber: { type: 'string', example: '+251911234567' },
                   password: { type: 'string', format: 'password', example: 'Password123' },
-                  name: { type: 'string', example: 'Abebe Bikila' },
+                  confirmPassword: { type: 'string', format: 'password', example: 'Password123' },
                   preferredLanguage: { type: 'string', enum: ['en', 'am', 'om'], example: 'en' },
                 },
               },
@@ -136,8 +136,8 @@ export const swaggerDocument = {
         },
         responses: {
           201: { description: 'User successfully registered, OTP sent' },
-          400: { description: 'Validation error (e.g. non-gmail domain or invalid phone number)' },
-          409: { description: 'Email or phone number already registered' },
+          400: { description: 'Validation error (e.g. invalid phone number or passwords mismatch)' },
+          409: { description: 'Phone number already registered and verified' },
         },
       },
     },
@@ -212,6 +212,32 @@ export const swaggerDocument = {
           200: { description: 'Login successful, returns JWT accessToken' },
           401: { description: 'Invalid credentials' },
           403: { description: 'Account suspended or phone number not verified' },
+        },
+      },
+    },
+    '/auth/google': {
+      post: {
+        summary: 'Continue with Google (Unified Sign-in & Sign-up)',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['idToken'],
+                properties: {
+                  idToken: { type: 'string', description: 'Google ID token from Google Identity Services SDK' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Google sign-in successful (existing user)' },
+          201: { description: 'Google registration successful (new user created)' },
+          400: { description: 'Invalid email domain or request payload' },
+          401: { description: 'Invalid or expired Google token' },
+          403: { description: 'Account suspended' },
         },
       },
     },

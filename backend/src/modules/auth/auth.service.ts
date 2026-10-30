@@ -17,9 +17,11 @@ import {
   LoginInput,
   VerifyOtpInput,
   ResendOtpInput,
+  GoogleAuthInput,
 } from './auth.validation.js';
 import { JwtPayload } from '../../shared/types/auth.types.js';
 import { AfroMessageService } from '../../services/afroMessage.service.js';
+import { GoogleService } from '../../services/google.service.js';
 
 export class AuthService {
   private static languageMap: Record<string, Language> = {
@@ -47,101 +49,150 @@ export class AuthService {
   private static sanitizeUser(user: any) {
     return {
       id: user.id,
-      email: user.email,
+      fullName: user.fullName || user.name || null,
+      name: user.name || user.fullName || null,
       phoneNumber: user.phoneNumber,
+      email: user.email,
       isPhoneVerified: user.isPhoneVerified,
-      name: user.name,
+      avatarUrl: user.avatarUrl ?? null,
+      googleId: user.googleId ?? null,
+      authProvider: user.authProvider || (user.googleId ? 'google' : 'local'),
+      authProviders: user.authProviders ?? (user.googleId ? ['google'] : ['local']),
       role: user.role,
       status: user.status,
-      preferredLanguage: user.preferredLanguage.toLowerCase(),
+      preferredLanguage: user.preferredLanguage ? user.preferredLanguage.toLowerCase() : 'en',
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
   }
 
   /**
-   * Register a new traveler account.
-   * Account is created in an unverified state (isPhoneVerified: false) and OTP is dispatched via AfroMessage.
+   * Shared helper to check OTP rate limits, generate a cryptographically secure OTP,
+   * persist it to the database, and dispatch it via AfroMessage.
    */
-  static async register(input: RegisterInput) {
-    // 1. Check if email already exists
-    const existingEmail = await prisma.user.findUnique({
-      where: { email: input.email },
+  private static async sendAndRecordOtp(phoneNumber: string): Promise<string> {
+    // Rate limit check: 60-second cooldown
+    const latestOtp = await prisma.otpVerification.findFirst({
+      where: { phoneNumber },
+      orderBy: { createdAt: 'desc' },
     });
-    if (existingEmail) {
-      throw new ConflictError('A user with this email address already exists.');
+
+    if (latestOtp && new Date() < latestOtp.resendAvailableAt) {
+      const secondsLeft = Math.ceil((latestOtp.resendAvailableAt.getTime() - Date.now()) / 1000);
+      throw new RateLimitError(`Please wait ${secondsLeft} seconds before requesting a new code.`);
     }
 
-    // 2. Check if phone number already exists
-    const existingPhone = await prisma.user.findUnique({
-      where: { phoneNumber: input.phoneNumber },
+    // Rate limit check: Max 5 resends per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const hourlyRequests = await prisma.otpVerification.count({
+      where: {
+        phoneNumber,
+        createdAt: { gte: oneHourAgo },
+      },
     });
-    if (existingPhone) {
-      throw new ConflictError('A user with this phone number already exists.');
+
+    if (hourlyRequests >= 5) {
+      throw new RateLimitError('Hourly OTP request limit exceeded. Please try again after an hour.');
     }
 
-    // 3. Hash password
-    const passwordHash = await bcrypt.hash(input.password, env.BCRYPT_SALT_ROUNDS);
-    const preferredLang = this.languageMap[input.preferredLanguage || 'en'] || Language.EN;
+    // Invalidate existing active OTPs
+    await prisma.otpVerification.updateMany({
+      where: {
+        phoneNumber,
+        isUsed: false,
+      },
+      data: { isUsed: true },
+    });
 
-    // 4. Generate cryptographically secure OTP & hash
+    // Generate new OTP
     const otp = this.generateRandomOtp(env.OTP_LENGTH);
     const otpHash = this.hashOtp(otp);
     const expiresAt = new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000);
-    const resendAvailableAt = new Date(Date.now() + 60 * 1000); // 60 seconds cooldown
+    const resendAvailableAt = new Date(Date.now() + 60 * 1000);
 
-    // 5. Database transaction: Create user, default notification subscription, and OTP record
-    const user = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          email: input.email,
-          phoneNumber: input.phoneNumber,
-          isPhoneVerified: false,
-          passwordHash,
-          name: input.name || null,
-          role: UserRole.USER,
-          status: UserStatus.ACTIVE,
-          preferredLanguage: preferredLang,
-        },
-      });
-
-      // Default notification subscription for new user
-      await tx.notificationSubscription.create({
-        data: {
-          userId: newUser.id,
-          enabled: true,
-          radiusMeters: 5000,
-          incidentTypes: [],
-        },
-      });
-
-      // Invalidate any stale OTP records for this phone number
-      await tx.otpVerification.updateMany({
-        where: {
-          phoneNumber: input.phoneNumber,
-          isUsed: false,
-        },
-        data: { isUsed: true },
-      });
-
-      // Store hashed OTP
-      await tx.otpVerification.create({
-        data: {
-          phoneNumber: input.phoneNumber,
-          otpHash,
-          attempts: 0,
-          maxAttempts: env.OTP_MAX_ATTEMPTS,
-          expiresAt,
-          resendAvailableAt,
-          isUsed: false,
-        },
-      });
-
-      return newUser;
+    await prisma.otpVerification.create({
+      data: {
+        phoneNumber,
+        otpHash,
+        attempts: 0,
+        maxAttempts: env.OTP_MAX_ATTEMPTS,
+        expiresAt,
+        resendAvailableAt,
+        isUsed: false,
+      },
     });
 
-    // 6. Send OTP via AfroMessage SMS Provider
-    await AfroMessageService.sendOtp(input.phoneNumber, otp);
+    // Send SMS via AfroMessage
+    await AfroMessageService.sendOtp(phoneNumber, otp);
+
+    return otp;
+  }
+
+  /**
+   * Register a new traveler account (Mechanism B: Phone + Password + OTP).
+   * Account is created in an unverified state (isPhoneVerified: false) and OTP is dispatched via AfroMessage.
+   * If an unverified account already exists with this phone, its details are updated and a fresh OTP is resent.
+   */
+  static async register(input: RegisterInput) {
+    const existingUser = await prisma.user.findUnique({
+      where: { phoneNumber: input.phoneNumber },
+    });
+
+    if (existingUser && existingUser.isPhoneVerified) {
+      throw new ConflictError('A user with this phone number is already registered and verified.');
+    }
+
+    const passwordHash = await bcrypt.hash(input.password, env.BCRYPT_SALT_ROUNDS);
+    const preferredLang = this.languageMap[input.preferredLanguage || 'en'] || Language.EN;
+
+    let user: any;
+
+    if (existingUser) {
+      // Re-registration for unverified phone: update profile & password, resend OTP
+      user = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          fullName: input.fullName,
+          name: input.fullName,
+          passwordHash,
+          preferredLanguage: preferredLang,
+          authProvider: 'local',
+          authProviders: ['local'],
+        },
+      });
+    } else {
+      // Create new unverified user
+      user = await prisma.$transaction(async (tx) => {
+        const newUser = await tx.user.create({
+          data: {
+            fullName: input.fullName,
+            name: input.fullName,
+            phoneNumber: input.phoneNumber,
+            isPhoneVerified: false,
+            passwordHash,
+            authProvider: 'local',
+            authProviders: ['local'],
+            role: UserRole.USER,
+            status: UserStatus.ACTIVE,
+            preferredLanguage: preferredLang,
+          },
+        });
+
+        await tx.notificationSubscription.create({
+          data: {
+            userId: newUser.id,
+            enabled: true,
+            radiusMeters: 5000,
+            incidentTypes: [],
+          },
+        });
+
+        return newUser;
+      });
+    }
+
+    // Generate & send OTP via AfroMessage
+    const otp = await this.sendAndRecordOtp(input.phoneNumber);
 
     const isNonProd = env.NODE_ENV !== 'production';
     const exposeOtp = isNonProd && (env.DEV_EXPOSE_OTP || env.NODE_ENV === 'test');
@@ -259,59 +310,7 @@ export class AuthService {
       throw new BadRequestError('Phone number is already verified.');
     }
 
-    // Rate limit check: 60-second cooldown
-    const latestOtp = await prisma.otpVerification.findFirst({
-      where: { phoneNumber: input.phoneNumber },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (latestOtp && new Date() < latestOtp.resendAvailableAt) {
-      const secondsLeft = Math.ceil((latestOtp.resendAvailableAt.getTime() - Date.now()) / 1000);
-      throw new RateLimitError(`Please wait ${secondsLeft} seconds before requesting a new code.`);
-    }
-
-    // Rate limit check: Max 5 resends per hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const hourlyRequests = await prisma.otpVerification.count({
-      where: {
-        phoneNumber: input.phoneNumber,
-        createdAt: { gte: oneHourAgo },
-      },
-    });
-
-    if (hourlyRequests >= 5) {
-      throw new RateLimitError('Hourly OTP request limit exceeded. Please try again after an hour.');
-    }
-
-    // Invalidate existing active OTPs
-    await prisma.otpVerification.updateMany({
-      where: {
-        phoneNumber: input.phoneNumber,
-        isUsed: false,
-      },
-      data: { isUsed: true },
-    });
-
-    // Generate new OTP
-    const otp = this.generateRandomOtp(env.OTP_LENGTH);
-    const otpHash = this.hashOtp(otp);
-    const expiresAt = new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000);
-    const resendAvailableAt = new Date(Date.now() + 60 * 1000);
-
-    await prisma.otpVerification.create({
-      data: {
-        phoneNumber: input.phoneNumber,
-        otpHash,
-        attempts: 0,
-        maxAttempts: env.OTP_MAX_ATTEMPTS,
-        expiresAt,
-        resendAvailableAt,
-        isUsed: false,
-      },
-    });
-
-    // Send SMS
-    await AfroMessageService.sendOtp(input.phoneNumber, otp);
+    const otp = await this.sendAndRecordOtp(input.phoneNumber);
 
     const isNonProd = env.NODE_ENV !== 'production';
     const exposeOtp = isNonProd && (env.DEV_EXPOSE_OTP || env.NODE_ENV === 'test');
@@ -374,5 +373,92 @@ export class AuthService {
     }
 
     return this.sanitizeUser(user);
+  }
+
+  /**
+   * Mechanism A: Continue with Google (Unified Sign-in & Sign-up).
+   * Verifies ID token with google-auth-library. No phone verification required.
+   * Google accounts and phone accounts are strictly independent (no account linking).
+   */
+  static async googleAuth(input: GoogleAuthInput) {
+    const payload = await GoogleService.verifyIdToken(input.idToken);
+
+    // Primary & ONLY lookup by googleId (no account linking by email)
+    let user = await prisma.user.findUnique({
+      where: { googleId: payload.googleId },
+    });
+
+    let isNewUser = false;
+
+    if (user) {
+      if (user.status === UserStatus.SUSPENDED) {
+        throw new ForbiddenError('Your account has been suspended. Please contact moderation.');
+      }
+
+      // Update avatar if not present
+      if (payload.avatarUrl && !user.avatarUrl) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { avatarUrl: payload.avatarUrl },
+        });
+      }
+    } else {
+      // Create new Google user
+      try {
+        user = await prisma.$transaction(async (tx) => {
+          const created = await tx.user.create({
+            data: {
+              email: payload.email,
+              googleId: payload.googleId,
+              fullName: payload.name || null,
+              name: payload.name || null,
+              avatarUrl: payload.avatarUrl || null,
+              authProvider: 'google',
+              authProviders: ['google'],
+              isPhoneVerified: false, // Phone verification not required for Google users
+              role: UserRole.USER,
+              status: UserStatus.ACTIVE,
+              preferredLanguage: Language.EN,
+            },
+          });
+
+          await tx.notificationSubscription.create({
+            data: {
+              userId: created.id,
+              enabled: true,
+              radiusMeters: 5000,
+              incidentTypes: [],
+            },
+          });
+
+          return created;
+        });
+        isNewUser = true;
+      } catch (error: any) {
+        if (error.code === 'P2002') {
+          user = await prisma.user.findUnique({
+            where: { googleId: payload.googleId },
+          });
+          if (!user) {
+            throw new ConflictError('A user with these Google credentials already exists.');
+          }
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    const token = this.generateToken({
+      userId: user.id,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+    });
+
+    return {
+      user: this.sanitizeUser(user),
+      accessToken: token,
+      isNewUser,
+    };
   }
 }

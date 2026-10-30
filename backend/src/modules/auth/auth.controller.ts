@@ -47,4 +47,13 @@ export class AuthController {
       next(error);
     }
   }
+
+  static async googleAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AuthService.googleAuth(req.body);
+      sendSuccess(res, result, result.isNewUser ? 201 : 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

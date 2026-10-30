@@ -5,6 +5,7 @@ import {
   loginSchema,
   verifyOtpSchema,
   resendOtpSchema,
+  googleAuthSchema,
 } from './auth.validation.js';
 import { validateRequest } from '../../middleware/request-validation.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
@@ -16,6 +17,7 @@ router.post('/register', authLimiter, validateRequest({ body: registerSchema }),
 router.post('/verify-otp', authLimiter, validateRequest({ body: verifyOtpSchema }), AuthController.verifyOtp);
 router.post('/resend-otp', authLimiter, validateRequest({ body: resendOtpSchema }), AuthController.resendOtp);
 router.post('/login', authLimiter, validateRequest({ body: loginSchema }), AuthController.login);
+router.post('/google', authLimiter, validateRequest({ body: googleAuthSchema }), AuthController.googleAuth);
 router.get('/me', authenticate, AuthController.getMe);
 
 export default router;

@@ -10,6 +10,10 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().default(10),
   CORS_ORIGIN: z.string().default('*'),
+  // Google OAuth Configuration
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_IDS: z.string().optional(),
+  GOOGLE_ALLOWED_EMAIL_DOMAINS: z.string().optional(),
   // AfroMessage SMS & OTP Configuration
   AFROMESSAGE_API_TOKEN: z.string().optional(),
   AFROMESSAGE_SENDER_ID: z.string().optional(),

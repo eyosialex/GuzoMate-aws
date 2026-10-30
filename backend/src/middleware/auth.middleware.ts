@@ -25,6 +25,12 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
         email: true,
         phoneNumber: true,
         isPhoneVerified: true,
+        name: true,
+        fullName: true,
+        avatarUrl: true,
+        googleId: true,
+        authProvider: true,
+        authProviders: true,
         role: true,
         status: true,
         preferredLanguage: true,
@@ -39,8 +45,13 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
       return next(new ForbiddenError('Account has been suspended. Please contact support.'));
     }
 
-    if (!user.isPhoneVerified) {
-      return next(new ForbiddenError('Phone number not verified. Please verify your phone number via OTP to access this resource.'));
+    // Phone verification is required ONLY for local users.
+    // Google users get full access immediately without phone verification.
+    const isGoogleUser = user.authProvider === 'google' || Boolean(user.googleId);
+    if (!isGoogleUser && !user.isPhoneVerified) {
+      return next(
+        new ForbiddenError('Phone number not verified. Please verify your phone number via OTP to access this resource.')
+      );
     }
 
     req.user = user;
@@ -76,13 +87,20 @@ export async function optionalAuthenticate(
         email: true,
         phoneNumber: true,
         isPhoneVerified: true,
+        name: true,
+        fullName: true,
+        avatarUrl: true,
+        googleId: true,
+        authProvider: true,
+        authProviders: true,
         role: true,
         status: true,
         preferredLanguage: true,
       },
     });
 
-    if (user && user.status !== UserStatus.SUSPENDED && user.isPhoneVerified) {
+    const isGoogleUser = user ? user.authProvider === 'google' || Boolean(user.googleId) : false;
+    if (user && user.status !== UserStatus.SUSPENDED && (isGoogleUser || user.isPhoneVerified)) {
       req.user = user;
     }
   } catch {
