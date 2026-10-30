@@ -23,6 +23,8 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
       select: {
         id: true,
         email: true,
+        phoneNumber: true,
+        isPhoneVerified: true,
         role: true,
         status: true,
         preferredLanguage: true,
@@ -35,6 +37,10 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
 
     if (user.status === UserStatus.SUSPENDED) {
       return next(new ForbiddenError('Account has been suspended. Please contact support.'));
+    }
+
+    if (!user.isPhoneVerified) {
+      return next(new ForbiddenError('Phone number not verified. Please verify your phone number via OTP to access this resource.'));
     }
 
     req.user = user;
@@ -68,13 +74,15 @@ export async function optionalAuthenticate(
       select: {
         id: true,
         email: true,
+        phoneNumber: true,
+        isPhoneVerified: true,
         role: true,
         status: true,
         preferredLanguage: true,
       },
     });
 
-    if (user && user.status !== UserStatus.SUSPENDED) {
+    if (user && user.status !== UserStatus.SUSPENDED && user.isPhoneVerified) {
       req.user = user;
     }
   } catch {

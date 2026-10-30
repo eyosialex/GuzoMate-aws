@@ -88,6 +88,8 @@ enum ConfirmationType {
 model User {
   id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email             String?    @unique @db.VarChar(255)
+  phoneNumber       String?    @unique @map("phone_number") @db.VarChar(32)
+  isPhoneVerified   Boolean    @default(false) @map("is_phone_verified")
   passwordHash      String?    @map("password_hash") @db.VarChar(255)
   name              String?    @db.VarChar(255)
   preferredLanguage Language   @default(EN) @map("preferred_language")
@@ -295,4 +297,21 @@ model AuditLog {
   @@index([actorUserId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model OtpVerification {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneNumber       String    @map("phone_number") @db.VarChar(32)
+  otpHash           String    @map("otp_hash") @db.VarChar(255)
+  attempts          Int       @default(0)
+  maxAttempts       Int       @default(5) @map("max_attempts")
+  expiresAt         DateTime  @map("expires_at") @db.Timestamptz(6)
+  resendAvailableAt DateTime  @map("resend_available_at") @db.Timestamptz(6)
+  isUsed            Boolean   @default(false) @map("is_used")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([phoneNumber])
+  @@index([phoneNumber, isUsed])
+  @@map("otp_verifications")
 }

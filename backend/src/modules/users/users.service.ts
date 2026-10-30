@@ -37,6 +37,8 @@ export class UsersService {
     return {
       id: user.id,
       email: user.email,
+      phoneNumber: user.phoneNumber,
+      isPhoneVerified: user.isPhoneVerified,
       name: user.name,
       role: user.role,
       status: user.status,
@@ -170,6 +172,8 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        phoneNumber: true,
+        isPhoneVerified: true,
         name: true,
         role: true,
         status: true,

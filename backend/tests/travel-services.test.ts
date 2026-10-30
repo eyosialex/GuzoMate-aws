@@ -6,20 +6,21 @@ import { weatherApiProvider } from '../src/modules/travel-services/weather/weath
 import { osrmProvider } from '../src/modules/travel-services/routing/osrm.provider.js';
 import { addisAiSpeechProvider } from '../src/modules/travel-services/speech/addis-ai.provider.js';
 import { prisma } from '../src/config/database.js';
+import { registerAndVerifyTestUser } from './test-helpers.js';
 
 describe('Member 3: Travel Services API', () => {
   let authToken = '';
-  const testUserEmail = `travel_tester_${Date.now()}_${Math.random().toString(36).substring(7)}@example.com`;
+  let testUserEmail = '';
 
   beforeAll(async () => {
     // Register real test user to obtain valid access token for auth-protected endpoints
-    const authRes = await request(app).post('/api/v1/auth/register').send({
-      email: testUserEmail,
-      password: 'Password123!',
+    const testUser = await registerAndVerifyTestUser({
       name: 'Travel Services Tester',
+      password: 'Password123!',
       preferredLanguage: 'en',
     });
-    authToken = authRes.body?.data?.accessToken || '';
+    authToken = testUser.accessToken;
+    testUserEmail = testUser.email;
   });
 
   afterAll(async () => {

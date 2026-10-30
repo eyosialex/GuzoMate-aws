@@ -2,30 +2,25 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/config/database.js';
+import { registerAndVerifyTestUser } from './test-helpers.js';
 
 describe('Moderation API', () => {
   let userToken = '';
   let modToken = '';
   let incidentId = '';
-
-  const salt = Math.random().toString(36).substring(7);
-  const userEmail = `mod_user_${Date.now()}_${salt}@example.com`;
-  const modEmail = `mod_staff_${Date.now()}_${salt}@example.com`;
+  let userEmail = '';
+  let modEmail = '';
 
   beforeAll(async () => {
     // Register standard user
-    const uRes = await request(app).post('/api/v1/auth/register').send({
-      email: userEmail,
-      password: 'Password123',
-    });
-    userToken = uRes.body.data.accessToken;
+    const u = await registerAndVerifyTestUser({ name: 'Standard Traveler' });
+    userToken = u.accessToken;
+    userEmail = u.email;
 
     // Register moderator user and promote
-    const mRes = await request(app).post('/api/v1/auth/register').send({
-      email: modEmail,
-      password: 'Password123',
-    });
-    modToken = mRes.body.data.accessToken;
+    const m = await registerAndVerifyTestUser({ name: 'Moderator Staff' });
+    modToken = m.accessToken;
+    modEmail = m.email;
 
     await prisma.user.update({
       where: { email: modEmail },

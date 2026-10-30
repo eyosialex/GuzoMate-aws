@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/config/database.js';
+import { registerAndVerifyTestUser } from './test-helpers.js';
 
 describe('Community Verification API', () => {
   let reporterToken = '';
@@ -13,26 +14,17 @@ describe('Community Verification API', () => {
   const emails: string[] = [];
 
   beforeAll(async () => {
-    const salt = Math.random().toString(36).substring(7);
-    emails.push(
-      `rep_${Date.now()}_${salt}@example.com`,
-      `v1_${Date.now()}_${salt}@example.com`,
-      `v2_${Date.now()}_${salt}@example.com`,
-      `v3_${Date.now()}_${salt}@example.com`
-    );
-    // Register reporter and 3 voters sequentially
-    const rRes = await request(app).post('/api/v1/auth/register').send({ email: emails[0], password: 'Password123' });
-    const v1Res = await request(app).post('/api/v1/auth/register').send({ email: emails[1], password: 'Password123' });
-    const v2Res = await request(app).post('/api/v1/auth/register').send({ email: emails[2], password: 'Password123' });
-    const v3Res = await request(app).post('/api/v1/auth/register').send({ email: emails[3], password: 'Password123' });
+    const rep = await registerAndVerifyTestUser({ name: 'Reporter' });
+    const v1 = await registerAndVerifyTestUser({ name: 'Voter 1' });
+    const v2 = await registerAndVerifyTestUser({ name: 'Voter 2' });
+    const v3 = await registerAndVerifyTestUser({ name: 'Voter 3' });
 
-    if (!rRes.body?.data) {
-      console.error('Reporter registration failed:', rRes.status, rRes.body);
-    }
-    reporterToken = rRes.body?.data?.accessToken;
-    voter1Token = v1Res.body?.data?.accessToken;
-    voter2Token = v2Res.body?.data?.accessToken;
-    voter3Token = v3Res.body?.data?.accessToken;
+    emails.push(rep.email, v1.email, v2.email, v3.email);
+
+    reporterToken = rep.accessToken;
+    voter1Token = v1.accessToken;
+    voter2Token = v2.accessToken;
+    voter3Token = v3.accessToken;
 
     // Clean up prior test incidents if any remain
     await prisma.incident.deleteMany({
