@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppStore } from '../features/useAppStore';
 import { AuthProvider } from '../features/AuthContext';
 import { LandingHeader } from '../components/landing/LandingHeader';
+import { AppNavbar } from '../components/layout/AppNavbar';
 import { LandingPage } from '../components/landing/LandingPage';
 import { HomePage } from '../components/home/HomePage';
 import { ExplorePage } from '../components/explore/ExplorePage';
@@ -23,11 +24,10 @@ export const App: React.FC = () => {
 
       {pageView === 'landing' ? (
         <LandingPage />
+      ) : pageView === 'home' ? (
+        <HomePage />
       ) : (
         <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
-          {pageView === 'home' && (
-            <HomePage />
-          )}
 
           {(pageView === 'app' || pageView === 'explore' || pageView === 'routes') && (
             <ExplorePage />
@@ -39,7 +39,7 @@ export const App: React.FC = () => {
 
           {pageView === 'about' && (
             <>
-              <LandingHeader />
+              <AppNavbar activePage="about" />
               <main className="flex-1">
                 <AboutUsPage />
               </main>
@@ -49,7 +49,7 @@ export const App: React.FC = () => {
 
           {pageView === 'contact' && (
             <>
-              <LandingHeader />
+              <AppNavbar activePage="contact" />
               <main className="flex-1">
                 <ContactUsPage />
               </main>

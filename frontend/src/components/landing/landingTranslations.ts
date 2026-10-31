@@ -113,7 +113,7 @@ export const landingTranslations: Record<Language, LandingCopy> = {
       selectLanguage: 'Select application language',
     },
     stage: {
-      caption: '',
+      caption: 'Travel intelligence / a journey in four chapters',
       ariaLabel:
         'An illustrative paper map of Bishoftu and Addis Ababa, with multilingual greetings, a community road incident and arrival-time rainfall',
       chapterNavLabel: 'Story chapters',
@@ -152,7 +152,7 @@ export const landingTranslations: Record<Language, LandingCopy> = {
       rainChance: 'Rain chance',
       aiRecommends: 'GuzoMate AI recommends',
       defaultAdvice:
-        'Rain is expected when you arrive. Bring an umbrella and a light jacket.',
+        '',
     },
     scenes: [
       {
@@ -264,7 +264,7 @@ export const landingTranslations: Record<Language, LandingCopy> = {
       selectLanguage: 'ቋንቋ ይምረጡ',
     },
     stage: {
-      caption: '',
+      caption: 'የጉዞ መረጃ / ጉዞ በአራት ምዕራፎች',
       ariaLabel:
         'የቢሾፍቱ እና የአዲስ አበባ ካርታ፣ የብዙ ቋንቋ ሰላምታዎች፣ የማህበረሰብ መንገድ ክስተት እና የመድረሻ ዝናብ ሁኔታ የሚያሳይ ማሳያ',
       chapterNavLabel: 'የታሪኩ ምዕራፎች',
@@ -413,7 +413,7 @@ export const landingTranslations: Record<Language, LandingCopy> = {
       selectLanguage: 'Afaan filadhaa',
     },
     stage: {
-      caption: '',
+      caption: 'Odeeffannoo imalaa / imala boqonnaalee afuriin',
       ariaLabel:
         'Kaartaa waraqaa fakkeenyaa kan Bishooftuu fi Finfinnee, simannaa afaanoota sadii, balaa daandii hawaasaa fi haala rooba ga’umsaa',
       chapterNavLabel: 'Boqonnaalee seenaa',

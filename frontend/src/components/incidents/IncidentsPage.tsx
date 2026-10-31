@@ -54,30 +54,30 @@ export const IncidentsPage: React.FC = () => {
       {/* Main Canvas: Responsive Split-View matching Explore Page layout */}
       <main className="flex-1 flex flex-row overflow-hidden relative">
         {/* Left Side Panel: Contains the 2 Subpages (Desktop & Tablet) */}
-        <aside className="w-full md:w-[420px] lg:w-[460px] h-full bg-white/95 backdrop-blur-xl border-r border-outline-variant/30 flex flex-col shrink-0 z-20 shadow-[4px_0_24px_rgba(27,67,50,0.03)] overflow-hidden">
+        <aside className="w-full md:w-[420px] lg:w-[460px] h-full bg-white/95 backdrop-blur-xl border-r border-[rgba(32,34,31,0.1)] flex flex-col shrink-0 z-20 shadow-[4px_0_24px_rgba(32,34,31,0.04)] overflow-hidden">
           {/* Subpage Switcher Bar */}
-          <div className="p-3 border-b border-outline-variant/30 bg-surface-low/80 backdrop-blur-md shrink-0">
-            <div className="grid grid-cols-2 gap-1 bg-surface-container p-1 rounded-xl">
+          <div className="p-3 border-b border-[rgba(32,34,31,0.1)] bg-[#f8f7f2]/90 backdrop-blur-md shrink-0">
+            <div className="grid grid-cols-2 gap-1 bg-[#eeede4] p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => setSubpage('list')}
-                className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 select-none ${
+                className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 select-none cursor-pointer ${
                   subpage === 'list'
-                    ? 'bg-white text-primary shadow-xs'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-white/40'
+                    ? 'bg-white text-blue-600 shadow-xs border border-[rgba(32,34,31,0.06)]'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-white/40'
                 }`}
               >
-                <ListFilter className="w-4 h-4 text-primary" />
+                <ListFilter className="w-4 h-4 text-blue-600" />
                 <span>Incident Reports ({incidents.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSubpage('submit')}
-                className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none ${
+                className={`min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
                   subpage === 'submit'
-                    ? 'bg-white text-primary shadow-xs'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-white/40'
+                    ? 'bg-white text-blue-600 shadow-xs border border-[rgba(32,34,31,0.06)]'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-white/40'
                 }`}
               >
                 <Plus className="w-4 h-4" />

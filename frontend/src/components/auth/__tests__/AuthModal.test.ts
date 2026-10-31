@@ -48,9 +48,10 @@ describe('AuthModal Redesign Integration', () => {
   });
 
   afterEach(async () => {
-    if (root) {
+    const currentRoot = root;
+    if (currentRoot) {
       await act(async () => {
-        root.unmount();
+        currentRoot.unmount();
       });
       root = null;
     }
@@ -60,9 +61,10 @@ describe('AuthModal Redesign Integration', () => {
   });
 
   const renderModal = async () => {
-    root = createRoot(container);
+    const newRoot = createRoot(container);
+    root = newRoot;
     await act(async () => {
-      root.render(
+      newRoot.render(
         React.createElement(
           MotionConfig,
           { reducedMotion: 'always', transition: { duration: 0 } },
@@ -106,7 +108,7 @@ describe('AuthModal Redesign Integration', () => {
     expect(text).toContain('Full Name');
     expect(text).toContain('Email address');
     expect(text).toContain('Password');
-    expect(text).toContain('Phone number');
+    expect(text).toContain('Phone Number');
     expect(text).toContain('Create Account');
   });
 

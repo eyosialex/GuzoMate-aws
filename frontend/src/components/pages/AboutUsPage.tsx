@@ -106,17 +106,17 @@ export const AboutUsPage: React.FC = () => {
       </div>
 
       {/* Operational Impact Stats */}
-      <div className="bg-primary text-white rounded-3xl p-8 sm:p-12 shadow-highland mb-16">
-        <h2 className="text-2xl font-display font-bold text-center mb-8 text-emerald-100">
+      <div className="bg-[#1a2c30] text-white rounded-3xl p-8 sm:p-12 shadow-md mb-16">
+        <h2 className="text-2xl font-display font-bold text-center mb-8 text-blue-100">
           Highland Operational Milestones
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {stats.map((stat, idx) => (
             <div key={idx} className="space-y-1">
-              <div className="text-3xl sm:text-4xl font-display font-extrabold text-secondary-light">
+              <div className="text-3xl sm:text-4xl font-display font-extrabold text-blue-400">
                 {stat.value}
               </div>
-              <div className="text-xs text-emerald-200 font-medium">
+              <div className="text-xs text-blue-100/80 font-medium">
                 {stat.label}
               </div>
             </div>
@@ -127,8 +127,8 @@ export const AboutUsPage: React.FC = () => {
       {/* Bottom Exploration CTA */}
       <div className="text-center py-6">
         <button
-          onClick={() => setPageView('app')}
-          className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-primary hover:bg-primary-dark text-white font-bold text-sm shadow-highland transition-all transform hover:scale-105"
+          onClick={() => setPageView('explore')}
+          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-sm shadow-xs transition-all cursor-pointer"
         >
           <span>Launch Interactive Map &amp; Explore</span>
           <ArrowRight className="w-4 h-4" />

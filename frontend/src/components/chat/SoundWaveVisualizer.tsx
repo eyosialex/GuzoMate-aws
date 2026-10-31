@@ -82,25 +82,25 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
       animate={shouldReduceMotion ? undefined : { opacity: 1, scale: 1 }}
       exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.98 }}
       transition={springGentle}
-      className="flex-1 min-h-[44px] h-11 px-3 bg-gradient-to-r from-primary/10 via-surface-low to-secondary/10 border border-primary/30 rounded-full flex items-center justify-between gap-2 shadow-xs overflow-hidden"
+      className="flex-1 min-h-[44px] h-11 px-3 bg-gradient-to-r from-blue-50/60 via-[#f8f7f2] to-amber-50/60 border border-blue-200/80 rounded-full flex items-center justify-between gap-2 shadow-xs overflow-hidden"
     >
       {/* Status indicator on the left */}
       <div className="flex items-center gap-1.5 shrink-0 pl-1">
         <span className="relative flex h-2.5 w-2.5">
           <span
             className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-              silenceSeconds !== null ? 'bg-secondary' : 'bg-primary'
+              silenceSeconds !== null ? 'bg-amber-500' : 'bg-blue-600'
             }`}
           />
         </span>
 
-        <span className="text-[11px] font-bold text-on-surface whitespace-nowrap leading-none hidden sm:inline">
+        <span className="text-[11px] font-bold text-stone-800 whitespace-nowrap leading-none hidden sm:inline font-mono">
           {silenceSeconds !== null ? (
-            <span className="text-secondary font-bold">
+            <span className="text-amber-600 font-bold">
               Sending in {silenceSeconds}s...
             </span>
           ) : (
-            <span className="text-primary font-bold">Listening...</span>
+            <span className="text-blue-600 font-bold">Listening...</span>
           )}
         </span>
       </div>
@@ -115,7 +115,7 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
               key={i}
               style={{ height: `${barHeight}px` }}
               className={`w-[3px] rounded-full transition-all duration-75 ${
-                isAmber ? 'bg-secondary' : 'bg-primary'
+                isAmber ? 'bg-amber-500' : 'bg-blue-600'
               }`}
             />
           );
@@ -123,9 +123,9 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
       </div>
 
       {/* Action Controls on the right */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         {silenceSeconds !== null && (
-          <span className="text-[11px] font-bold text-secondary bg-secondary/15 px-2 py-0.5 rounded-full leading-none sm:hidden">
+          <span className="text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full leading-none sm:hidden font-mono">
             {silenceSeconds}s
           </span>
         )}
@@ -136,7 +136,7 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
           onClick={onSendNow}
           aria-label="Send voice now"
           title="Send voice now"
-          className="h-7 w-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary-dark transition-colors shadow-xs"
+          className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all shadow-xs cursor-pointer"
         >
           <Check className="w-3.5 h-3.5 stroke-[3]" />
         </button>
@@ -147,7 +147,7 @@ export const SoundWaveVisualizer: React.FC<SoundWaveVisualizerProps> = ({
           onClick={onCancel}
           aria-label="Cancel recording"
           title="Cancel"
-          className="h-7 w-7 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center hover:bg-surface-high transition-colors shadow-xs"
+          className="h-7 w-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center active:scale-95 transition-all shadow-xs cursor-pointer border border-[rgba(32,34,31,0.08)]"
         >
           <X className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>

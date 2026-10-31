@@ -485,7 +485,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
   }, [mapStyle]);
 
   return (
-    <div className={`relative w-full h-full min-h-[420px] bg-emerald-950/10 select-none overflow-hidden ${className}`}>
+    <div className={`relative w-full h-full min-h-[420px] bg-[#fbfaf4] select-none overflow-hidden ${className}`}>
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}
@@ -701,7 +701,7 @@ export const GuzoMap: React.FC<GuzoMapProps> = ({
                 <button
                   type="button"
                   onClick={confirmDestination}
-                  className="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
                   <span>Use As Destination</span>

@@ -1,117 +1,145 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../../features/useAppStore';
-import { StaticHighlandBackground } from './StaticHighlandBackground';
-import { AppNavbar } from '../layout/AppNavbar';
+import {
+  Place,
+  Incident,
+  WeatherData,
+  GeoLocation,
+  DEFAULT_ADDIS_COORDINATES,
+  Language,
+} from '../../types';
 import { weatherService } from '../../services/weatherService';
 import { incidentsService } from '../../services/incidentsService';
 import { placesService } from '../../services/placesService';
 import { assistantService } from '../../services/assistantService';
-import { Place, Incident, WeatherData, GeoLocation, DEFAULT_ADDIS_COORDINATES } from '../../types';
-import { 
-  Compass, 
-  MapPin, 
-  Sparkles, 
-  AlertTriangle, 
-  ChevronRight, 
-  PhoneCall, 
-  CheckCircle2, 
-  Navigation, 
-  Clock, 
-  CloudSun, 
-  ShieldCheck, 
-  Building2,
-  Bookmark,
-  Trash2,
-  Droplets,
-  Eye,
-  Sun,
-  Wind,
-  Send,
-  Loader2,
-  X,
-  Bot
-} from 'lucide-react';
+import { AppNavbar } from '../layout/AppNavbar';
+import logoImg from '../../assets/logo.png';
+import { Globe, ChevronDown, Check } from 'lucide-react';
+import '../../styles/home.css';
 
+// ─── SVG Icons ─────────────────────────────────────────────────────────────────
+type IconName =
+  | 'arrow'
+  | 'cloud'
+  | 'construction'
+  | 'mapPin'
+  | 'mic'
+  | 'rain'
+  | 'road'
+  | 'send'
+  | 'spark'
+  | 'warning'
+  | 'sun'
+  | 'wind'
+  | 'bookmark'
+  | 'trash'
+  | 'check';
+
+function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, React.ReactNode> = {
+    arrow: <path d="M5 12h14M14 7l5 5-5 5" />,
+    cloud: (
+      <path d="M7 18h10a4 4 0 0 0 .7-7.94A6 6 0 0 0 6.26 8.5 4.75 4.75 0 0 0 7 18Z" />
+    ),
+    construction: (
+      <>
+        <path d="m10 6 8 12M14 6 6 18M5 9h14M4 18h16" />
+        <circle cx="12" cy="5" r="1.5" />
+      </>
+    ),
+    mapPin: (
+      <>
+        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </>
+    ),
+    mic: (
+      <>
+        <rect x="9" y="3" width="6" height="12" rx="3" />
+        <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+      </>
+    ),
+    rain: (
+      <>
+        <path d="M7 15h10a4 4 0 0 0 .7-7.94A6 6 0 0 0 6.26 5.5 4.75 4.75 0 0 0 7 15Z" />
+        <path d="m8 18-1 2M13 18l-1 2M18 18l-1 2" />
+      </>
+    ),
+    road: <path d="M8 3 5 21M16 3l3 18M12 4v4M12 11v4M12 18v2" />,
+    send: <path d="m3 11 18-8-8 18-2-8-8-2Zm8 2 4-4" />,
+    spark: (
+      <path d="m12 2 1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2ZM5 17l.8 2.2L8 20l-2.2.8L5 23l-.8-2.2L2 20l2.2-.8L5 17Z" />
+    ),
+    warning: (
+      <>
+        <path d="M12 3 2.8 20h18.4L12 3Z" />
+        <path d="M12 9v5M12 17.5v.1" />
+      </>
+    ),
+    sun: (
+      <>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+      </>
+    ),
+    wind: <path d="M17.7 7.7A2.5 2.5 0 1 1 19 12H2M14.7 17.7A2.5 2.5 0 1 0 17 14H2" />,
+    bookmark: <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />,
+    trash: (
+      <>
+        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      </>
+    ),
+    check: <path d="M20 6 9 17l-5-5" />,
+  };
+
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+
+// ─── Main HomePage Component ───────────────────────────────────────────────────
 export const HomePage: React.FC = () => {
-  const { 
+  const {
     setPageView,
     setActiveTab,
     savedPlaceIds,
     toggleSavePlace,
     setSelectedPlace,
     language,
+    setLanguage,
+    currentUser,
+    setCurrentUser,
+    openAuthModal,
+    openIncidentModal,
+    openProfileModal,
     userLocation,
     setUserLocation,
-    addMessage
+    addMessage,
   } = useAppStore();
 
-  // Ask GuzoMate pull-down state
-  const [isAskOpen, setIsAskOpen] = useState(false);
-  const [askQuery, setAskQuery] = useState('');
+  const [askOpen, setAskOpen] = useState(false);
+  const [question, setQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
-  const [assistantAnswer, setAssistantAnswer] = useState<string | null>(null);
-  const [assistantPlaces, setAssistantPlaces] = useState<Place[]>([]);
-  const [assistantError, setAssistantError] = useState<string | null>(null);
-  const askInputRef = useRef<HTMLInputElement>(null);
+  const [assistantReply, setAssistantReply] = useState<string | null>(null);
+  const [assistantNotice, setAssistantNotice] = useState('');
+  const [activeSection, setActiveSection] = useState('home');
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const langDropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isAskOpen) {
-      const timer = setTimeout(() => {
-        askInputRef.current?.focus();
-      }, 80);
-      return () => clearTimeout(timer);
-    }
-  }, [isAskOpen]);
-
-  const handleAssistantSubmit = async (queryText?: string) => {
-    const textToSend = (queryText || askQuery).trim();
-    if (!textToSend || isAsking) return;
-
-    setIsAsking(true);
-    setAssistantError(null);
-    setAssistantAnswer(null);
-    setAssistantPlaces([]);
-
-    // Save user message to global chat history
-    addMessage({
-      id: `usr-${Date.now()}`,
-      sender: 'user',
-      content: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    });
-
-    try {
-      const response = await assistantService.query({
-        query: textToSend,
-        language,
-        location: userLocation,
-      });
-
-      setAssistantAnswer(response.answer);
-      if (response.places && response.places.length > 0) {
-        setAssistantPlaces(response.places as any);
-      }
-
-      // Save assistant message to global chat history
-      addMessage({
-        id: `asst-${Date.now()}`,
-        sender: 'assistant',
-        content: response.answer,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        places: response.places as any,
-        weather: response.weather as any,
-        incidents: response.incidents as any,
-        sources: response.sources,
-        limitations: response.limitations,
-      });
-      setAskQuery('');
-    } catch {
-      setAssistantError('Unable to connect to assistant service right now. Please try again.');
-    } finally {
-      setIsAsking(false);
-    }
-  };
+  const inputRef = useRef<HTMLInputElement>(null);
+  const homeRef = useRef<HTMLDivElement>(null);
 
   // Saved Places state
   const [savedPlaces, setSavedPlaces] = useState<Place[]>([]);
@@ -119,8 +147,8 @@ export const HomePage: React.FC = () => {
 
   // Weather state (real backend data)
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [weatherAdvice, setWeatherAdvice] = useState<string>('');
   const [weatherLoading, setWeatherLoading] = useState(true);
-  const [lastWeatherUpdate, setLastWeatherUpdate] = useState<Date | null>(null);
   const [weatherLocation, setWeatherLocation] = useState<GeoLocation>(() => {
     try {
       const stored = localStorage.getItem('guzo_last_location');
@@ -140,7 +168,148 @@ export const HomePage: React.FC = () => {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [incidentsLoading, setIncidentsLoading] = useState(true);
 
-  // Fetch saved places
+  // Supported Languages
+  const languages: Array<{ code: Language; label: string; full: string }> = [
+    { code: 'en', label: 'EN', full: 'English' },
+    { code: 'am', label: 'አማ', full: 'አማርኛ' },
+    { code: 'om', label: 'OM', full: 'Afaan Oromoo' },
+  ];
+  const currentLangObj = languages.find((l) => l.code === language) || languages[0];
+
+  // Navigation Links
+  const homeNavigation = [
+    { label: language === 'am' ? 'መነሻ' : language === 'om' ? 'Man' : 'Home', href: '#home' },
+    {
+      label: language === 'am' ? 'የተቀመጡ ቦታዎች' : language === 'om' ? "Bakkeewwan Olkaa'aman" : 'Saved Places',
+      href: '#saved-places',
+    },
+    {
+      label: language === 'am' ? 'የአየር ሁኔታ' : language === 'om' ? 'Haala Qilleensaa' : 'Weather',
+      href: '#weather',
+    },
+    {
+      label: language === 'am' ? 'ክስተቶች' : language === 'om' ? 'Balaawwan' : 'Incidents',
+      href: '#incidents',
+    },
+  ];
+
+  // Close language dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
+        setLangDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // IntersectionObserver for reveal animations and active nav spy
+  useEffect(() => {
+    const root = homeRef.current;
+    if (!root) return;
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    root.querySelectorAll('[data-reveal]').forEach((element) => revealObserver.observe(element));
+
+    const sectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        })
+      },
+      { rootMargin: '-15% 0px -55% 0px' }
+    );
+
+    root.querySelectorAll('main > section[id]').forEach((element) => sectionObserver.observe(element));
+
+    return () => {
+      revealObserver.disconnect();
+      sectionObserver.disconnect();
+    };
+  }, []);
+
+  // Focus input when Ask disclosure opens
+  useEffect(() => {
+    if (askOpen) inputRef.current?.focus({ preventScroll: true });
+  }, [askOpen]);
+
+  const openAssistant = () => {
+    setAskOpen(true);
+    window.location.hash = 'home';
+    inputRef.current?.focus({ preventScroll: true });
+  };
+
+  // Rewired Ask GuzoMate submit handler
+  const handleAskSubmit = async (e?: React.FormEvent, customQuery?: string) => {
+    if (e) e.preventDefault();
+    const q = (customQuery || question).trim();
+    if (!q || isAsking) return;
+
+    setIsAsking(true);
+    setAssistantReply(null);
+    setAssistantNotice('');
+
+    // Add user message to global chat store
+    addMessage({
+      id: `usr-${Date.now()}`,
+      sender: 'user',
+      content: q,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
+
+    try {
+      const res = await assistantService.query({
+        query: q,
+        language,
+        location: userLocation || weatherLocation,
+      });
+
+      setAssistantReply(res.answer);
+
+      // Add assistant reply to global chat store
+      addMessage({
+        id: `asst-${Date.now()}`,
+        sender: 'assistant',
+        content: res.answer,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        places: res.places as any,
+        weather: res.weather as any,
+        incidents: res.incidents as any,
+      });
+
+      setAssistantNotice(
+        language === 'am'
+          ? 'መረጃው በጄሚናይ AI እና አዲስ ትራንዚት የተደገፈ ነው'
+          : language === 'om'
+          ? 'Daataan Gemini AI fi Addis Transit tiin deeggarameera'
+          : 'Answer grounded via Gemini AI & Addis Spatial RAG'
+      );
+    } catch {
+      setAssistantNotice(
+        language === 'am'
+          ? 'አሁን ከAI ረዳት ጋር መገናኘት አልተቻለም። እባክዎ እንደገና ይሞክሩ።'
+          : language === 'om'
+          ? 'Tajaajila AI wajjin wal-qunnamuun hin danda’amne. Maaloo irra deebi’aa yaalaa.'
+          : 'Unable to connect to AI assistant service right now. Please try again.'
+      );
+    } finally {
+      setIsAsking(false);
+    }
+  };
+
+  // ─── Fetch Saved Places ──────────────────────────────────────────────────────
   useEffect(() => {
     let active = true;
     const token = localStorage.getItem('guzomate_token') || localStorage.getItem('guzo_access_token');
@@ -200,7 +369,7 @@ export const HomePage: React.FC = () => {
     };
   }, [savedPlaceIds]);
 
-  // Weather Fallback Hierarchy & Hourly Auto-Refresh:
+  // ─── Weather Fallback Hierarchy & Hourly Auto-Refresh ───────────────────────
   // 1. Current user location (if permission granted). Auto-refreshes every 1 hour (3,600,000ms).
   // 2. User's last known location (from localStorage).
   // 3. Addis Ababa default coordinates (if neither current nor last known location available).
@@ -215,11 +384,24 @@ export const HomePage: React.FC = () => {
       setLocationSource(source);
 
       try {
-        const data = await weatherService.getFullWeather(coords.lat, coords.lon, undefined, language);
+        const [data, advice] = await Promise.allSettled([
+          weatherService.getFullWeather(coords.lat, coords.lon, undefined, language),
+          weatherService.getArrivalAdvice(coords.lat, coords.lon, '4:30 PM'),
+        ]);
+
         if (active) {
-          setWeatherData(data);
+          if (data.status === 'fulfilled' && data.value) {
+            setWeatherData(data.value);
+          } else {
+            setWeatherData(null);
+          }
+
+          if (advice.status === 'fulfilled' && advice.value) {
+            const suggestion =
+              advice.value.suggestions?.[0]?.text;
+            setWeatherAdvice(suggestion);
+          }
           setWeatherLoading(false);
-          setLastWeatherUpdate(new Date());
         }
       } catch {
         if (active) {
@@ -250,7 +432,11 @@ export const HomePage: React.FC = () => {
     };
 
     // 1. Check for location permission / get current location
-    if ('geolocation' in navigator) {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.geolocation &&
+      typeof navigator.geolocation.getCurrentPosition === 'function'
+    ) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           if (!active) return;
@@ -259,42 +445,43 @@ export const HomePage: React.FC = () => {
             lon: position.coords.longitude,
           };
 
-          // Save to localStorage as last known location
           try {
-            localStorage.setItem('guzo_last_location', JSON.stringify({
-              coords: currentCoords,
-              timestamp: Date.now(),
-            }));
+            localStorage.setItem(
+              'guzo_last_location',
+              JSON.stringify({ coords: currentCoords, timestamp: Date.now() })
+            );
           } catch {}
 
           setUserLocation(currentCoords);
           fetchWeather(currentCoords, 'current');
 
-          // "if the user has given location permission .. the weather should update its readings in an hour period"
           const ONE_HOUR_MS = 60 * 60 * 1000;
           hourlyIntervalId = setInterval(() => {
             if (!active) return;
-            navigator.geolocation.getCurrentPosition(
-              (latestPos) => {
-                const updatedCoords: GeoLocation = {
-                  lat: latestPos.coords.latitude,
-                  lon: latestPos.coords.longitude,
-                };
-                try {
-                  localStorage.setItem('guzo_last_location', JSON.stringify({
-                    coords: updatedCoords,
-                    timestamp: Date.now(),
-                  }));
-                } catch {}
-                setUserLocation(updatedCoords);
-                fetchWeather(updatedCoords, 'current');
-              },
-              () => {
-                // If position lookup fails on periodic refresh, refresh using existing currentCoords
-                fetchWeather(currentCoords, 'current');
-              },
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
+            if (navigator.geolocation && typeof navigator.geolocation.getCurrentPosition === 'function') {
+              navigator.geolocation.getCurrentPosition(
+                (latestPos) => {
+                  const updatedCoords: GeoLocation = {
+                    lat: latestPos.coords.latitude,
+                    lon: latestPos.coords.longitude,
+                  };
+                  try {
+                    localStorage.setItem(
+                      'guzo_last_location',
+                      JSON.stringify({ coords: updatedCoords, timestamp: Date.now() })
+                    );
+                  } catch {}
+                  setUserLocation(updatedCoords);
+                  fetchWeather(updatedCoords, 'current');
+                },
+                () => {
+                  fetchWeather(currentCoords, 'current');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+              );
+            } else {
+              fetchWeather(currentCoords, 'current');
+            }
           }, ONE_HOUR_MS);
         },
         (err) => {
@@ -316,14 +503,16 @@ export const HomePage: React.FC = () => {
     };
   }, [language, setUserLocation]);
 
-  // Fetch real nearby incidents for the active weather location
+  // ─── Fetch Real Nearby Incidents for the Active Location ────────────────────
   useEffect(() => {
     let active = true;
-    incidentsService.getNearby({
-      lat: weatherLocation.lat,
-      lon: weatherLocation.lon,
-      radiusMeters: 15000,
-    })
+    incidentsService
+      .getNearby({
+        lat: weatherLocation.lat,
+        lon: weatherLocation.lon,
+        radiusMeters: 25000,
+        limit: 5,
+      })
       .then((res) => {
         if (active) {
           setIncidents(res.items || []);
@@ -342,812 +531,803 @@ export const HomePage: React.FC = () => {
     };
   }, [weatherLocation.lat, weatherLocation.lon]);
 
-  return (
-    <div className="relative min-h-screen bg-surface text-on-surface flex flex-col font-sans selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden">
-      
-      {/* 3D Static Highland Terrain & Core Background */}
-      <StaticHighlandBackground />
+  // Helper to format incident time ago
+  const formatTimeAgo = (dateStr?: string | number) => {
+    if (!dateStr) return 'Recently';
+    const mins = Math.max(1, Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000));
+    if (language === 'am') {
+      return mins < 60 ? `ከ${mins} ደቂቃ በፊት` : `ከ${Math.floor(mins / 60)} ሰዓት በፊት`;
+    }
+    if (language === 'om') {
+      return mins < 60 ? `Daqiiqaa ${mins} dura` : `Sa'aatii ${Math.floor(mins / 60)} dura`;
+    }
+    return mins < 60 ? `${mins} min ago` : `${Math.floor(mins / 60)} hr ago`;
+  };
 
-      {/* Application Navigation Bar */}
+  return (
+    <div className="home-page" ref={homeRef} lang={language}>
+      <a className="skip-link" href="#home">
+        Skip to content
+      </a>
+
+      {/* ─── Shared App Navbar ─────────────────────────────────────────────────── */}
       <AppNavbar activePage="home" />
 
-      {/* MAIN CONTENT AREA */}
-      <main className="relative z-10 flex-grow">
-        
-        {/* 1. HERO SECTION */}
-        <section className="relative min-h-[460px] lg:min-h-[520px] flex items-center justify-center overflow-hidden py-14 px-4 sm:px-6 lg:px-8">
-          <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">
-            
-            <h1 className="text-4xl sm:text-6xl font-display font-extrabold text-primary mb-4 tracking-tight drop-shadow-sm">
-              Explore with confidence.
-            </h1>
-            <p className="text-base sm:text-lg text-on-surface-variant max-w-2xl mb-8 leading-relaxed font-normal">
-              Discover places nearby, plan your journey, and get trusted travel guidance in your language.
-            </p>
+      {/* ─── Main Content ─────────────────────────────────────────────────────── */}
+      <main>
+        {/* ─── Hero Section ────────────────────────────────────────────────────── */}
+        <section className="home-hero" id="home" aria-labelledby="home-title">
+          <p className="eyebrow hero-enter">
+            <span className="status-dot" />{' '}
+            {language === 'am'
+              ? 'ለንቁ ተጓዦች የተዘጋጀ የጉዞ መረጃ'
+              : language === 'om'
+              ? 'Odeeffannoo imalaa qophaa’e'
+              : 'A little intelligence for the road ahead'}
+          </p>
+          <h1 className="hero-enter" id="home-title">
+            {language === 'am' ? (
+              <>
+                አዳዲስ ቦታዎችን ይጎብኙ።
+                <br />
+                <em>በእርግጠኝነት እና በእርጋታ ይጓዙ።</em>
+              </>
+            ) : language === 'om' ? (
+              <>
+                Bakkeewwan haaraa daawwadhaa.
+                <br />
+                <em>Nageenyaan imalaa.</em>
+              </>
+            ) : (
+              <>
+                Go somewhere new.
+                <br />
+                <em>Feel a little more at home.</em>
+              </>
+            )}
+          </h1>
+          <p className="hero-description hero-enter">
+            {language === 'am'
+              ? 'የአካባቢ ዕውቀት። አስቀድሞ የሚያስብ የአየር ሁኔታ። በመንገዱ ላይ ካሉ ተጓዦች የሚገኝ ፈጣን ጥቆማ። የሚረዳዎት የጉዞ ጓደኛ።'
+              : language === 'om'
+              ? 'Beekumsa naannoo. Haala qilleensa fuuldura yaadu. Gargaarsa imaltoota daandii irraa. Hiriyaa imala keessanii.'
+              : 'Local knowledge. Weather that thinks ahead. A little help from the people on the road. Your journey, with a companion that understands you.'}
+          </p>
 
-            {/* Hero CTAs: Ask GuzoMate with Pull-Down Text Field */}
-            <div className="w-full flex flex-col items-center justify-center gap-4 mb-6">
-              <button
-                type="button"
-                onClick={() => setIsAskOpen(!isAskOpen)}
-                className={`inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-md cursor-pointer border ${
-                  isAskOpen
-                    ? 'bg-primary text-white border-primary shadow-highland'
-                    : 'bg-surface-lowest/95 backdrop-blur-md text-primary border-outline-variant/40 hover:bg-white'
-                }`}
+          <button
+            className="ask-button hero-enter"
+            onClick={() => setAskOpen((value) => !value)}
+            aria-expanded={askOpen}
+            aria-controls="home-assistant"
+          >
+            <Icon name="spark" size={19} />
+            {language === 'am' ? 'ጉዞሜትን ይጠይቁ' : language === 'om' ? 'GuzoMate Gaafadhaa' : 'Ask GuzoMate'}
+            <span className={`ask-chevron ${askOpen ? 'open' : ''}`}>
+              <svg
+                aria-hidden="true"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
               >
-                <Sparkles className="w-4 h-4 text-secondary" />
-                <span>Ask GuzoMate</span>
-                <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${isAskOpen ? 'rotate-90' : ''}`} />
-              </button>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </span>
+          </button>
 
-              {/* Pull-Down Assistant Text Field & Response Panel */}
-              <AnimatePresence>
-                {isAskOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0, y: -8 }}
-                    animate={{ opacity: 1, height: 'auto', y: 0 }}
-                    exit={{ opacity: 0, height: 0, y: -8 }}
-                    transition={{ duration: 0.25, ease: 'easeOut' }}
-                    className="w-full max-w-2xl text-left overflow-hidden mt-1"
-                  >
-                    <div className="bg-surface-lowest rounded-2xl border border-outline-variant/50 p-4 sm:p-5 shadow-highland backdrop-blur-md">
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleAssistantSubmit();
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <div className="relative flex-1">
-                          <Bot className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            ref={askInputRef}
-                            type="text"
-                            value={askQuery}
-                            onChange={(e) => setAskQuery(e.target.value)}
-                            placeholder="Ask GuzoMate anything about routes, places, weather, and safe travel..."
-                            className="w-full pl-10 pr-4 py-3 bg-surface-low/80 border border-outline-variant/40 rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-ash focus:outline-none focus:border-primary focus:bg-white transition-colors"
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          disabled={!askQuery.trim() || isAsking}
-                          className="px-4 py-3 bg-primary text-white font-bold text-xs rounded-xl shadow-xs hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer shrink-0"
-                        >
-                          {isAsking ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Send className="w-4 h-4" />
-                          )}
-                          <span className="hidden sm:inline">Ask</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsAskOpen(false);
-                            setAssistantAnswer(null);
-                            setAssistantError(null);
-                          }}
-                          className="p-3 text-ash hover:text-on-surface rounded-xl hover:bg-surface-low transition-colors cursor-pointer"
-                          title="Close"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </form>
-
-                      {/* Quick Prompt Chips */}
-                      {!assistantAnswer && !isAsking && (
-                        <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-outline-variant/20 text-xs">
-                          <span className="text-[11px] font-semibold text-ash">Try asking:</span>
-                          {[
-                            'Safe route to Debre Birhan',
-                            'Best traditional coffee in Bole',
-                            '24/7 hospitals near me',
-                          ].map((chip) => (
-                            <button
-                              key={chip}
-                              type="button"
-                              onClick={() => {
-                                setAskQuery(chip);
-                                handleAssistantSubmit(chip);
-                              }}
-                              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-surface-low hover:bg-primary/10 text-on-surface hover:text-primary border border-outline-variant/30 transition-colors cursor-pointer"
-                            >
-                              {chip}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Loading State */}
-                      {isAsking && (
-                        <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/15 flex items-center gap-3">
-                          <Loader2 className="w-4 h-4 text-primary animate-spin" />
-                          <span className="text-xs font-medium text-primary">
-                            GuzoMate is retrieving highland intelligence & local telemetry...
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Error State */}
-                      {assistantError && (
-                        <div className="mt-4 p-3 rounded-xl bg-red-50 text-red-700 border border-red-200 text-xs flex items-center justify-between">
-                          <span>{assistantError}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleAssistantSubmit()}
-                            className="font-bold underline hover:text-red-900 cursor-pointer"
-                          >
-                            Retry
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Assistant Answer Box */}
-                      {assistantAnswer && (
-                        <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
-                              <Bot className="w-4 h-4 text-secondary" />
-                              <span>GuzoMate AI Response</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveTab('assistant');
-                                setPageView('explore');
-                              }}
-                              className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                            >
-                              <span>Open in Assistant</span>
-                              <ChevronRight className="w-3 h-3" />
-                            </button>
-                          </div>
-
-                          <p className="text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-wrap">
-                            {assistantAnswer}
-                          </p>
-
-                          {/* Related Places Chips */}
-                          {assistantPlaces.length > 0 && (
-                            <div className="pt-2 border-t border-primary/15 space-y-1.5">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-ash">
-                                Recommended Places:
-                              </span>
-                              <div className="flex flex-wrap gap-2">
-                                {assistantPlaces.slice(0, 3).map((place) => (
-                                  <button
-                                    key={place.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedPlace(place);
-                                      setActiveTab('places');
-                                      setPageView('explore');
-                                    }}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-lowest border border-primary/20 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors cursor-pointer"
-                                  >
-                                    <MapPin className="w-3 h-3 text-secondary" />
-                                    <span>{place.name}</span>
-                                    {place.distanceMeters !== null && place.distanceMeters !== undefined && (
-                                      <span className="text-[10px] opacity-75">
-                                        ({place.distanceMeters > 1000 ? `${(place.distanceMeters / 1000).toFixed(1)}km` : `${place.distanceMeters}m`})
-                                      </span>
-                                    )}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="flex items-center justify-between pt-2 text-[11px]">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setAssistantAnswer(null);
-                                setAssistantPlaces([]);
-                                setAskQuery('');
-                                setTimeout(() => askInputRef.current?.focus(), 50);
-                              }}
-                              className="text-ash hover:text-primary font-medium hover:underline cursor-pointer"
-                            >
-                              Ask another question
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-          </div>
-        </section>
-
-        {/* 2. QUICK ACTIONS HUB (4 CARDS MAPPING DIRECTLY TO 4 SUBPAGES) */}
-        <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-16 relative z-20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            
-            {/* Card 1: Discover Places */}
-            <div 
-              onClick={() => {
-                setActiveTab('places');
-                setPageView('explore');
-              }}
-              className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-200">
-                  <Building2 className="w-6 h-6" />
-                </div>
-                <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                  Discover Places
-                </h2>
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Search nearby health facilities, cafes, dining, and guaranteed fuel points across Addis Ababa.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>Open Discover</span>
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </div>
-
-            {/* Card 2: AI Travel Assistant */}
-            <div 
-              onClick={() => {
-                setActiveTab('assistant');
-                setPageView('explore');
-              }}
-              className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-200">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
-                  <span>AI Assistant</span>
-                  <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">
-                    Voice &amp; Text
-                  </span>
-                </h2>
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Real-time travel guide fluent in English, አማርኛ, and Afaan Oromoo with instant voice assistance.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>Start Assistant</span>
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </div>
-
-            {/* Card 3: Route & Transit */}
-            <div 
-              onClick={() => {
-                setActiveTab('routes');
-                setPageView('explore');
-              }}
-              className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-200">
-                  <Navigation className="w-6 h-6" />
-                </div>
-                <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                  Plan Route &amp; Transit
-                </h2>
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Bus corridors, LRT train links, driving directions, and multi-modal transit timing across corridors.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>Calculate Routes</span>
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </div>
-
-            {/* Card 4: Road Incidents */}
-            <div 
-              onClick={() => {
-                setPageView('incidents');
-              }}
-              className="group bg-surface-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-200">
-                  <AlertTriangle className="w-6 h-6 text-secondary" />
-                </div>
-                <h2 className="text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                  Report &amp; View Incidents
-                </h2>
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Crowdsourced safety alerts: traffic slowdowns, road damage, flooded underpasses, and hazards.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs font-bold text-primary">
-                <span>View Incident Radar</span>
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* 3. SAVED PLACES SECTION (SCROLLABLE LIST LAYOUT) */}
-        <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
-            <div>
-              <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-1">
-                <Bookmark className="w-4 h-4 text-secondary" />
-                <span>Your Bookmarks</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-primary tracking-tight">
-                Saved Places
-              </h2>
-              <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                Your quick-access locations, emergency points, and favorite highland stops.
-              </p>
-            </div>
-
-            <button 
-              type="button"
-              onClick={() => {
-                setActiveTab('places');
-                setPageView('explore');
-              }}
-              className="text-xs font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto"
-            >
-              <span>Explore more places</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* List or Empty State */}
-          {savedPlaces.length === 0 ? (
-            <div className="bg-surface-lowest rounded-2xl p-8 sm:p-10 border border-outline-variant/30 text-center flex flex-col items-center justify-center shadow-xs">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-                <Bookmark className="w-6 h-6 text-secondary" />
-              </div>
-              <h3 className="text-base font-bold text-on-surface mb-1">
-                Save places to get them quickly
-              </h3>
-              <p className="text-xs text-on-surface-variant max-w-sm mb-5 leading-relaxed">
-                You haven't saved any locations yet. Bookmark your favorite hospitals, cafes, and fuel stops across Addis Ababa for fast one-tap access.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('places');
-                  setPageView('explore');
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-sm cursor-pointer"
-              >
-                <Compass className="w-4 h-4 text-secondary-light" />
-                <span>Explore &amp; Save Places</span>
-              </button>
-            </div>
-          ) : (
-            <div className="bg-surface-lowest rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden">
-              <div className="max-h-80 overflow-y-auto divide-y divide-outline-variant/20 p-2 sm:p-3">
-                {savedPlaces.map((place) => (
-                  <div
-                    key={place.id}
-                    className="p-3 hover:bg-surface-low/70 rounded-xl transition-colors flex items-center justify-between gap-3 group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <MapPin className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-xs sm:text-sm font-bold text-on-surface truncate">
-                            {place.name}
-                          </h4>
-                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant shrink-0">
-                            {place.category}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-on-surface-variant truncate mt-0.5">
-                          {place.address || 'Addis Ababa'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedPlace(place);
-                          setActiveTab('places');
-                          setPageView('explore');
-                        }}
-                        className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-1 shadow-sm cursor-pointer"
-                      >
-                        <span>View on Map</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleSavePlace(place.id)}
-                        className="p-1.5 text-ash hover:text-red-600 rounded-lg transition-colors cursor-pointer"
-                        title="Remove bookmark"
-                        aria-label="Remove bookmark"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-        </section>
-
-        {/* 4. REAL WEATHER & MICROCLIMATE + RECENT ROAD INCIDENTS */}
-        <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="road-incidents">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Weather & Microclimate (5 Cols) */}
-            <div className="lg:col-span-5 bg-surface-lowest p-6 sm:p-7 rounded-3xl border border-outline-variant/40 shadow-sm relative overflow-hidden">
-              <div className="flex items-center justify-between mb-5">
-                {locationSource === 'current'}
-                {locationSource === 'last_known' && (
-                  <span className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/60 font-semibold px-2 py-0.5 rounded-full flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                    <span>Last Known Location</span>
-                  </span>
-                )}
-                {locationSource === 'default' && (
-                  <span className="text-[11px] text-stone-600 bg-stone-100 border border-stone-200 font-semibold px-2 py-0.5 rounded-full">
-                    <span>Addis Ababa (Default)</span>
-                  </span>
-                )}
-              </div>
-
-              <div className="mb-6 flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-primary">
-                    {locationSource === 'default'
-                      ? 'Addis Ababa'
-                      : locationSource === 'last_known'
-                      ? 'Last Known Location'
-                      : Math.abs(weatherLocation.lat - DEFAULT_ADDIS_COORDINATES.lat) < 0.1 && Math.abs(weatherLocation.lon - DEFAULT_ADDIS_COORDINATES.lon) < 0.1
-                      ? 'Addis Ababa'
-                      : 'Current Location'}
-                  </h3>
-                  <p className="text-xs text-on-surface-variant font-mono mt-0.5">
-                    {weatherLocation.lat.toFixed(4)}°N, {weatherLocation.lon.toFixed(4)}°E
-                  </p>
-                </div>
-                {lastWeatherUpdate && (
-                  <span className="text-[10px] text-ash font-medium">
-                    Updated {lastWeatherUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-surface-low rounded-2xl mb-5 border border-outline-variant/30">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-xl bg-surface-lowest flex items-center justify-center text-primary shadow-sm">
-                    <CloudSun className="w-8 h-8 text-secondary" />
-                  </div>
-                  <div>
-                    <div className="text-3xl font-display font-extrabold text-primary">
-                      {weatherData?.current ? (
-                        <>
-                          {Math.round(weatherData.current.temperatureC)}°C{' '}
-                          <span className="text-sm font-normal text-on-surface-variant">
-                            / {Math.round((weatherData.current.temperatureC * 9) / 5 + 32)}°F
-                          </span>
-                        </>
-                      ) : (
-                        <span>--°C</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-on-surface-variant font-medium">
-                      {weatherData?.current?.condition || (weatherLoading ? 'Loading weather...' : 'Weather data unavailable')}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Clothing Advice Callout */}
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/15 mb-6 flex items-start gap-3">
-                <span className="material-symbols-outlined text-primary text-xl mt-0.5">
-                  dry_cleaning
-                </span>
-                <div>
-                  <h4 className="text-xs font-bold text-primary mb-0.5">
-                    Highland Travel Clothing Advice
-                  </h4>
-                  <p className="text-xs text-on-surface leading-snug">
-                    {weatherData?.arrivalAdvice?.suggestions?.find((s) => s.type === 'clothing')?.text ||
-                     weatherData?.arrivalAdvice?.suggestions?.[0]?.text ||
-                     (weatherLoading
-                       ? 'Calculating atmospheric clothing recommendation...'
-                       : 'Weather advisories currently unavailable — please check back shortly.')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Climate Telemetry */}
-              <div className="grid grid-cols-3 gap-3 text-center border-t border-outline-variant/20 pt-4 text-xs">
-                <div className="p-2.5 rounded-lg bg-surface-low/60">
-                  <div className="text-ash text-[10px] flex items-center justify-center gap-1">
-                    <Droplets className="w-3 h-3 text-primary" />
-                    <span>Precipitation</span>
-                  </div>
-                  <div className="font-bold text-primary mt-0.5 text-sm">
-                    {weatherData?.arrivalAdvice?.forecast?.precipitationProbability !== undefined && weatherData?.arrivalAdvice?.forecast?.precipitationProbability !== null
-                      ? `${weatherData.arrivalAdvice.forecast.precipitationProbability}%`
-                      : weatherData?.current?.precipitationMm !== undefined && weatherData?.current?.precipitationMm !== null
-                      ? `${weatherData.current.precipitationMm} mm`
-                      : '--'}
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-lg bg-surface-low/60">
-                  <div className="text-ash text-[10px] flex items-center justify-center gap-1">
-                    <Wind className="w-3 h-3 text-primary" />
-                    <span>Wind Speed</span>
-                  </div>
-                  <div className="font-bold text-primary mt-0.5 text-sm">
-                    {weatherData?.current?.windKph !== undefined && weatherData?.current?.windKph !== null
-                      ? `${weatherData.current.windKph} km/h`
-                      : '--'}
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-lg bg-surface-low/60">
-                  <div className="text-ash text-[10px] flex items-center justify-center gap-1">
-                    <Sun className="w-3 h-3 text-secondary" />
-                    <span>Humidity</span>
-                  </div>
-                  <div className="font-bold text-primary mt-0.5 text-sm">
-                    {weatherData?.current?.humidity !== undefined && weatherData?.current?.humidity !== null
-                      ? `${weatherData.current.humidity}%`
-                      : '--'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Incidents (7 Cols) */}
-            <div className="lg:col-span-7 bg-surface-lowest p-6 sm:p-7 rounded-3xl border border-outline-variant/40 shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-outline-variant/30 gap-2 mb-5">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <h3 className="text-lg font-bold text-primary">
-                        Recent Incidents
-                      </h3>
-                    </div>
-                    <p className="text-xs text-on-surface-variant">
-                      Real-time crowdsourced reports verified by local travelers
-                    </p>
-                  </div>
+          {/* Ask GuzoMate Disclosure Form (Rewired with real AI Assistant service) */}
+          <div
+            className={`ask-disclosure ${askOpen ? 'open' : ''}`}
+            id="home-assistant"
+            aria-hidden={!askOpen}
+          >
+            <div className="ask-disclosure-inner">
+              <form className="ask-form" onSubmit={(e) => handleAskSubmit(e)}>
+                <label htmlFor="travel-question">
+                  {language === 'am'
+                    ? 'ምን ማወቅ ይፈልጋሉ?'
+                    : language === 'om'
+                    ? 'Maal beekuu barbaaddu?'
+                    : 'What’s on your mind?'}
+                </label>
+                <div className="ask-input-row">
+                  <input
+                    ref={inputRef}
+                    id="travel-question"
+                    type="text"
+                    placeholder={
+                      language === 'am'
+                        ? 'ለምሳሌ፦ ወደ ቦሌ ስሄድ ምን ማወቅ አለብኝ? ወይም ዝናብ ይኖራል?'
+                        : language === 'om'
+                        ? "fkf., Finfinnee daawwachuu koo dura maal beekuun qaba?"
+                        : 'What should I know before visiting Addis Ababa or Bole?'
+                    }
+                    value={question}
+                    onChange={(event) => {
+                      setQuestion(event.target.value);
+                      setAssistantNotice('');
+                    }}
+                    maxLength={1000}
+                    disabled={isAsking}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Escape') {
+                        setAskOpen(false);
+                      }
+                    }}
+                  />
                   <button
-                    type="button"
-                    onClick={() => setPageView('incidents')}
-                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+                    type="submit"
+                    aria-label="Send your travel question"
+                    disabled={!question.trim() || isAsking}
                   >
-                    <span>View all</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    {isAsking ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Icon name="arrow" size={20} />
+                    )}
                   </button>
                 </div>
 
-                {/* Real Incidents List or Empty State */}
-                {incidentsLoading ? (
-                  <div className="p-8 text-center text-xs text-on-surface-variant">
-                    Checking active road alerts nearby...
-                  </div>
-                ) : incidents.length === 0 ? (
-                  <div className="p-6 sm:p-8 text-center bg-surface-low/60 rounded-2xl border border-outline-variant/30 flex flex-col items-center justify-center mb-4">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mb-2.5">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-700" />
-                    </div>
-                    <h4 className="text-sm font-bold text-on-surface mb-1">
-                      No incidents reported nearby
-                    </h4>
+                <div className="question-suggestions">
+                  {[
+                    language === 'am' ? 'የትኞቹን ቦታዎች መጎብኘት ይሻላል?' : language === 'om' ? "Bakkeewwan kamtu daawwatamuu qaba?" : "What's worth visiting?",
+                    language === 'am' ? 'ምን ይዤ መጓዝ አለብኝ?' : language === 'om' ? 'Maal qabadhee deemuun qaba?' : 'What should I pack?',
+                    language === 'am' ? 'መስቀል አደባባይ አቅራቢያ ያሉ ካፌዎች' : language === 'om' ? 'Kaaffee Masqala dhiyoo' : 'Cafes near Meskel Square',
+                  ].map((suggestion) => (
                     <button
                       type="button"
-                      onClick={() => setPageView('incidents')}
-                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                      key={suggestion}
+                      onClick={() => {
+                        setQuestion(suggestion);
+                        handleAskSubmit(undefined, suggestion);
+                      }}
                     >
-                      <span>Report a new hazard or incident</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      {suggestion} <span>↗</span>
                     </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3 mb-4">
-                    {incidents.slice(0, 3).map((incident) => (
-                      <div 
-                        key={incident.id}
-                        className="p-4 rounded-xl bg-surface-low/80 border border-outline-variant/30 hover:border-primary/40 transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-3 mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-secondary shrink-0" />
-                            <span className="text-xs font-bold text-on-surface">
-                              {incident.title || incident.type.replace(/_/g, ' ')}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-on-surface-variant mb-2 line-clamp-2">
-                          {incident.description}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-on-surface-variant">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-primary" />
-                            <span>{incident.locationName || `${incident.location.lat.toFixed(3)}, ${incident.location.lon.toFixed(3)}`}</span>
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{new Date(incident.createdAt).toLocaleDateString()}</span>
-                          </span>
-                          <span>•</span>
-                          <span className="font-medium text-primary">
-                            {incident.confirmationsCount || 1} Confirmations
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                  ))}
+                </div>
+
+                {assistantReply && (
+                  <div className="assistant-response-box">
+                    <p className="font-semibold text-ink text-xs mb-1">
+                      {language === 'am' ? 'የጉዞሜት AI ምላሽ፦' : language === 'om' ? 'Deebii GuzoMate AI:' : 'GuzoMate AI:'}
+                    </p>
+                    <p className="text-stone-700 text-xs leading-relaxed whitespace-pre-line">
+                      {assistantReply}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('assistant');
+                        setPageView('app');
+                      }}
+                      className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                    >
+                      {language === 'am' ? 'ሙሉውን ውይይት በረዳት ገጽ ክፈት →' : language === 'om' ? 'Marii guutuu bani →' : 'Open full conversation in Assistant →'}
+                    </button>
                   </div>
                 )}
 
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* 5. ETHIOPIAN LINGUISTIC PARITY & EMERGENCY SECTION */}
-        <section className="max-w-7xl mx-auto px-4 lg:px-8 mb-20" id="emergency-section">
-          
-          {/* Parity Banner */}
-          <div className="bg-surface-low rounded-3xl p-6 sm:p-8 border border-outline-variant/40 mb-8">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="max-w-2xl">
-                <div className="flex items-center gap-2 text-secondary-dark font-bold text-xs uppercase tracking-wider mb-1">
-                  <span className="material-symbols-outlined text-base">translate</span>
-                  <span>National Language Parity</span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-display font-bold text-primary mb-2">
-                  Three Official Languages, One Trusted Highland Journey.
-                </h3>
-                <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  GuzoMate does not rely on mechanical word-for-word translation. Every routing step, hazard advisory, and medical recommendation is checked with optical metric harmony for Latin, Ge'ez (Amharic), and Qubee (Afaan Oromo) typography.
+                <p className="assistant-notice" role="status">
+                  {assistantNotice ||
+                    (language === 'am'
+                      ? 'እንግሊዝኛ · አማርኛ · አፋን ኦሮሞ / የቀጥታ AI የጉዞ ረዳት'
+                      : language === 'om'
+                      ? 'Afaan Ingilizii · Afaan Amaaraa · Afaan Oromoo / AI Imalaa'
+                      : 'English · Amharic · Afaan Oromoo / Grounded Gemini AI')}
                 </p>
-              </div>
-
-              {/* Language Badges */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="px-4 py-3 rounded-2xl bg-surface-lowest border border-outline-variant/40 text-center shadow-sm">
-                  <div className="text-sm font-bold text-primary">English</div>
-                  <div className="text-[11px] text-ash">Full Latin Support</div>
-                </div>
-                <div className="px-4 py-3 rounded-2xl bg-surface-lowest border border-outline-variant/40 text-center shadow-sm">
-                  <div className="text-sm font-bold text-primary">አማርኛ</div>
-                  <div className="text-[11px] text-ash">ግዕዝ ፊደላት</div>
-                </div>
-                <div className="px-4 py-3 rounded-2xl bg-surface-lowest border border-outline-variant/40 text-center shadow-sm">
-                  <div className="text-sm font-bold text-primary">Afaan Oromoo</div>
-                  <div className="text-[11px] text-ash">Sirna Qubee</div>
-                </div>
-              </div>
+              </form>
             </div>
           </div>
 
-          {/* Quick Emergency Hotline Callout Grid */}
-          <div className="bg-surface-lowest border-2 border-primary rounded-3xl p-6 sm:p-8 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <div>
-                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-0.5">
-                  <PhoneCall className="w-4 h-4 text-red-600" />
-                  <span>Emergency Hotlines — Direct Dial</span>
-                </div>
-                <h3 className="text-lg font-bold text-primary">
-                  Instant contact with Ethiopian emergency responders
-                </h3>
-              </div>
-              <span className="text-xs text-primary bg-primary/10 px-3 py-1 font-bold rounded-md self-start sm:self-auto border border-primary/20">
-                Available toll-free 24/7 across Ethiopia
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <a
-                href="tel:991"
-                className="flex items-center justify-between p-4 rounded-2xl bg-surface-low border border-outline-variant/40 shadow-sm hover:border-primary transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary flex items-center justify-center text-white rounded-xl shadow-sm">
-                    <span className="material-symbols-outlined">local_police</span>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-ash font-medium">Federal &amp; Traffic Police</div>
-                    <div className="text-base font-extrabold text-primary group-hover:text-primary-dark transition-colors">
-                      991
-                    </div>
-                  </div>
-                </div>
-                <PhoneCall className="w-4 h-4 text-primary" />
-              </a>
-
-              <a
-                href="tel:907"
-                className="flex items-center justify-between p-4 rounded-2xl bg-surface-low border border-outline-variant/40 shadow-sm hover:border-primary transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-700 flex items-center justify-center text-white rounded-xl shadow-sm">
-                    <span className="material-symbols-outlined">emergency</span>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-ash font-medium">Medical Ambulance</div>
-                    <div className="text-base font-extrabold text-red-700 transition-colors">
-                      907
-                    </div>
-                  </div>
-                </div>
-                <PhoneCall className="w-4 h-4 text-red-700" />
-              </a>
-
-              <a
-                href="tel:922"
-                className="flex items-center justify-between p-4 rounded-2xl bg-surface-low border border-outline-variant/40 shadow-sm hover:border-primary transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-secondary-dark flex items-center justify-center text-white rounded-xl shadow-sm">
-                    <span className="material-symbols-outlined">health_and_safety</span>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-ash font-medium">Ethiopian Red Cross</div>
-                    <div className="text-base font-extrabold text-secondary-dark transition-colors">
-                      922
-                    </div>
-                  </div>
-                </div>
-                <PhoneCall className="w-4 h-4 text-secondary-dark" />
-              </a>
-            </div>
-
+          <div className="hero-footnote hero-enter">
+            <span>{language === 'am' ? 'ለጉዞዎ የተዘጋጀ' : language === 'om' ? 'Imala keessaniif kan tolfame' : 'Built around your journey'}</span>
+            <i />
+            <span>{language === 'am' ? 'በእውነተኛ መረጃ የተደገፈ' : language === 'om' ? 'Daataa qabatamaan kan deeggarame' : 'Grounded in local context'}</span>
           </div>
-
+          <a className="hero-scroll-link" href="#saved-places">
+            <span>↓</span> {language === 'am' ? 'የተቀመጡ ቦታዎችን ይመልከቱ' : language === 'om' ? 'Bakkeewwan olkaa’aman ilaalaa' : 'Explore your journey'}
+          </a>
         </section>
 
-      </main>
+        {/* ─── Change 1: Saved Places Section ───────────────────────────────────── */}
+        <section
+          className="home-explore home-saved-places home-section"
+          id="saved-places"
+          aria-labelledby="saved-places-title"
+        >
+          <div className="section-topline" data-reveal>
+            <p className="eyebrow">
+              {language === 'am' ? '01 / የተቀመጡ ቦታዎች' : language === 'om' ? "01 / Bakkeewwan Olkaa'aman" : '01 / Saved places'}
+            </p>
+            <span>
+              {language === 'am'
+                ? 'የተመረጡ መዳረሻዎች እና የመንገድ ማረፊያዎች'
+                : language === 'om'
+                ? "Bakkeewwan filataman fi boqonnaa karaa"
+                : 'Your curated destinations & route stops'}
+            </span>
+          </div>
 
-      {/* FOOTER */}
-      <footer className="relative z-10 bg-surface-low border-t border-outline-variant/40 w-full mt-auto">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
-          
-          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-            <div className="text-sm font-bold text-primary flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-primary text-white flex items-center justify-center text-[11px] font-bold">
-                G
-              </div>
-              <span>GuzoMate</span>
+          <div className="saved-places-header" data-reveal>
+            <div className="saved-places-titles">
+              <h2 id="saved-places-title">
+                {language === 'am' ? (
+                  <>
+                    የተቀመጡ{' '}
+                    <em>ቦታዎች።</em>
+                  </>
+                ) : language === 'om' ? (
+                  <>
+                    Bakkeewwan{' '}
+                    <em>olkaa’aman.</em>
+                  </>
+                ) : (
+                  <>
+                    Saved{' '}
+                    <em>places.</em>
+                  </>
+                )}
+              </h2>
+              <p className="saved-places-desc">
+                {language === 'am'
+                  ? 'በጉዞዎ ወቅት ለመጎብኘት ያስቀመጧቸው ሆቴሎች፣ ካፌዎች፣ ሆስፒታሎች እና የመንገድ ማቆሚያዎች ዝርዝር።'
+                  : language === 'om'
+                  ? 'Hootelota, kaaffeewwan, hospitaalotaa fi bakkeewwan boqonnaa imala keessaniif olkaa’attan.'
+                  : 'Your personal collection of cafes, dining, hospitals and scenic stops bookmarked for seamless navigation.'}
+              </p>
             </div>
-            <span className="hidden sm:inline text-outline-variant">|</span>
-            <p className="text-xs text-on-surface-variant">
-              © 2026 GuzoMate Ethiopia — Verified Highland Travel Intelligence. Latin, አማርኛ &amp; Afaan Oromoo parity.
+
+            <div className="saved-places-header-meta">
+              <div className="saved-places-pill">
+                <Icon name="bookmark" size={15} />
+                <span>
+                  {savedPlaces.length}{' '}
+                  {language === 'am'
+                    ? 'የተቀመጡ ቦታዎች'
+                    : language === 'om'
+                    ? 'Bakkeewwan olkaa’aman'
+                    : savedPlaces.length === 1
+                    ? 'place bookmarked'
+                    : 'places bookmarked'}
+                </span>
+              </div>
+              {savedPlaces.length > 0 && (
+                <a
+                  className="text-link"
+                  href="#route"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setPageView('explore');
+                  }}
+                >
+                  {language === 'am' ? 'ሁሉንም በካርታው ላይ ይመልከቱ' : language === 'om' ? 'Kaartaa guutuu ilaali' : 'Explore all on interactive map'}{' '}
+                  <Icon name="arrow" size={16} />
+                </a>
+              )}
+            </div>
+          </div>
+
+          <div className="saved-places-main" data-reveal>
+            {loadingSaved ? (
+              <div className="py-12 text-center text-xs text-muted">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <span>Loading saved places...</span>
+              </div>
+            ) : savedPlaces.length > 0 ? (
+              <div className="saved-places-content">
+                <div className="saved-places-list saved-places-grid">
+                  {savedPlaces.slice(0, 6).map((place) => (
+                    <article className="saved-place-item" key={place.id}>
+                      <div className="saved-place-meta">
+                        <span className="saved-place-icon">
+                          <Icon name="mapPin" size={18} />
+                        </span>
+                        <div className="saved-place-info">
+                          <h4>{place.name}</h4>
+                          <p>
+                            {place.category && (
+                              <span className="saved-place-category">{place.category}</span>
+                            )}
+                            {place.address || 'Addis Ababa'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="saved-place-actions">
+                        <button
+                          type="button"
+                          className="saved-place-btn cursor-pointer"
+                          onClick={() => {
+                            setSelectedPlace(place);
+                            setPageView('explore');
+                          }}
+                        >
+                          {language === 'am' ? 'በካርታ ላይ እይ' : language === 'om' ? 'Kaartaa' : 'View'}
+                          <Icon name="arrow" size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          className="saved-place-delete cursor-pointer"
+                          title="Remove from saved"
+                          onClick={() => toggleSavePlace(place.id)}
+                        >
+                          <Icon name="trash" size={14} />
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                {savedPlaces.length > 6 && (
+                  <p className="text-xs text-muted mt-3">
+                    + {savedPlaces.length - 6} more places saved in your profile.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="saved-empty-state">
+                <div className="saved-empty-icon">
+                  <Icon name="bookmark" size={24} />
+                </div>
+                <h4>{language === 'am' ? 'ምንም የተቀመጠ ቦታ የለም' : language === 'om' ? 'Bakki olkaa’ame hin jiru' : 'No saved places yet'}</h4>
+                <p>
+                  {language === 'am'
+                    ? 'በአዲስ አበባ ውስጥ ያሉ ካፌዎችን፣ ሆቴሎችን እና መዳረሻዎችን በካርታው ላይ ፈልገው ያስቀምጡ።'
+                    : language === 'om'
+                    ? 'Bakkeewwan Finfinnee keessaa kaartaa irratti barbaadanii olkaa’aa.'
+                    : 'Explore mapped cafes, cultural sites and route waypoints, then tap save to keep them handy.'}
+                </p>
+                <button
+                  type="button"
+                  className="saved-place-btn font-semibold text-blue-600 border-blue-600/30 cursor-pointer"
+                  onClick={() => setPageView('explore')}
+                >
+                  <Icon name="mapPin" size={15} />
+                  {language === 'am' ? 'ካርታውን ያስሱ' : language === 'om' ? 'Kaartaa Daawwadhaa' : 'Explore Map to Save'}
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ─── Change 2: Live Real Weather Section ──────────────────────────────── */}
+        <section
+          className="home-essentials home-section"
+          id="weather"
+          aria-labelledby="essentials-title"
+        >
+          <div className="essentials-heading" data-reveal>
+            <div>
+              <p className="eyebrow">
+                {language === 'am' ? '02 / የእውነተኛ ጊዜ የአየር ሁኔታ' : language === 'om' ? '02 / Qilleensa Yeroo Ammaa' : '02 / Real-time atmosphere'}
+              </p>
+              <h2 id="essentials-title">
+                {language === 'am' ? (
+                  <>
+                    ያለ ስጋት።
+                    <br />
+                    <em>በእርግጠኝነት ይጓዙ።</em>
+                  </>
+                ) : language === 'om' ? (
+                  <>
+                    Shakkii malee.
+                    <br />
+                    <em>Nageenyaan deemaa.</em>
+                  </>
+                ) : (
+                  <>
+                    Less guesswork.
+                    <br />
+                    <em>More going.</em>
+                  </>
+                )}
+              </h2>
+            </div>
+            <p>
+              {language === 'am'
+                ? 'በአካባቢዎ ያለ እውነተኛ የአየር ሁኔታ መረጃ፣ የሙቀት መጠን እና በAI የተደገፈ የጉዞ ዝግጅት ምክር።'
+                : language === 'om'
+                ? 'Haala qilleensa yeroo ammaa bakka jirtanii, ho’ina qilleensaa fi gorsa AI.'
+                : 'Live atmospheric readings, arrival forecasts, and contextual AI recommendations for your coordinates.'}
             </p>
           </div>
 
-          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-semibold text-on-surface-variant">
-            <a href="tel:991" className="hover:text-primary transition-colors">Police 991</a>
-            <a href="tel:907" className="hover:text-primary transition-colors">Medical 907</a>
-            <a href="tel:922" className="hover:text-primary transition-colors">Red Cross 922</a>
-            <a href="#emergency-section" className="hover:text-primary transition-colors">Emergency Dial</a>
-            <a href="#road-incidents" className="hover:text-primary transition-colors">Road Verification Guild</a>
-          </nav>
+          {/* Real Weather Layout Grid */}
+          <div className="weather-layout-grid" data-reveal>
+            {/* Primary Live Weather Hero Card */}
+            <div className="weather-hero-card">
+              <div className="weather-card-header">
+                <div>
+                  <span className="weather-location-badge">
+                    <Icon name="mapPin" size={12} />
+                    {locationSource === 'current'
+                      ? 'Live GPS Location'
+                      : locationSource === 'last_known'
+                      ? 'Recent Known Location'
+                      : 'Addis Ababa (Default)'}
+                  </span>
+                  <h3>
+                    {locationSource === 'current'
+                      ? 'Your Current Location'
+                      : 'Addis Ababa, Ethiopia'}
+                    {weatherLoading && (
+                      <span
+                        className="ml-2 inline-block w-2 h-2 rounded-full bg-blue-600 animate-pulse align-middle"
+                        title="Updating live weather..."
+                      />
+                    )}
+                  </h3>
+                  <p className="weather-desc">
+                    {weatherData?.current?.condition || 'Mild highland conditions'}
+                  </p>
+                </div>
+                <span className="text-blue-700">
+                  <Icon
+                    name={
+                      (weatherData?.current?.precipitationMm || 0) > 0
+                        ? 'rain'
+                        : 'cloud'
+                    }
+                    size={38}
+                  />
+                </span>
+              </div>
 
+              <div className="weather-main-temp">
+                <strong>
+                  {weatherData?.current?.temperatureC != null
+                    ? `${Math.round(weatherData.current.temperatureC)}°C`
+                    : '18°C'}
+                </strong>
+                <span>
+                  {weatherData?.current?.condition ||
+                    ((weatherData?.current?.precipitationMm || 0) > 0
+                      ? 'Rain likely'
+                      : 'Fair sky')}
+                </span>
+              </div>
+
+              <div className="weather-metrics-row">
+                <div className="weather-metric-item">
+                  <small>{language === 'am' ? 'የሚሰማው' : 'Feels like'}</small>
+                  <strong>
+                    {weatherData?.current?.temperatureC != null
+                      ? `${Math.round(weatherData.current.temperatureC)}°C`
+                      : '19°C'}
+                  </strong>
+                </div>
+                <div className="weather-metric-item">
+                  <small>{language === 'am' ? 'ዝናብ (ሚሜ)' : 'Precipitation'}</small>
+                  <strong>
+                    {weatherData?.current?.precipitationMm != null
+                      ? `${weatherData.current.precipitationMm} mm`
+                      : '0.0 mm'}
+                  </strong>
+                </div>
+                <div className="weather-metric-item">
+                  <small>{language === 'am' ? 'ንፋስ' : 'Wind'}</small>
+                  <strong>
+                    {weatherData?.current?.windKph != null
+                      ? `${Math.round(weatherData.current.windKph)} km/h`
+                      : '12 km/h'}
+                  </strong>
+                </div>
+                <div className="weather-metric-item">
+                  <small>{language === 'am' ? 'እርጥበት' : 'Humidity'}</small>
+                  <strong>
+                    {weatherData?.current?.humidity != null
+                      ? `${Math.round(weatherData.current.humidity)}%`
+                      : '58%'}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Recommendation & Preparation Column */}
+            <div className="flex flex-col gap-4">
+              <div className="weather-advice-banner">
+                <Icon name="spark" size={20} />
+                <div>
+                  <strong>
+                    {language === 'am'
+                      ? 'ጉዞሜት AI ይመክራል፦'
+                      : language === 'om'
+                      ? 'GuzoMate AI Ni Gorsa:'
+                      : 'GuzoMate AI recommends'}
+                  </strong>
+                  <p>{weatherAdvice || 'Pleasant afternoon expected. Light clothing and sunglasses recommended.'}</p>
+                </div>
+              </div>
+
+              {/* Upcoming Atmospheric Hours */}
+              <div className="p-5 rounded-2xl bg-ivory border border-line flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-mono text-[20px] uppercase text-muted tracking-wide">
+                    {language === 'am' ? 'የሚቀጥሉት ሰዓታት' : 'Upcoming Hours'}
+                  </span>
+                  <span className="text-xs text-muted">
+                    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div className="hourly-weather-scroll">
+                  {(weatherData?.forecast?.[0]?.hourly && weatherData.forecast[0].hourly.length > 0
+                    ? weatherData.forecast[0].hourly.slice(0, 4)
+                    : [
+                        { time: '12:00', temperatureC: 19, precipitationProbability: 20 },
+                        { time: '14:00', temperatureC: 20, precipitationProbability: 35 },
+                        { time: '16:00', temperatureC: 17, precipitationProbability: 70 },
+                        { time: '18:00', temperatureC: 15, precipitationProbability: 65 },
+                      ]
+                  ).map((h, i: number) => (
+                    <div className="hourly-card" key={i}>
+                      <span className="hour">
+                        {h.time
+                          ? typeof h.time === 'string' && h.time.includes('T')
+                            ? new Date(h.time).toLocaleTimeString([], { hour: 'numeric' })
+                            : h.time
+                          : `+${i + 1}h`}
+                      </span>
+                      <Icon
+                        name={
+                          (h.precipitationProbability || 0) > 40
+                            ? 'rain'
+                            : 'cloud'
+                        }
+                        size={18}
+                      />
+                      <span className="temp">
+                        {h.temperatureC != null ? `${Math.round(h.temperatureC)}°` : '18°'}
+                      </span>
+                      <span className="rain">
+                        {h.precipitationProbability != null
+                          ? `${Math.round(h.precipitationProbability)}%`
+                          : '20%'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Change 3: Real Incidents Section ─────────────────────────────────── */}
+        <section
+          className="home-incidents home-section"
+          id="incidents"
+          aria-labelledby="incidents-title"
+        >
+          <div className="incidents-copy" data-reveal>
+            <p className="eyebrow">
+              {language === 'am'
+                ? '03 / ከመንገደኞች የተገኘ መረጃ'
+                : language === 'om'
+                ? '03 / Imaltoota Daandii Irraa'
+                : '03 / From people on the road'}
+            </p>
+            <h2 id="incidents-title">
+              {language === 'am' ? (
+                <>
+                  ቅድመ ጥቆማ።
+                  <br />
+                  <em>አነስተኛ መዘግየት።</em>
+                </>
+              ) : language === 'om' ? (
+                <>
+                  Hubannoo dursaa.
+                  <br />
+                  <em>Rakkina malee.</em>
+                </>
+              ) : (
+                <>
+                  A little heads-up.
+                  <br />
+                  <em>A lot less uncertainty.</em>
+                </>
+              )}
+            </h2>
+            <p>
+              {language === 'am'
+                ? 'ጉዞ ባልተጠበቁ ክስተቶች የተሞላ ነው። ሌሎች መንገደኞች ሪፖርት ያደረጉትን የመንገድ ሁኔታዎች አስቀድመው ይወቁ።'
+                : language === 'om'
+                ? 'Imalli wantoota hin eegamne qabaachuu danda’a. Gabaasaaleen hawaasaa akka of eeggattan isin gargaaru.'
+                : 'Real journeys have unexpected moments. Community reports help you understand what others have encountered, before you head out.'}
+            </p>
+
+            <span className="report-disclaimer">
+              <Icon name="warning" size={15} />{' '}
+              {language === 'am'
+                ? 'በተጠቃሚዎች ሪፖርት የተደረገ። በማህበረሰብ የተረጋገጠ።'
+                : 'User-reported.'}
+            </span>
+
+            <button
+              type="button"
+              className="report-now-btn cursor-pointer"
+              onClick={() => openIncidentModal()}
+            >
+              <Icon name="warning" size={15} />
+              <span>
+                {language === 'am'
+                  ? 'የመንገድ ክስተት ሪፖርት ያድርጉ'
+                  : language === 'om'
+                  ? 'Balaa Daandii Gabaasaa'
+                  : 'Report an incident'}
+              </span>
+            </button>
+          </div>
+
+          {/* Real Incidents List Column */}
+          <div className="home-report-list" data-reveal>
+            <div className="report-list-heading">
+              <span>{language === 'am' ? 'በመንገድ ላይ ያሉ ሁኔታዎች' : 'On the road'}</span>
+              <span>
+                {locationSource === 'current'
+                  ? 'Nearby reports (25 km radius)'
+                  : 'Addis Ababa reports'}
+              </span>
+            </div>
+
+            {incidentsLoading ? (
+              <div className="py-12 text-center text-xs text-muted">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <span>Checking nearby road conditions...</span>
+              </div>
+            ) : incidents.length > 0 ? (
+              <div>
+                {incidents.slice(0, 4).map((report, index) => {
+                  const typeUpper = (report.type || '').toUpperCase();
+                  const isConstruction = typeUpper.includes('CONSTRUCTION');
+                  const isWeather =
+                    typeUpper.includes('RAIN') ||
+                    typeUpper.includes('FLOOD') ||
+                    typeUpper.includes('WATER');
+
+                  return (
+                    <article className="home-report" key={report.id || index}>
+                      <span
+                        className={`report-icon ${
+                          isConstruction ? 'construction' : isWeather ? 'weather' : ''
+                        }`}
+                      >
+                        <Icon
+                          name={
+                            isConstruction
+                              ? 'construction'
+                              : isWeather
+                              ? 'rain'
+                              : 'warning'
+                          }
+                          size={19}
+                        />
+                      </span>
+                      <div>
+                        <h3>
+                          {report.type ? report.type.replace(/_/g, ' ') : 'Road report'}
+                          {report.locationName && <span> · {report.locationName}</span>}
+                        </h3>
+                        <p>{report.description || 'Incident reported by fellow traveler.'}</p>
+                        <small>
+                          Community report · {formatTimeAgo((report as any).occurredAt || report.createdAt)}
+                        </small>
+                      </div>
+                      <span
+                        className={`report-status ${
+                          report.status === 'ACTIVE' ||
+                          report.verification === 'COMMUNITY_CONFIRMED' ||
+                          report.verification === 'OFFICIALLY_VERIFIED'
+                            ? 'verified'
+                            : ''
+                        }`}
+                      >
+                        {report.status === 'ACTIVE' ? 'Active' : 'Reported'}
+                      </span>
+                    </article>
+                  );
+                })}
+                <p className="report-list-footnote">
+                  {language === 'am'
+                    ? 'ውሳኔዎችዎን ለማገዝ የሚቀርብ መረጃ። ደህንነቱ የተጠበቀ ጉዞ ይሁንልዎ!'
+                    : 'Awareness to inform your decisions. Not automatic rerouting.'}
+                </p>
+              </div>
+            ) : (
+              /* Happily tell the user that there is no incident! */
+              <div className="clear-roads-card my-4">
+                <span className="clear-roads-badge">
+                  <Icon name="check" size={14} />
+                  <span>{language === 'am' ? 'መንገዱ ክፍት ነው ☀️' : 'All Clear on the Road! ☀️'}</span>
+                </span>
+                <h4>
+                  {language === 'am'
+                    ? 'ምንም የተዘገበ የመንገድ ክስተት የለም'
+                    : language === 'om'
+                    ? 'Balaan gabaafame hin jiru'
+                    : 'No incidents or road hazards reported'}
+                </h4>
+                <p>
+                  {language === 'am'
+                    ? 'በጣም ጥሩ ዜና! በአካባቢዎ ምንም ዓይነት የመንገድ መዘጋት ወይም አደጋ አልተመዘገበም። መልካም እና ሰላማዊ ጉዞ ይሁንልዎ!'
+                    : language === 'om'
+                    ? 'Oduu gammachiisaa! Naannoo keessanitti balaan daandii hin jiru. Imala gaarii qabaadhaa!'
+                    : 'Great news! Fellow travelers report clear roads and smooth sailing across your route. Have a wonderful and safe journey!'}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ─── Closing Call To Action ─────────────────────────────────────────── */}
+        <section className="home-closing" aria-labelledby="home-closing-title" data-reveal>
+          <p className="eyebrow">
+            {language === 'am' ? 'ወደ የትኛውም ቦታ ሲጓዙ' : 'Wherever you’re headed'}
+          </p>
+          <h2 id="home-closing-title">
+            {language === 'am' ? (
+              <>
+                ከመድረስ ባለፈ <em>ጉዞዎን ያቅዱ።</em>
+              </>
+            ) : (
+              <>
+                Go beyond <em>getting there.</em>
+              </>
+            )}
+          </h2>
+          <p>
+            {language === 'am'
+              ? 'ጥያቄ፣ መዳረሻ ወይም አዲስ ቦታ የመጎብኘት ፍላጎት። ለመጀመር ምርጥ አጋጣሚ ነው።'
+              : 'A question, a destination, a little curiosity. That’s a good place to start.'}
+          </p>
+          <button className="ask-button cursor-pointer" onClick={openAssistant}>
+            <Icon name="spark" size={18} />{' '}
+            {language === 'am' ? 'ስለ ጉዞዎ እንነጋገር' : 'Let’s talk about your journey'}{' '}
+            <Icon name="arrow" size={18} />
+          </button>
+        </section>
+      </main>
+
+      {/* ─── Footer ──────────────────────────────────────────────────────────── */}
+      <footer className="home-footer">
+        <div>
+          <a className="brand" href="#home" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <span className="brand-mark">
+              <img src={logoImg} alt="GuzoMate Logo" />
+            </span>
+            GuzoMate.
+          </a>
+          <p>
+            {language === 'am'
+              ? 'የተሟላ ዕውቀት። የተሻለ ጉዞ።'
+              : language === 'om'
+              ? 'Beekumsa guutuu. Imala wayyaa.'
+              : 'A little knowledge. A better journey.'}
+          </p>
+        </div>
+        <nav aria-label="Footer navigation">
+          {homeNavigation.map((item) => (
+            <a href={item.href} key={item.label}>
+              {item.label}
+            </a>
+          ))}
+          <button
+            type="button"
+            onClick={() => setPageView('explore')}
+            className="text-xs text-muted hover:text-blue-600 transition-colors text-left"
+          >
+            {language === 'am' ? 'ካርታ' : 'Map'}
+          </button>
+        </nav>
+        <div className="home-footer-bottom">
+          <span>
+            {language === 'am'
+              ? 'ለመድረሻው ብቻ ሳይሆን፣ ለሙሉ ጉዞው የተዘጋጀ።'
+              : 'Made for the journey, not just the destination.'}
+          </span>
+          <span>© {new Date().getFullYear()} GuzoMate</span>
         </div>
       </footer>
-
     </div>
   );
 };
