@@ -56,6 +56,8 @@ export const swaggerDocument = {
         properties: {
           id: { type: 'string', format: 'uuid' },
           email: { type: 'string', format: 'email' },
+          phoneNumber: { type: 'string', example: '+251911234567' },
+          isPhoneVerified: { type: 'boolean', example: false },
           name: { type: 'string', nullable: true },
           role: { type: 'string', enum: ['USER', 'MODERATOR', 'ADMIN'] },
           status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED'] },
@@ -113,18 +115,19 @@ export const swaggerDocument = {
     },
     '/auth/register': {
       post: {
-        summary: 'Register new traveler account',
+        summary: 'Register new traveler account (creates unverified account and sends OTP via AfroMessage)',
         requestBody: {
           required: true,
           content: {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['email', 'password'],
+                required: ['fullName', 'phoneNumber', 'password', 'confirmPassword'],
                 properties: {
-                  email: { type: 'string', format: 'email', example: 'traveler@example.com' },
+                  fullName: { type: 'string', example: 'Abebe Bikila' },
+                  phoneNumber: { type: 'string', example: '+251911234567' },
                   password: { type: 'string', format: 'password', example: 'Password123' },
-                  name: { type: 'string', example: 'Abebe Bikila' },
+                  confirmPassword: { type: 'string', format: 'password', example: 'Password123' },
                   preferredLanguage: { type: 'string', enum: ['en', 'am', 'om'], example: 'en' },
                 },
               },
@@ -132,23 +135,73 @@ export const swaggerDocument = {
           },
         },
         responses: {
-          201: { description: 'User successfully registered' },
-          409: { description: 'Email already registered' },
+          201: { description: 'User successfully registered, OTP sent' },
+          400: { description: 'Validation error (e.g. invalid phone number or passwords mismatch)' },
+          409: { description: 'Phone number already registered and verified' },
         },
       },
     },
-    '/auth/login': {
+    '/auth/verify-otp': {
       post: {
-        summary: 'Login to obtain JWT access token',
+        summary: 'Verify phone number using OTP code',
         requestBody: {
           required: true,
           content: {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['email', 'password'],
+                required: ['phoneNumber', 'otp'],
                 properties: {
-                  email: { type: 'string', format: 'email', example: 'traveler@example.com' },
+                  phoneNumber: { type: 'string', example: '+251911234567' },
+                  otp: { type: 'string', example: '123456' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Phone number verified successfully, returns JWT accessToken' },
+          400: { description: 'Invalid code, expired code, or maximum attempts exceeded' },
+        },
+      },
+    },
+    '/auth/resend-otp': {
+      post: {
+        summary: 'Resend fresh verification OTP to phone number',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['phoneNumber'],
+                properties: {
+                  phoneNumber: { type: 'string', example: '+251911234567' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'New verification OTP sent successfully' },
+          400: { description: 'Account already verified' },
+          404: { description: 'Phone number not found' },
+          429: { description: 'Cooldown in effect or hourly rate limit exceeded' },
+        },
+      },
+    },
+    '/auth/login': {
+      post: {
+        summary: 'Login using phone number and password only',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['phoneNumber', 'password'],
+                properties: {
+                  phoneNumber: { type: 'string', example: '+251911234567' },
                   password: { type: 'string', format: 'password', example: 'Password123' },
                 },
               },
@@ -156,8 +209,35 @@ export const swaggerDocument = {
           },
         },
         responses: {
-          200: { description: 'Login successful' },
-          401: { description: 'Invalid email or password' },
+          200: { description: 'Login successful, returns JWT accessToken' },
+          401: { description: 'Invalid credentials' },
+          403: { description: 'Account suspended or phone number not verified' },
+        },
+      },
+    },
+    '/auth/google': {
+      post: {
+        summary: 'Continue with Google (Unified Sign-in & Sign-up)',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['idToken'],
+                properties: {
+                  idToken: { type: 'string', description: 'Google ID token from Google Identity Services SDK' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Google sign-in successful (existing user)' },
+          201: { description: 'Google registration successful (new user created)' },
+          400: { description: 'Invalid email domain or request payload' },
+          401: { description: 'Invalid or expired Google token' },
+          403: { description: 'Account suspended' },
         },
       },
     },

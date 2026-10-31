@@ -2,29 +2,23 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/config/database.js';
+import { registerAndVerifyTestUser } from './test-helpers.js';
 
 describe('Incidents API', () => {
   let userToken = '';
   let otherUserToken = '';
-  const salt = Math.random().toString(36).substring(7);
-  const userEmail = `incident_user_${Date.now()}_${salt}@example.com`;
-  const otherUserEmail = `other_incident_user_${Date.now()}_${salt}@example.com`;
+  let userEmail = '';
+  let otherUserEmail = '';
   let createdIncidentId = '';
 
   beforeAll(async () => {
-    const res1 = await request(app).post('/api/v1/auth/register').send({
-      email: userEmail,
-      password: 'Password123',
-      name: 'Incident Reporter',
-    });
-    userToken = res1.body.data.accessToken;
+    const user1 = await registerAndVerifyTestUser({ name: 'Incident Reporter' });
+    userToken = user1.accessToken;
+    userEmail = user1.email;
 
-    const res2 = await request(app).post('/api/v1/auth/register').send({
-      email: otherUserEmail,
-      password: 'Password123',
-      name: 'Other Traveler',
-    });
-    otherUserToken = res2.body.data.accessToken;
+    const user2 = await registerAndVerifyTestUser({ name: 'Other Traveler' });
+    otherUserToken = user2.accessToken;
+    otherUserEmail = user2.email;
   });
 
   afterAll(async () => {

@@ -2,21 +2,20 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/config/database.js';
+import { registerAndVerifyTestUser } from './test-helpers.js';
 
 describe('Notifications API', () => {
   let userToken = '';
   let userId = '';
+  let testEmail = '';
   const salt = Math.random().toString(36).substring(7);
-  const testEmail = `notif_user_${Date.now()}_${salt}@example.com`;
   const deviceToken = `fcm_token_${Date.now()}_${salt}_test_device_string`;
 
   beforeAll(async () => {
-    const res = await request(app).post('/api/v1/auth/register').send({
-      email: testEmail,
-      password: 'Password123',
-    });
-    userToken = res.body.data.accessToken;
-    userId = res.body.data.user.id;
+    const testUser = await registerAndVerifyTestUser();
+    userToken = testUser.accessToken;
+    userId = testUser.user.id;
+    testEmail = testUser.email;
 
     // Create a sample notification directly in DB
     await prisma.notification.create({

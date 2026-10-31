@@ -2,30 +2,24 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/config/database.js';
+import { registerAndVerifyTestUser } from './test-helpers.js';
 
 describe('Users API', () => {
   let userToken = '';
   let adminToken = '';
-  const salt = Math.random().toString(36).substring(7);
-  const userEmail = `user_test_${Date.now()}_${salt}@example.com`;
-  const adminEmail = `admin_test_${Date.now()}_${salt}@example.com`;
+  let userEmail = '';
+  let adminEmail = '';
 
   beforeAll(async () => {
-    // Register user
-    const resUser = await request(app).post('/api/v1/auth/register').send({
-      email: userEmail,
-      password: 'Password123',
-      name: 'Standard User',
-    });
-    userToken = resUser.body.data.accessToken;
+    // Register and verify standard user
+    const testUser = await registerAndVerifyTestUser({ name: 'Standard User' });
+    userToken = testUser.accessToken;
+    userEmail = testUser.email;
 
-    // Register admin user and promote to ADMIN
-    const resAdmin = await request(app).post('/api/v1/auth/register').send({
-      email: adminEmail,
-      password: 'Password123',
-      name: 'Admin User',
-    });
-    adminToken = resAdmin.body.data.accessToken;
+    // Register and verify admin user and promote to ADMIN
+    const testAdmin = await registerAndVerifyTestUser({ name: 'Admin User' });
+    adminToken = testAdmin.accessToken;
+    adminEmail = testAdmin.email;
 
     await prisma.user.update({
       where: { email: adminEmail },
