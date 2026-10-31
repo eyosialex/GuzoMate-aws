@@ -38,20 +38,21 @@ export const PlacesList: React.FC = () => {
   const setSelectedPlace = useAppStore((state) => state.setSelectedPlace);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-surface-low/30">
+    <div className="flex flex-col h-full overflow-hidden bg-[#fbfaf4]">
       {/* Search Header */}
-      <div className="p-4 border-b border-outline-variant/30 flex flex-col gap-3 shrink-0 bg-white/90 backdrop-blur-md">
+      <div className="p-4 border-b border-[rgba(32,34,31,0.1)] flex flex-col gap-3 shrink-0 bg-white/95 backdrop-blur-md">
         <Input
           shape="pill"
-          leftIcon={<Search className="w-5 h-5 text-on-surface-variant/50" />}
+          leftIcon={<Search className="w-4 h-4 text-stone-400" />}
           placeholder={t('places.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           aria-label={t('places.searchPlaceholder')}
+          className="border-[rgba(32,34,31,0.14)] focus:border-blue-600 focus:ring-blue-600/15"
         />
 
         {/* Category Pills horizontal scroll with 44px min tap targets & springs */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
           {CATEGORIES.map((cat) => {
             const isActive = category === cat.id;
             return (
@@ -60,10 +61,10 @@ export const PlacesList: React.FC = () => {
                 whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
                 transition={springTactile}
                 onClick={() => setCategory(cat.id)}
-                className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-semibold leading-none whitespace-nowrap transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary select-none ${
+                className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs font-semibold leading-none whitespace-nowrap transition-all duration-150 focus:outline-none select-none cursor-pointer ${
                   isActive
-                    ? 'bg-primary text-white shadow-xs font-bold'
-                    : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-container'
+                    ? 'bg-blue-600 text-white shadow-xs font-bold border border-blue-600'
+                    : 'bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] hover:border-blue-600/30 hover:bg-stone-50'
                 }`}
                 aria-pressed={isActive}
               >
@@ -73,10 +74,10 @@ export const PlacesList: React.FC = () => {
           })}
         </div>
 
-        {/* Results Count Banner with Inverse Leading */}
-        <div className="flex items-center justify-between text-xs font-medium text-on-surface-variant px-1 leading-none">
-          <span>{t('places.resultsFound', { count: places.length })}</span>
-          <span className="text-[11px] text-on-surface-variant/60 font-normal">Addis Ababa • OSM</span>
+        {/* Results Count Banner with Monospace Accents */}
+        <div className="flex items-center justify-between text-xs font-medium text-stone-500 px-1 leading-none font-mono">
+          <span className="text-[11px] uppercase tracking-wider">{t('places.resultsFound', { count: places.length })}</span>
+          <span className="text-[10px] text-stone-400">Addis Ababa • OSM</span>
         </div>
       </div>
 
@@ -87,15 +88,17 @@ export const PlacesList: React.FC = () => {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="bg-surface-low/60 rounded-2xl p-4 border border-outline-variant/30 h-28"
+                className="bg-white/80 rounded-2xl p-4 border border-[rgba(32,34,31,0.1)] h-28 animate-pulse"
               />
             ))}
           </div>
         ) : places.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-on-surface-variant/50">
-            <MapPinOff className="w-10 h-10 mb-3 text-primary/30" />
-            <p className="text-sm font-semibold text-on-surface leading-tight">{t('places.noResults')}</p>
-            <p className="text-xs text-on-surface-variant/70 mt-1 leading-relaxed">Try another category or broaden your search.</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center text-stone-400 bg-white rounded-2xl border border-[rgba(32,34,31,0.1)] p-8">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+              <MapPinOff className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-semibold text-stone-800 leading-tight">{t('places.noResults')}</p>
+            <p className="text-xs text-stone-500 mt-1 leading-relaxed">Try another category or broaden your search.</p>
           </div>
         ) : (
           <motion.div

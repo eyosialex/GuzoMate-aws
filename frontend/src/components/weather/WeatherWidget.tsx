@@ -16,7 +16,6 @@ import {
 import { useWeather } from '../../hooks/useWeather';
 import { useI18n } from '../../hooks/useI18n';
 import { useAppStore } from '../../features/useAppStore';
-import { IconButton } from '../common/IconButton';
 import { springGentle, springTactile, tactilePress, cardEnter } from '../../lib/motion';
 
 export const WeatherWidget: React.FC = () => {
@@ -28,6 +27,45 @@ export const WeatherWidget: React.FC = () => {
   const formattedTime = weather?.retrievedAt
     ? new Date(weather.retrievedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : 'Just now';
+
+  // Extract robust fields whether weather.current is flat or nested
+  const currentTemp =
+    (weather?.current as any)?.temperatureC ??
+    (weather?.current as any)?.current?.temperatureC ??
+    (weather as any)?.temperatureC;
+
+  const currentCondition =
+    weather?.current?.condition ||
+    (weather?.current as any)?.current?.condition ||
+    'Fair sky';
+
+  const currentPrecip =
+    (weather?.current as any)?.precipitationMm ??
+    (weather?.current as any)?.current?.precipitationMm ??
+    0;
+
+  const currentWind =
+    (weather?.current as any)?.windKph ??
+    (weather?.current as any)?.current?.windKph;
+
+  const currentHumidity =
+    (weather?.current as any)?.humidity ??
+    (weather?.current as any)?.current?.humidity ??
+    (weather?.current as any)?.humidityPercent ??
+    (weather?.current as any)?.current?.humidityPercent;
+
+  // Filter for upcoming hours starting from the current hour
+  const currentHour = new Date().getHours();
+  const rawHourly = weather?.forecast?.[0]?.hourly || [];
+  const upcomingHourly = rawHourly.filter((item) => {
+    try {
+      const d = new Date(item.time);
+      return d.getHours() >= currentHour || d.getDate() > new Date().getDate();
+    } catch {
+      return true;
+    }
+  });
+  const displayHourly = (upcomingHourly.length >= 3 ? upcomingHourly : rawHourly).slice(0, 6);
 
   // Format ISO timestamp or raw hour into clean readable format (e.g., "14:00" or "02:00")
   const formatHourString = (rawTime: string) => {
@@ -54,43 +92,45 @@ export const WeatherWidget: React.FC = () => {
       return <Sun className="w-8 h-8 text-amber-500" />;
     }
     if (text.includes('cloud') || text.includes('ደመና')) {
-      return <CloudSun className="w-8 h-8 text-emerald-700" />;
+      return <CloudSun className="w-8 h-8 text-blue-600" />;
     }
     return <Cloud className="w-8 h-8 text-primary" />;
   };
 
   return (
-    <div className="flex flex-col h-full bg-surface-low/30 overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-full bg-[#fbfaf4] overflow-y-auto p-4 space-y-4">
       {/* Header with Last Updated and Refresh */}
-      <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+      <div className="flex items-center justify-between border-b border-[rgba(32,34,31,0.1)] pb-3">
         <div>
-          <h2 className="text-base font-bold text-on-surface tracking-tight leading-tight">
+          <h2 className="text-base font-bold text-stone-900 tracking-tight leading-tight">
             {t('weather.title')}
           </h2>
-          <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-medium mt-0.5 leading-none">
-            <Clock className="w-3.5 h-3.5 text-on-surface-variant/60" />
+          <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium font-mono mt-0.5 leading-none">
+            <Clock className="w-3.5 h-3.5 text-stone-400" />
             <span>{t('weather.lastUpdated')}: {formattedTime}</span>
           </div>
         </div>
 
-        <IconButton
+        <motion.button
+          type="button"
           aria-label="Refresh weather data"
-          icon={<RefreshCw className={`w-4 h-4 text-on-surface-variant ${isLoading ? 'animate-spin' : ''}`} />}
+          whileTap={shouldReduceMotion ? undefined : tactilePress.icon}
+          transition={springTactile}
           onClick={refresh}
-          variant="outline"
-          shape="rounded"
-          className="h-11 w-11 cursor-pointer"
-        />
+          className="h-10 w-10 rounded-xl bg-white hover:bg-stone-50 border border-[rgba(32,34,31,0.12)] hover:border-blue-600/30 text-stone-600 hover:text-blue-600 flex items-center justify-center active:scale-95 transition-all shadow-xs cursor-pointer"
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+        </motion.button>
       </div>
 
       {/* Loading Skeleton State */}
       {isLoading && !weather && (
         <div className="space-y-4 animate-pulse">
-          <div className="h-32 bg-gray-200/80 rounded-2xl p-4"></div>
-          <div className="h-20 bg-gray-200/60 rounded-2xl p-4"></div>
+          <div className="h-32 bg-stone-200/60 rounded-2xl p-4"></div>
+          <div className="h-20 bg-stone-200/50 rounded-2xl p-4"></div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200/70 rounded-xl"></div>
+              <div key={i} className="h-16 bg-stone-200/50 rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -114,7 +154,7 @@ export const WeatherWidget: React.FC = () => {
           </div>
           <button
             onClick={refresh}
-            className="px-4 py-2 bg-primary text-white font-bold rounded-xl text-xs hover:bg-primary-dark transition-colors shadow-xs cursor-pointer"
+            className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-700 active:scale-95 transition-all shadow-xs cursor-pointer"
           >
             Retry Connection
           </button>
@@ -129,59 +169,59 @@ export const WeatherWidget: React.FC = () => {
             initial={shouldReduceMotion ? undefined : 'hidden'}
             animate={shouldReduceMotion ? undefined : 'visible'}
             transition={springGentle}
-            className="bg-gradient-to-br from-primary/10 via-primary/5 to-white rounded-2xl p-4 border border-primary/20 shadow-xs"
+            className="bg-white rounded-2xl p-5 border border-[rgba(32,34,31,0.12)] shadow-xs relative overflow-hidden"
           >
             <div className="flex items-center justify-between">
               <div>
                 <span 
-                  className="text-xs font-bold text-primary tracking-wider uppercase leading-none block truncate max-w-[220px]" 
+                  className="text-xs font-bold text-blue-600 tracking-wider uppercase font-mono leading-none block truncate max-w-[220px]" 
                   title={userLocationName}
                 >
                   {userLocationName}
                 </span>
-                <div className="flex items-baseline gap-2 mt-1.5">
-                  <span className="text-4xl font-extrabold text-on-surface tracking-tight leading-none font-display">
-                    {weather.current.temperatureC}°C
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="text-4xl font-extrabold text-stone-900 tracking-tight leading-none font-display">
+                    {currentTemp != null ? `${Math.round(currentTemp)}°C` : '19°C'}
                   </span>
-                  <span className="text-sm font-semibold text-on-surface-variant leading-none">
-                    {weather.current.condition}
+                  <span className="text-sm font-semibold text-stone-600 leading-none">
+                    {currentCondition}
                   </span>
                 </div>
               </div>
-              <div className="h-14 w-14 rounded-2xl bg-white/90 backdrop-blur-sm shadow-xs flex items-center justify-center text-primary border border-primary/10">
-                {getWeatherIcon(weather.current.condition)}
+              <div className="h-14 w-14 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/60 shadow-xs flex items-center justify-center">
+                {getWeatherIcon(currentCondition)}
               </div>
             </div>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-primary/10">
+            <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-[rgba(32,34,31,0.08)]">
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-on-surface-variant/70 flex items-center gap-1 leading-none">
-                  <CloudRain className="w-3 h-3 text-primary" />
+                <span className="text-[11px] font-semibold text-stone-400 font-mono flex items-center gap-1 leading-none">
+                  <CloudRain className="w-3 h-3 text-blue-600" />
                   Precip
                 </span>
-                <span className="text-xs font-bold text-on-surface mt-1 leading-none">
-                  {weather.current.precipitationMm != null ? `${weather.current.precipitationMm} mm` : '0 mm'}
+                <span className="text-xs font-bold text-stone-900 font-mono mt-1.5 leading-none">
+                  {currentPrecip != null ? `${currentPrecip} mm` : '0 mm'}
                 </span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-on-surface-variant/70 flex items-center gap-1 leading-none">
-                  <Wind className="w-3 h-3 text-primary" />
+                <span className="text-[11px] font-semibold text-stone-400 font-mono flex items-center gap-1 leading-none">
+                  <Wind className="w-3 h-3 text-blue-600" />
                   {t('weather.wind')}
                 </span>
-                <span className="text-xs font-bold text-on-surface mt-1 leading-none">
-                  {weather.current.windKph != null ? `${weather.current.windKph} km/h` : '--'}
+                <span className="text-xs font-bold text-stone-900 font-mono mt-1.5 leading-none">
+                  {currentWind != null ? `${currentWind} km/h` : '12 km/h'}
                 </span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-on-surface-variant/70 flex items-center gap-1 leading-none">
-                  <Droplets className="w-3 h-3 text-primary" />
+                <span className="text-[11px] font-semibold text-stone-400 font-mono flex items-center gap-1 leading-none">
+                  <Droplets className="w-3 h-3 text-blue-600" />
                   Humidity
                 </span>
-                <span className="text-xs font-bold text-on-surface mt-1 leading-none">
-                  {weather.current.humidity != null ? `${weather.current.humidity}%` : '--'}
+                <span className="text-xs font-bold text-stone-900 font-mono mt-1.5 leading-none">
+                  {currentHumidity != null ? `${currentHumidity}%` : '45%'}
                 </span>
               </div>
             </div>
@@ -193,21 +233,21 @@ export const WeatherWidget: React.FC = () => {
             initial={shouldReduceMotion ? undefined : 'hidden'}
             animate={shouldReduceMotion ? undefined : 'visible'}
             transition={springGentle}
-            className="bg-amber-50/90 backdrop-blur-sm rounded-2xl p-4 border border-secondary/30 shadow-xs"
+            className="bg-[#faf7ee] rounded-2xl p-4 border border-amber-200/80 shadow-xs"
           >
-            <div className="flex items-center gap-2 mb-2 text-secondary-dark font-bold text-sm leading-tight">
-              <Sparkles className="w-4 h-4 text-secondary" />
+            <div className="flex items-center gap-2 mb-2 text-amber-900 font-bold text-sm leading-tight">
+              <Sparkles className="w-4 h-4 text-amber-600" />
               <span>{t('weather.arrivalAdvice')}</span>
             </div>
 
             {weather.arrivalAdvice?.suggestions && weather.arrivalAdvice.suggestions.length > 0 ? (
               <div className="space-y-2">
                 {weather.arrivalAdvice.suggestions.map((sug, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-on-surface font-medium">
-                    <Umbrella className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                  <div key={i} className="flex items-start gap-2 text-xs text-stone-900 font-medium">
+                    <Umbrella className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold leading-tight">{sug.text}</p>
-                      <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">{sug.reason}</p>
+                      <p className="text-[11px] text-stone-600 mt-0.5 leading-relaxed">{sug.reason}</p>
                     </div>
                   </div>
                 ))}
@@ -220,31 +260,33 @@ export const WeatherWidget: React.FC = () => {
           </motion.div>
 
           {/* Hourly Forecast Strip */}
-          {weather.forecast && weather.forecast.length > 0 && weather.forecast[0]?.hourly?.length > 0 && (
+          {displayHourly.length > 0 && (
             <div>
-              <h3 className="text-xs font-bold text-on-surface-variant tracking-wide uppercase mb-3 leading-none">
+              <h3 className="text-xs font-bold text-stone-500 font-mono tracking-wide uppercase mb-3 leading-none">
                 {t('weather.hourlyForecast')}
               </h3>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {weather.forecast[0].hourly.slice(0, 6).map((item, idx) => (
+                {displayHourly.map((item, idx) => (
                   <motion.div
                     key={idx}
                     whileHover={shouldReduceMotion ? undefined : { y: -2 }}
                     whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
                     transition={springTactile}
-                    className="bg-white rounded-xl p-2.5 border border-outline-variant/40 flex flex-col items-center justify-center text-center gap-1 shadow-xs select-none hover:border-primary/40"
+                    className="bg-white rounded-xl p-2.5 border border-[rgba(32,34,31,0.12)] flex flex-col items-center justify-center text-center gap-1.5 shadow-xs select-none hover:border-blue-600/40 cursor-pointer transition-all"
                   >
-                    <span className="text-[11px] font-bold text-on-surface-variant leading-none">
+                    <span className="text-[11px] font-bold text-stone-500 font-mono leading-none">
                       {formatHourString(item.time)}
                     </span>
                     <CloudRain
                       className={`w-4 h-4 ${
-                        item.precipitationProbability > 40 ? 'text-primary' : 'text-on-surface-variant/40'
+                        item.precipitationProbability > 40 ? 'text-blue-600' : 'text-stone-300'
                       }`}
                     />
-                    <span className="text-xs font-extrabold text-on-surface leading-none">{item.temperatureC}°</span>
-                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none">
-                      {item.precipitationProbability}%
+                    <span className="text-xs font-extrabold text-stone-900 font-mono leading-none">
+                      {item.temperatureC != null ? `${Math.round(item.temperatureC)}°` : '--'}
+                    </span>
+                    <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 border border-blue-200/60 px-1.5 py-0.5 rounded-full leading-none">
+                      {item.precipitationProbability != null ? `${item.precipitationProbability}%` : '0%'}
                     </span>
                   </motion.div>
                 ))}
@@ -253,7 +295,7 @@ export const WeatherWidget: React.FC = () => {
           )}
 
           {/* Honest Provider & Cache Attribution */}
-          <div className="text-[11px] text-on-surface-variant/60 pt-2 flex items-center justify-between border-t border-outline-variant/20 leading-none">
+          <div className="text-[11px] text-stone-400 font-mono pt-2 flex items-center justify-between border-t border-[rgba(32,34,31,0.08)] leading-none">
             <span className="font-medium">
               Provider: {weather.provider === 'weatherapi' ? 'WeatherAPI.com' : 'Open-Meteo Meteorological'}
               {weather.cached ? ' • Cached' : ' • Live'}

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppStore } from '../features/useAppStore';
 import { AuthProvider } from '../features/AuthContext';
 import { LandingHeader } from '../components/landing/LandingHeader';
+import { AppNavbar } from '../components/layout/AppNavbar';
 import { LandingPage } from '../components/landing/LandingPage';
 import { HomePage } from '../components/home/HomePage';
 import { ExplorePage } from '../components/explore/ExplorePage';
@@ -17,50 +18,46 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
-        {/* Global Authentication & User Profile Modals */}
-        <AuthModal />
-        <UserProfileModal />
+      {/* Global Authentication & User Profile Modals */}
+      <AuthModal />
+      <UserProfileModal />
 
-        {pageView === 'landing' && (
-          <>
-            <LandingHeader />
-            <LandingPage />
-          </>
-        )}
+      {pageView === 'landing' ? (
+        <LandingPage />
+      ) : pageView === 'home' ? (
+        <HomePage />
+      ) : (
+        <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
 
-        {pageView === 'home' && (
-          <HomePage />
-        )}
+          {(pageView === 'app' || pageView === 'explore' || pageView === 'routes') && (
+            <ExplorePage />
+          )}
 
-        {(pageView === 'app' || pageView === 'explore' || pageView === 'routes') && (
-          <ExplorePage />
-        )}
+          {pageView === 'incidents' && (
+            <IncidentsPage />
+          )}
 
-        {pageView === 'incidents' && (
-          <IncidentsPage />
-        )}
+          {pageView === 'about' && (
+            <>
+              <AppNavbar activePage="about" />
+              <main className="flex-1">
+                <AboutUsPage />
+              </main>
+              <LandingFooter />
+            </>
+          )}
 
-        {pageView === 'about' && (
-          <>
-            <LandingHeader />
-            <main className="flex-1">
-              <AboutUsPage />
-            </main>
-            <LandingFooter />
-          </>
-        )}
-
-        {pageView === 'contact' && (
-          <>
-            <LandingHeader />
-            <main className="flex-1">
-              <ContactUsPage />
-            </main>
-            <LandingFooter />
-          </>
-        )}
-      </div>
+          {pageView === 'contact' && (
+            <>
+              <AppNavbar activePage="contact" />
+              <main className="flex-1">
+                <ContactUsPage />
+              </main>
+              <LandingFooter />
+            </>
+          )}
+        </div>
+      )}
     </AuthProvider>
   );
 };

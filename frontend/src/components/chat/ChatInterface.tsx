@@ -18,7 +18,6 @@ import { useI18n } from '../../hooks/useI18n';
 import { assistantService } from '../../services/assistantService';
 import { voiceChatService } from '../../services/voiceChatService';
 import { PlaceCard } from '../places/PlaceCard';
-import { IconButton } from '../common/IconButton';
 import { SoundWaveVisualizer } from './SoundWaveVisualizer';
 import { AudioMessagePlayer } from './AudioMessagePlayer';
 import { warmUpAudio } from '../../lib/audioManager';
@@ -472,37 +471,39 @@ export const ChatInterface: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-surface-low/30 overflow-hidden">
+    <div className="flex flex-col h-full bg-[#fbfaf4] overflow-hidden">
       {/* Frosted Glass Header */}
-      <div className="px-4 py-3 border-b border-outline-variant/30 backdrop-blur-md bg-white/90 flex items-center justify-between shrink-0">
+      <div className="px-4 py-3 border-b border-[rgba(32,34,31,0.1)] backdrop-blur-md bg-white/95 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-xs">
+          <div className="h-9 w-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-on-surface leading-tight">
+            <h2 className="text-sm font-bold text-stone-900 leading-tight">
               {t('assistant.title')}
             </h2>
-            <p className="text-[11px] text-on-surface-variant font-medium leading-relaxed">
+            <p className="text-[11px] text-stone-500 font-medium leading-relaxed">
               {t('assistant.subtitle')}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
+        {/* <div className="flex items-center gap-2">
+          <motion.button
             type="button"
+            whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
+            transition={springTactile}
             onClick={handleClearMemory}
-            className="p-1.5 rounded-lg bg-surface-low hover:bg-surface-high border border-outline-variant/30 text-on-surface-variant hover:text-primary text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 select-none"
+            className="p-1.5 px-2.5 rounded-lg bg-white hover:bg-stone-50 border border-[rgba(32,34,31,0.12)] hover:border-blue-600/30 text-stone-700 hover:text-blue-600 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 select-none shadow-xs"
             title="Clear conversation memory & start new chat"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">New Chat</span>
-          </button>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full leading-none">
+          </motion.button>
+          <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200/60 px-2.5 py-1 rounded-full leading-none">
             Gemini RAG
           </span>
-        </div>
+        </div> */}
       </div>
 
       {/* Messages Flow with Scale 0.95 Spring Entry */}
@@ -519,7 +520,7 @@ export const ChatInterface: React.FC = () => {
             }`}
           >
             {msg.sender === 'assistant' && (
-              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+              <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                 <Bot className="w-4 h-4" />
               </div>
             )}
@@ -533,8 +534,8 @@ export const ChatInterface: React.FC = () => {
               <div
                 className={`p-3.5 rounded-2xl text-sm leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-primary text-white font-medium rounded-tr-none shadow-xs'
-                    : 'bg-white text-on-surface font-medium border border-outline-variant/40 rounded-tl-none shadow-xs'
+                    ? 'bg-blue-600 text-white font-medium rounded-tr-none shadow-xs'
+                    : 'bg-white text-stone-900 font-medium border border-[rgba(32,34,31,0.12)] rounded-tl-none shadow-xs'
                 }`}
               >
                 <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -550,7 +551,7 @@ export const ChatInterface: React.FC = () => {
 
                 <span
                   className={`block text-[10px] mt-1.5 leading-none ${
-                    msg.sender === 'user' ? 'text-white/70 text-right' : 'text-on-surface-variant/70'
+                    msg.sender === 'user' ? 'text-white/70 text-right' : 'text-stone-400'
                   }`}
                 >
                   {msg.timestamp}
@@ -560,15 +561,15 @@ export const ChatInterface: React.FC = () => {
               {/* Rich Embedded UI: Grounded Sources Badge */}
               {msg.sources && msg.sources.length > 0 && (
                 <div className="flex items-center gap-1.5 flex-wrap px-1">
-                  <span className="text-[10px] font-bold text-on-surface-variant/70 uppercase leading-none">
+                  <span className="text-[10px] font-bold text-stone-500 uppercase font-mono leading-none">
                     {t('assistant.sourcesLabel')}:
                   </span>
                   {msg.sources.map((s, idx) => (
                     <span
                       key={idx}
-                      className="text-[10px] font-medium bg-surface-container text-on-surface-variant border border-outline-variant/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1 leading-none"
+                      className="text-[10px] font-medium font-mono bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] px-2 py-0.5 rounded-full inline-flex items-center gap-1 leading-none shadow-xs"
                     >
-                      <ExternalLink className="w-2.5 h-2.5" />
+                      <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
                       {s.type}
                     </span>
                   ))}
@@ -577,26 +578,26 @@ export const ChatInterface: React.FC = () => {
 
               {/* Rich Embedded UI: Weather card in chat */}
               {msg.weather && (
-                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-surface-low rounded-2xl p-3 border border-primary/20 shadow-xs flex items-center justify-between">
+                <div className="bg-white rounded-2xl p-3 border border-[rgba(32,34,31,0.12)] shadow-xs flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider block leading-none">
+                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block font-mono leading-none">
                       Forecast at Arrival
                     </span>
-                    <span className="text-xl font-bold text-on-surface font-display leading-tight">
+                    <span className="text-xl font-bold text-stone-900 font-display leading-tight">
                       {msg.weather.current.temperatureC}°C
                     </span>
-                    <span className="text-xs font-medium text-on-surface-variant ml-2">
+                    <span className="text-xs font-medium text-stone-500 ml-2">
                       {msg.weather.current.condition}
                     </span>
                   </div>
-                  <CloudSun className="w-8 h-8 text-primary" />
+                  <CloudSun className="w-8 h-8 text-blue-600" />
                 </div>
               )}
 
               {/* Rich Embedded UI: Place cards directly in chat flow */}
               {msg.places && msg.places.length > 0 && (
                 <div className="space-y-2 pt-1">
-                  <span className="text-xs font-bold text-on-surface block px-1 leading-none">
+                  <span className="text-xs font-bold text-stone-900 block px-1 leading-none font-mono uppercase text-[11px]">
                     Mapped Places ({msg.places.length})
                   </span>
                   {msg.places.map((place) => (
@@ -613,7 +614,7 @@ export const ChatInterface: React.FC = () => {
               {/* Rich Embedded UI: Hazard / Incidents in chat */}
               {msg.incidents && msg.incidents.length > 0 && (
                 <div className="space-y-2 pt-1">
-                  <span className="text-xs font-bold text-rose-700 flex items-center gap-1 block px-1 leading-none">
+                  <span className="text-xs font-bold text-rose-700 flex items-center gap-1 block px-1 leading-none font-mono uppercase text-[11px]">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     <span>Reported Hazards ({msg.incidents.length})</span>
                   </span>
@@ -640,7 +641,7 @@ export const ChatInterface: React.FC = () => {
             </div>
 
             {msg.sender === 'user' && (
-              <div className="h-8 w-8 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant/30 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+              <div className="h-8 w-8 rounded-full bg-stone-100 text-stone-600 border border-[rgba(32,34,31,0.12)] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                 <User className="w-4 h-4" />
               </div>
             )}
@@ -656,14 +657,14 @@ export const ChatInterface: React.FC = () => {
             transition={springGentle}
             className="flex gap-3 justify-start items-center"
           >
-            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 shadow-xs">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="bg-white border border-outline-variant/40 rounded-2xl rounded-tl-none p-3.5 shadow-xs flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-primary animate-bounce" />
-              <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
-              <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.4s]" />
-              <span className="text-xs font-medium text-on-surface-variant ml-2">GuzoMate is responding...</span>
+            <div className="bg-white border border-[rgba(32,34,31,0.12)] rounded-2xl rounded-tl-none p-3.5 shadow-xs flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce" />
+              <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:0.2s]" />
+              <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:0.4s]" />
+              <span className="text-xs font-medium text-stone-500 ml-2">GuzoMate is responding...</span>
             </div>
           </motion.div>
         )}
@@ -673,14 +674,14 @@ export const ChatInterface: React.FC = () => {
 
       {/* Suggested prompts carousel chips with tactile springs */}
       {messages.length < 3 && !isVoiceActive && (
-        <div className="px-4 py-2 border-t border-outline-variant/20 bg-surface-low/70 backdrop-blur-sm flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+        <div className="px-4 py-2 border-t border-[rgba(32,34,31,0.08)] bg-white/70 backdrop-blur-sm flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
           {suggestions.map((sug, i) => (
             <motion.button
               key={i}
               whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
               transition={springTactile}
               onClick={() => handleSendMessage(sug)}
-              className="min-h-[44px] px-3.5 py-2 rounded-full text-xs font-semibold leading-none text-on-surface bg-white border border-outline-variant/50 hover:border-primary hover:text-primary transition-colors whitespace-nowrap shadow-xs select-none"
+              className="min-h-[40px] px-3.5 py-2 rounded-full text-xs font-semibold leading-none text-stone-700 bg-white border border-[rgba(32,34,31,0.12)] hover:border-blue-600/40 hover:text-blue-600 transition-colors whitespace-nowrap shadow-xs select-none cursor-pointer"
             >
               {sug}
             </motion.button>
@@ -689,7 +690,7 @@ export const ChatInterface: React.FC = () => {
       )}
 
       {/* Input area with frosted glass */}
-      <div className="p-3 border-t border-outline-variant/30 backdrop-blur-md bg-white/95 shrink-0">
+      <div className="p-3 border-t border-[rgba(32,34,31,0.1)] backdrop-blur-md bg-white/95 shrink-0">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -712,45 +713,45 @@ export const ChatInterface: React.FC = () => {
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               placeholder={t('assistant.inputPlaceholder')}
-              className="flex-1 min-h-[44px] px-4 py-2 bg-surface-low border border-outline-variant/50 rounded-full text-sm font-medium text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all shadow-xs leading-normal"
+              className="flex-1 min-h-[44px] px-4 py-2 bg-[#f8f7f2] border border-[rgba(32,34,31,0.12)] rounded-full text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-600/15 focus:border-blue-600 focus:bg-white transition-all shadow-xs leading-normal"
               disabled={isAssistantLoading}
             />
           )}
 
-          {/* Mic Button (Right next to Send icon) */}
-          <IconButton
+          {/* Mic Button */}
+          <motion.button
             type="button"
             aria-label={isVoiceActive ? 'Stop voice recording' : 'Start voice chat'}
-            icon={
-              isVoiceActive ? (
-                <span className="relative flex h-5 w-5 items-center justify-center">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <Square className="w-3.5 h-3.5 fill-white text-white relative" />
-                </span>
-              ) : (
-                <Mic className="w-5 h-5 text-on-surface-variant hover:text-primary transition-colors" />
-              )
-            }
+            whileTap={shouldReduceMotion ? undefined : tactilePress.icon}
+            transition={springTactile}
             onClick={isVoiceActive ? handleSendVoice : startVoiceMode}
-            variant={isVoiceActive ? 'primary' : 'outline'}
-            shape="circle"
-            className={
+            className={`h-11 w-11 rounded-full shrink-0 flex items-center justify-center transition-all cursor-pointer ${
               isVoiceActive
-                ? 'h-11 w-11 !bg-red-600 !hover:bg-red-700 !text-white rounded-full shrink-0 shadow-sm border-transparent'
-                : 'h-11 w-11 rounded-full shrink-0 border-outline-variant/40 hover:border-primary'
-            }
-          />
+                ? 'bg-red-600 hover:bg-red-700 text-white shadow-sm ring-2 ring-red-400/40 animate-pulse'
+                : 'bg-white hover:bg-stone-50 border border-[rgba(32,34,31,0.12)] hover:border-blue-600/40 text-stone-600 hover:text-blue-600 shadow-xs'
+            }`}
+          >
+            {isVoiceActive ? (
+              <span className="relative flex h-5 w-5 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <Square className="w-3.5 h-3.5 fill-white text-white relative" />
+              </span>
+            ) : (
+              <Mic className="w-5 h-5" />
+            )}
+          </motion.button>
 
           {/* Send Button */}
-          <IconButton
+          <motion.button
             type="submit"
             aria-label="Send message to assistant"
-            icon={<Send className="w-5 h-5 text-white" />}
-            variant="primary"
-            shape="circle"
+            whileTap={shouldReduceMotion ? undefined : tactilePress.icon}
+            transition={springTactile}
             disabled={(!inputQuery.trim() && !isVoiceActive) || isAssistantLoading}
-            className="h-11 w-11 shrink-0"
-          />
+            className="h-11 w-11 rounded-full shrink-0 flex items-center justify-center bg-blue-600 hover:bg-blue-700 active:scale-95 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-all cursor-pointer"
+          >
+            <Send className="w-5 h-5 text-white" />
+          </motion.button>
         </form>
       </div>
     </div>

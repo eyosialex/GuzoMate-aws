@@ -93,13 +93,13 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
   };
 
   return (
-    <div className="mt-2.5 p-2.5 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between gap-3 shadow-xs">
+    <div className="mt-2.5 p-2.5 rounded-xl bg-blue-50/80 border border-blue-200/60 flex items-center justify-between gap-3 shadow-xs">
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={togglePlay}
           aria-label={isPlaying ? 'Pause audio response' : 'Play audio response'}
-          className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary-dark transition-colors shadow-xs shrink-0"
+          className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all shadow-xs shrink-0 cursor-pointer"
         >
           {isPlaying ? (
             <Pause className="w-4 h-4 fill-white" />
@@ -109,10 +109,10 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
         </button>
 
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-primary block leading-none">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 font-mono block leading-none">
             {isPlaying ? 'Playing Audio' : 'Audio Response'}
           </span>
-          <span className="text-xs font-semibold text-on-surface leading-none mt-1 block">
+          <span className="text-xs font-semibold text-stone-900 leading-none mt-1 block font-mono">
             {formatSecs(currentTime)} / {formatSecs(duration || 3)}
           </span>
         </div>
@@ -128,13 +128,13 @@ export const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({
               animationDuration: `${0.4 + (i % 3) * 0.2}s`,
             }}
             className={`w-[2.5px] rounded-full transition-all duration-150 ${
-              isPlaying ? 'bg-primary' : 'bg-primary/30'
+              isPlaying ? 'bg-blue-600' : 'bg-blue-300'
             }`}
           />
         ))}
       </div>
 
-      <Volume2 className="w-4 h-4 text-primary shrink-0 opacity-70" />
+      <Volume2 className="w-4 h-4 text-blue-600 shrink-0 opacity-80" />
     </div>
   );
 };

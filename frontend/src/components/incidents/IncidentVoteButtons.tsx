@@ -101,7 +101,7 @@ export const IncidentVoteButtons: React.FC<IncidentVoteButtonsProps> = ({
           className={`group inline-flex items-center gap-1 rounded-lg font-bold border transition-all duration-150 cursor-pointer disabled:cursor-not-allowed select-none ${btnPadding} ${
             isConfirmed
               ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
-              : 'bg-white hover:bg-emerald-50 border-outline-variant/60 hover:border-emerald-300 text-on-surface-variant hover:text-emerald-800'
+              : 'bg-white hover:bg-emerald-50 border-[rgba(32,34,31,0.12)] hover:border-emerald-300 text-stone-600 hover:text-emerald-800'
           }`}
           aria-label={`Confirm report (${incident.confirmationsCount} confirmations)`}
         >
@@ -117,7 +117,7 @@ export const IncidentVoteButtons: React.FC<IncidentVoteButtonsProps> = ({
           <span>Confirm</span>
           <span
             className={`font-mono text-[10px] ml-0.5 px-1 py-0.2 rounded ${
-              isConfirmed ? 'bg-emerald-700/60 text-white' : 'bg-surface-container text-on-surface-variant'
+              isConfirmed ? 'bg-emerald-700/60 text-white' : 'bg-stone-100 text-stone-700'
             }`}
           >
             {incident.confirmationsCount}
@@ -135,7 +135,7 @@ export const IncidentVoteButtons: React.FC<IncidentVoteButtonsProps> = ({
           className={`group inline-flex items-center gap-1 rounded-lg font-bold border transition-all duration-150 cursor-pointer disabled:cursor-not-allowed select-none ${btnPadding} ${
             isDisputed
               ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
-              : 'bg-white hover:bg-rose-50 border-outline-variant/60 hover:border-rose-300 text-on-surface-variant hover:text-rose-800'
+              : 'bg-white hover:bg-rose-50 border-[rgba(32,34,31,0.12)] hover:border-rose-300 text-stone-600 hover:text-rose-800'
           }`}
           aria-label={`Dispute report (${incident.disputesCount} disputes)`}
         >
@@ -151,7 +151,7 @@ export const IncidentVoteButtons: React.FC<IncidentVoteButtonsProps> = ({
           <span>Dispute</span>
           <span
             className={`font-mono text-[10px] ml-0.5 px-1 py-0.2 rounded ${
-              isDisputed ? 'bg-rose-700/60 text-white' : 'bg-surface-container text-on-surface-variant'
+              isDisputed ? 'bg-rose-700/60 text-white' : 'bg-stone-100 text-stone-700'
             }`}
           >
             {incident.disputesCount}

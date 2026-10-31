@@ -49,10 +49,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ hideIncidents = false }) => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-full md:w-[420px] lg:w-[460px] h-full bg-white/95 backdrop-blur-xl border-r border-outline-variant/30 shrink-0 z-20 shadow-[4px_0_24px_rgba(27,67,50,0.03)] overflow-hidden">
+    <aside className="hidden md:flex flex-col w-full md:w-[420px] lg:w-[460px] h-full bg-white/95 backdrop-blur-xl border-r border-[rgba(32,34,31,0.1)] shrink-0 z-20 shadow-[4px_0_24px_rgba(32,34,31,0.04)] overflow-hidden">
       {/* Frosted Glass Sub-navigation Bar */}
-      <div className="p-3 border-b border-outline-variant/30 bg-surface-low/80 backdrop-blur-md shrink-0">
-        <div className={`grid ${tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5'} gap-1 bg-surface-container p-1 rounded-xl`}>
+      <div className="p-3 border-b border-[rgba(32,34,31,0.1)] bg-[#f8f7f2]/90 backdrop-blur-md shrink-0">
+        <div className={`grid ${tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5'} gap-1 bg-[#eeede4] p-1 rounded-xl`}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -61,10 +61,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ hideIncidents = false }) => {
                 whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
                 transition={springTactile}
                 onClick={() => setActiveTab(tab.id)}
-                className={`min-h-[44px] px-1 py-1.5 rounded-lg text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary ${
+                className={`min-h-[44px] px-1 py-1.5 rounded-lg text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-600/20 cursor-pointer ${
                   isActive
-                    ? 'bg-white text-primary font-bold shadow-xs'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-white/50'
+                    ? 'bg-white text-blue-600 font-bold shadow-xs border border-[rgba(32,34,31,0.06)]'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
                 }`}
                 aria-label={t(tab.labelKey)}
                 title={t(tab.labelKey)}

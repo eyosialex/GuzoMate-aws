@@ -28,7 +28,7 @@ export const ContactUsPage: React.FC = () => {
       particleCount: 50,
       spread: 60,
       origin: { y: 0.6 },
-      colors: ['#1b4332', '#d97706', '#0e7490'],
+      colors: ['#2555d9', '#d97706', '#0e7490'],
     });
   };
 
@@ -190,7 +190,7 @@ export const ContactUsPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-2xl bg-primary hover:bg-primary-dark text-white font-bold text-xs shadow-highland flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>Submit Inquiry</span>

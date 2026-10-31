@@ -32,14 +32,14 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
   }, [incidents, selectedCategory, selectedSeverity]);
 
   return (
-    <div className="flex flex-col h-full bg-surface-low/30 overflow-hidden">
+    <div className="flex flex-col h-full bg-[#fbfaf4] overflow-hidden">
       {/* Header bar */}
-      <div className="p-4 border-b border-outline-variant/30 bg-white/90 backdrop-blur-md flex items-center justify-between shrink-0">
+      <div className="p-4 border-b border-[rgba(32,34,31,0.1)] bg-white/95 backdrop-blur-md flex items-center justify-between shrink-0">
         <div>
-          <h2 className="text-base font-bold text-on-surface tracking-tight leading-tight">
+          <h2 className="text-base font-bold text-stone-900 tracking-tight leading-tight">
             Road Hazard Alerts
           </h2>
-          <span className="text-xs font-medium text-on-surface-variant">
+          <span className="text-xs font-medium text-stone-500 font-mono">
             {filteredIncidents.length} active incidents in Addis Ababa
           </span>
         </div>
@@ -47,11 +47,11 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
         <div className="flex items-center gap-2">
           <IconButton
             aria-label="Refresh incident feed"
-            icon={<RefreshCw className={`w-4 h-4 text-on-surface-variant ${isLoading ? 'animate-spin' : ''}`} />}
+            icon={<RefreshCw className={`w-4 h-4 text-stone-600 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />}
             onClick={refresh}
             variant="outline"
             shape="rounded"
-            className="h-10 w-10 cursor-pointer"
+            className="h-10 w-10 border-[rgba(32,34,31,0.12)] hover:border-blue-600/30 cursor-pointer"
           />
           {onGoToSubmit && (
             <Button
@@ -59,7 +59,7 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
               size="sm"
               onClick={onGoToSubmit}
               leftIcon={<PlusCircle className="w-4 h-4" />}
-              className="rounded-xl min-h-[40px] cursor-pointer"
+              className="rounded-xl min-h-[40px] bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold cursor-pointer shadow-xs"
             >
               Report
             </Button>
@@ -68,14 +68,14 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
       </div>
 
       {/* Filter Tabs Bar */}
-      <div className="px-4 py-2 bg-surface-low/60 border-b border-outline-variant/20 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-xs">
+      <div className="px-4 py-2 bg-[#f8f7f2]/90 border-b border-[rgba(32,34,31,0.08)] flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-xs">
         <button
           type="button"
           onClick={() => { setSelectedCategory('ALL'); setSelectedSeverity('ALL'); }}
-          className={`px-3 py-1 rounded-full font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-bold transition-all shrink-0 cursor-pointer select-none text-xs ${
             selectedCategory === 'ALL' && selectedSeverity === 'ALL'
-              ? 'bg-primary text-white shadow-xs'
-              : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-high'
+              ? 'bg-blue-600 text-white shadow-xs border border-blue-600'
+              : 'bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] hover:border-blue-600/30 hover:bg-stone-50'
           }`}
         >
           All
@@ -84,10 +84,10 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
         <button
           type="button"
           onClick={() => setSelectedCategory(selectedCategory === 'ACCIDENT' ? 'ALL' : 'ACCIDENT')}
-          className={`px-3 py-1 rounded-full font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-bold transition-all shrink-0 cursor-pointer select-none text-xs ${
             selectedCategory === 'ACCIDENT'
-              ? 'bg-red-600 text-white shadow-xs'
-              : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-high'
+              ? 'bg-red-600 text-white shadow-xs border border-red-600'
+              : 'bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] hover:border-red-400 hover:bg-stone-50'
           }`}
         >
           Accidents
@@ -96,10 +96,10 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
         <button
           type="button"
           onClick={() => setSelectedCategory(selectedCategory === 'HEAVY_TRAFFIC' ? 'ALL' : 'HEAVY_TRAFFIC')}
-          className={`px-3 py-1 rounded-full font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-bold transition-all shrink-0 cursor-pointer select-none text-xs ${
             selectedCategory === 'HEAVY_TRAFFIC'
-              ? 'bg-purple-600 text-white shadow-xs'
-              : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-high'
+              ? 'bg-purple-600 text-white shadow-xs border border-purple-600'
+              : 'bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] hover:border-purple-400 hover:bg-stone-50'
           }`}
         >
           Traffic
@@ -108,10 +108,10 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
         <button
           type="button"
           onClick={() => setSelectedCategory(selectedCategory === 'ROAD_CLOSURE' ? 'ALL' : 'ROAD_CLOSURE')}
-          className={`px-3 py-1 rounded-full font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-bold transition-all shrink-0 cursor-pointer select-none text-xs ${
             selectedCategory === 'ROAD_CLOSURE'
-              ? 'bg-amber-600 text-white shadow-xs'
-              : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-high'
+              ? 'bg-amber-600 text-white shadow-xs border border-amber-600'
+              : 'bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] hover:border-amber-400 hover:bg-stone-50'
           }`}
         >
           Closures
@@ -120,10 +120,10 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
         <button
           type="button"
           onClick={() => setSelectedCategory(selectedCategory === 'FLOODING' ? 'ALL' : 'FLOODING')}
-          className={`px-3 py-1 rounded-full font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-bold transition-all shrink-0 cursor-pointer select-none text-xs ${
             selectedCategory === 'FLOODING'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-high'
+              ? 'bg-blue-600 text-white shadow-xs border border-blue-600'
+              : 'bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] hover:border-blue-400 hover:bg-stone-50'
           }`}
         >
           Flooding
@@ -132,10 +132,10 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
         <button
           type="button"
           onClick={() => setSelectedCategory(selectedCategory === 'CONSTRUCTION' ? 'ALL' : 'CONSTRUCTION')}
-          className={`px-3 py-1 rounded-full font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-bold transition-all shrink-0 cursor-pointer select-none text-xs ${
             selectedCategory === 'CONSTRUCTION'
-              ? 'bg-orange-600 text-white shadow-xs'
-              : 'bg-white text-on-surface-variant border border-outline-variant/40 hover:bg-surface-high'
+              ? 'bg-orange-600 text-white shadow-xs border border-orange-600'
+              : 'bg-white text-stone-700 border border-[rgba(32,34,31,0.12)] hover:border-orange-400 hover:bg-stone-50'
           }`}
         >
           Work
@@ -144,9 +144,9 @@ export const IncidentsList: React.FC<IncidentsListProps> = ({ onGoToSubmit }) =>
         <button
           type="button"
           onClick={() => setSelectedSeverity(selectedSeverity === 'CRITICAL' ? 'ALL' : 'CRITICAL')}
-          className={`px-3 py-1 rounded-full font-bold transition-all shrink-0 cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-bold transition-all shrink-0 cursor-pointer select-none text-xs ${
             selectedSeverity === 'CRITICAL'
-              ? 'bg-red-700 text-white shadow-xs'
+              ? 'bg-red-700 text-white shadow-xs border border-red-700'
               : 'bg-white text-red-600 border border-red-200 hover:bg-red-50'
           }`}
         >

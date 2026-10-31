@@ -51,10 +51,10 @@ export const IncidentCard: React.FC<IncidentCardProps> = ({
       whileTap={shouldReduceMotion ? undefined : tactilePress.card}
       transition={springGentle}
       onClick={() => onSelect?.(incident)}
-      className={`group bg-white rounded-2xl p-4 border transition-all duration-150 cursor-pointer shadow-xs hover:shadow-md hover:border-primary/40 ${
+      className={`group bg-white rounded-2xl p-4 border transition-all duration-150 cursor-pointer shadow-xs hover:shadow-md hover:border-blue-600/40 ${
         isSelected
-          ? 'border-primary ring-2 ring-primary/20 bg-primary/[0.02]'
-          : 'border-outline-variant/40'
+          ? 'border-blue-600 ring-2 ring-blue-600/20 bg-blue-50/20'
+          : 'border-[rgba(32,34,31,0.12)]'
       }`}
       role="button"
       tabIndex={0}
@@ -68,7 +68,7 @@ export const IncidentCard: React.FC<IncidentCardProps> = ({
       {/* Header: Category, Severity Badge and Distance */}
       <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full leading-none">
+          <span className="text-[10px] font-bold font-mono uppercase text-blue-700 bg-blue-50 border border-blue-200/60 px-2.5 py-0.5 rounded-full leading-none">
             {typeLabel}
           </span>
 
@@ -92,33 +92,33 @@ export const IncidentCard: React.FC<IncidentCardProps> = ({
         </div>
 
         {formattedDistance && (
-          <span className="text-[11px] font-semibold text-on-surface-variant/70 shrink-0 leading-none">
+          <span className="text-[11px] font-semibold text-stone-500 font-mono shrink-0 leading-none">
             {formattedDistance} away
           </span>
         )}
       </div>
 
       {/* Description */}
-      <p className="text-xs font-medium text-on-surface-variant mt-1.5 leading-relaxed line-clamp-2">
+      <p className="text-xs font-medium text-stone-600 mt-1.5 leading-relaxed line-clamp-2">
         {incident.description}
       </p>
 
       {/* Location Landmark */}
-      <div className="mt-2.5 flex items-center gap-1.5 font-bold text-primary leading-none text-xs truncate">
-        <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+      <div className="mt-2.5 flex items-center gap-1.5 font-bold text-blue-600 leading-none text-xs truncate">
+        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
         <span className="truncate">{displayLocation}</span>
       </div>
 
       {/* Community Consensus Voting Section */}
-      <div className="mt-3 pt-2.5 border-t border-outline-variant/20 flex items-center justify-between gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+      <div className="mt-3 pt-2.5 border-t border-[rgba(32,34,31,0.08)] flex items-center justify-between gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
         <IncidentVoteButtons
           incident={incident}
           onVoteSuccess={onVoteSuccess}
           size="sm"
         />
 
-        <div className="flex items-center gap-1 text-[11px] text-on-surface-variant/60 font-medium ml-auto">
-          <Clock className="w-3 h-3 text-on-surface-variant/50" />
+        <div className="flex items-center gap-1 text-[11px] text-stone-400 font-mono font-medium ml-auto">
+          <Clock className="w-3 h-3 text-stone-400" />
           <span>{new Date(incident.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
       </div>
