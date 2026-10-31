@@ -113,7 +113,7 @@ export const landingTranslations: Record<Language, LandingCopy> = {
       selectLanguage: 'Select application language',
     },
     stage: {
-      caption: 'Travel intelligence / a journey in four chapters',
+      caption: '',
       ariaLabel:
         'An illustrative paper map of Bishoftu and Addis Ababa, with multilingual greetings, a community road incident and arrival-time rainfall',
       chapterNavLabel: 'Story chapters',
@@ -264,7 +264,7 @@ export const landingTranslations: Record<Language, LandingCopy> = {
       selectLanguage: 'ቋንቋ ይምረጡ',
     },
     stage: {
-      caption: 'የጉዞ መረጃ / ጉዞ በአራት ምዕራፎች',
+      caption: '',
       ariaLabel:
         'የቢሾፍቱ እና የአዲስ አበባ ካርታ፣ የብዙ ቋንቋ ሰላምታዎች፣ የማህበረሰብ መንገድ ክስተት እና የመድረሻ ዝናብ ሁኔታ የሚያሳይ ማሳያ',
       chapterNavLabel: 'የታሪኩ ምዕራፎች',
@@ -413,7 +413,7 @@ export const landingTranslations: Record<Language, LandingCopy> = {
       selectLanguage: 'Afaan filadhaa',
     },
     stage: {
-      caption: 'Odeeffannoo imalaa / imala boqonnaalee afuriin',
+      caption: '',
       ariaLabel:
         'Kaartaa waraqaa fakkeenyaa kan Bishooftuu fi Finfinnee, simannaa afaanoota sadii, balaa daandii hawaasaa fi haala rooba ga’umsaa',
       chapterNavLabel: 'Boqonnaalee seenaa',
