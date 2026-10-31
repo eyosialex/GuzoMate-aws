@@ -15,9 +15,10 @@ export class SpeechService {
 
   public async transcribe(
     audio: string,
-    language: SpeechLanguage = 'am'
+    language: SpeechLanguage = 'am',
+    options?: { mimeType?: string; format?: string }
   ): Promise<SpeechTranscriptionResponse> {
-    return this.provider.transcribe(audio, language);
+    return this.provider.transcribe(audio, language, options);
   }
 
   public async synthesize(

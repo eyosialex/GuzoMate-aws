@@ -75,7 +75,8 @@ export class AddisAiSpeechProvider implements ISpeechProvider {
    */
   public async transcribe(
     audio: string,
-    language: SpeechLanguage = 'am'
+    language: SpeechLanguage = 'am',
+    options?: { mimeType?: string; format?: string }
   ): Promise<SpeechTranscriptionResponse> {
     if (!this.isAvailable()) {
       throw new ProviderError(
@@ -89,7 +90,7 @@ export class AddisAiSpeechProvider implements ISpeechProvider {
     // 1. Try Addis AI if configured
     if (this.apiKey && this.apiKey.trim().length > 10 && !this.apiKey.includes('replace-with')) {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+      const timer = setTimeout(() => controller.abort(), Math.min(this.timeoutMs, 3000));
 
       try {
         const response = await fetch(`${this.baseUrl}/api/v1/speech/transcriptions`, {
@@ -132,67 +133,114 @@ export class AddisAiSpeechProvider implements ISpeechProvider {
 
     // 2. Fallback to Gemini multimodal audio transcription
     if (this.genAI) {
-      try {
-        let cleanBase64 = audio;
-        let mimeType = 'audio/webm';
+      let cleanBase64 = audio;
+      let detectedMime = options?.mimeType;
 
-        if (audio.includes('base64,')) {
-          const parts = audio.split('base64,');
-          cleanBase64 = parts[1].trim();
-          const prefix = parts[0];
-          if (prefix.startsWith('data:')) {
-            const rawMime = prefix.replace(/^data:/, '').replace(/;$/, '').trim();
-            mimeType = rawMime.split(';')[0].trim() || 'audio/webm';
-          }
+      if (audio.includes('base64,')) {
+        const parts = audio.split('base64,');
+        cleanBase64 = parts[1].trim();
+        const prefix = parts[0];
+        if (prefix.startsWith('data:')) {
+          const rawMime = prefix.replace(/^data:/, '').replace(/;$/, '').trim();
+          detectedMime = rawMime.split(';')[0].trim() || detectedMime;
         }
+      }
 
-        const langName =
-          language === 'am' ? 'Amharic' : language === 'om' ? 'Afaan Oromo' : 'English';
-        const prompt = `You are a speech-to-text system. Listen to this audio recording and transcribe the user's speech verbatim in ${langName} or English.
+      if (!detectedMime && options?.format) {
+        const formatMap: Record<string, string> = {
+          wav: 'audio/wav',
+          mp3: 'audio/mp3',
+          webm: 'audio/webm',
+          ogg: 'audio/ogg',
+          m4a: 'audio/x-m4a',
+          mp4: 'audio/mp4',
+        };
+        detectedMime = formatMap[options.format.toLowerCase()];
+      }
+
+      // Sniff common audio headers from base64 if still unknown
+      if (!detectedMime) {
+        if (cleanBase64.startsWith('UklGR')) {
+          detectedMime = 'audio/wav';
+        } else if (cleanBase64.startsWith('SUQz') || cleanBase64.startsWith('//uQ') || cleanBase64.startsWith('//MY') || cleanBase64.startsWith('/+MY')) {
+          detectedMime = 'audio/mp3';
+        } else if (cleanBase64.startsWith('T2dnUw')) {
+          detectedMime = 'audio/ogg';
+        } else if (cleanBase64.startsWith('GkXfo')) {
+          detectedMime = 'audio/webm';
+        } else {
+          detectedMime = 'audio/webm';
+        }
+      }
+
+      const mimeType = detectedMime;
+
+      const langName =
+        language === 'am' ? 'Amharic' : language === 'om' ? 'Afaan Oromo' : 'English';
+      const prompt = `You are a speech-to-text system. Listen to this audio recording and transcribe the user's speech verbatim in ${langName} or English.
 Transcribe ONLY the words spoken. Do not translate. Do not add commentary, timestamps, or quotes.`;
 
-        const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
-        const response = await this.genAI.models.generateContent({
-          model: modelName,
-          contents: [
-            {
-              inlineData: {
-                mimeType,
-                data: cleanBase64,
+      const candidateModels = Array.from(
+        new Set(
+          [
+            process.env.GEMINI_MODEL,
+            process.env.GEMINI_MODEL_SECOND,
+            'gemini-flash-lite-latest',
+            'gemini-3.5-flash-lite',
+            'gemini-3.8-flash',
+          ].filter((m): m is string => Boolean(m && m.trim().length > 0))
+        )
+      );
+
+      let lastError: any = null;
+      for (const modelName of candidateModels) {
+        try {
+          const response = await this.genAI.models.generateContent({
+            model: modelName,
+            contents: [
+              {
+                inlineData: {
+                  mimeType,
+                  data: cleanBase64,
+                },
               },
-            },
-            { text: prompt },
-          ],
-        });
+              { text: prompt },
+            ],
+          });
 
-        let rawText = response.text?.trim() || '';
+          let rawText = response.text?.trim() || '';
 
-        // Clean out timestamps, time codes, or bracketed labels
-        rawText = rawText
-          .replace(/\[?\b\d{1,2}:\d{2}(?::\d{2})?\b\]?/g, '')
-          .replace(/\[(silence|empty|no_speech|music|applause)\]/gi, '')
-          .replace(/^["'\s]+|["'\s]+$/g, '')
-          .trim();
+          // Clean out timestamps, time codes, or bracketed labels
+          rawText = rawText
+            .replace(/\[?\b\d{1,2}:\d{2}(?::\d{2})?\b\]?/g, '')
+            .replace(/\[(silence|empty|no_speech|music|applause)\]/gi, '')
+            .replace(/^["'\s]+|["'\s]+$/g, '')
+            .trim();
 
-        // Discard hallucinated prompt artifacts like "CR", "CRITICAL", timestamps, or single punctuation
-        if (/^(CR|CRITICAL|null|undefined|00?:00)$/i.test(rawText) || rawText.length < 2) {
-          rawText = '';
+          // Discard hallucinated prompt artifacts like "CR", "CRITICAL", timestamps, or single punctuation
+          if (/^(CR|CRITICAL|null|undefined|00?:00)$/i.test(rawText) || rawText.length < 2) {
+            rawText = '';
+          }
+
+          const text = rawText;
+          logger.info(`[AddisAiSpeechProvider] Transcribed audio via ${modelName}: "${text}" (${cleanBase64.length} base64 bytes)`);
+
+          return {
+            text,
+            language,
+            detectedLanguage: language,
+            confidence: text ? 0.95 : 0,
+            provider: 'gemini' as any,
+          };
+        } catch (geminiErr: any) {
+          lastError = geminiErr;
+          logger.warn(`[AddisAiSpeechProvider] Gemini transcription error with model ${modelName}:`, geminiErr?.message || geminiErr);
         }
+      }
 
-        const text = rawText;
-        logger.info(`[AddisAiSpeechProvider] Transcribed audio: "${text}" (${cleanBase64.length} base64 bytes)`);
-
-        return {
-          text,
-          language,
-          detectedLanguage: language,
-          confidence: text ? 0.95 : 0,
-          provider: 'gemini' as any,
-        };
-      } catch (geminiErr: any) {
-        logger.warn('[AddisAiSpeechProvider] Gemini audio transcription error:', geminiErr?.message);
+      if (lastError) {
         throw new ProviderError(
-          `Speech recognition failed: ${geminiErr?.message || 'unknown error'}`,
+          `Speech recognition failed: ${lastError?.message || 'unknown error'}`,
           502
         );
       }
@@ -289,7 +337,7 @@ Transcribe ONLY the words spoken. Do not translate. Do not add commentary, times
       try {
         const response = await this.genAI.models.generateContent({
           model: 'gemini-2.5-flash-preview-tts',
-          contents: cleanText,
+          contents: `Read the following text aloud exactly as written: ${cleanText}`,
           config: { responseModalities: ['AUDIO'] },
         });
 

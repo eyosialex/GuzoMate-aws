@@ -34,6 +34,10 @@ export interface SpeechSynthesisResponse {
 
 export interface ISpeechProvider {
   isAvailable(): boolean;
-  transcribe(audio: string, language?: SpeechLanguage): Promise<SpeechTranscriptionResponse>;
+  transcribe(
+    audio: string,
+    language?: SpeechLanguage,
+    options?: { mimeType?: string; format?: string }
+  ): Promise<SpeechTranscriptionResponse>;
   synthesize(text: string, language?: SpeechLanguage, voiceId?: string): Promise<SpeechSynthesisResponse>;
 }

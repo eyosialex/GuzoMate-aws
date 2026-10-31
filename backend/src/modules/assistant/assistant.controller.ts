@@ -74,7 +74,8 @@ export class AssistantController {
    * Addis AI Speech Synthesis endpoint (GuzoMate API Ref Section 8)
    */
   public async handleSpeechSynthesis(req: Request, res: Response): Promise<void> {
-    const { text, language = 'en', voice } = req.body;
+    const { text, language = 'en', voice, voiceId } = req.body;
+    const targetVoice = voice || voiceId;
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       res.status(400).json({
@@ -98,7 +99,7 @@ export class AssistantController {
     }
 
     try {
-      const voiceResult = await assistantService.synthesizeSpeech(text, language, voice);
+      const voiceResult = await assistantService.synthesizeSpeech(text, language, targetVoice);
       if (!voiceResult) {
         res.status(502).json({
           error: {

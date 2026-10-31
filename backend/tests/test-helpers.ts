@@ -23,6 +23,8 @@ export async function registerAndVerifyTestUser(options: TestUserOptions = {}) {
     email,
     phoneNumber,
     password,
+    confirmPassword: password,
+    fullName: options.name || 'Test User',
     name: options.name || 'Test User',
     preferredLanguage: options.preferredLanguage || 'en',
   });

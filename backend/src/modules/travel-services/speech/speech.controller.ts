@@ -11,7 +11,10 @@ export class SpeechController {
   public async transcribe(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const parsed = await speechTranscriptionSchema.parseAsync(req.body);
-      const result = await this.service.transcribe(parsed.audio, parsed.language);
+      const result = await this.service.transcribe(parsed.audio, parsed.language, {
+        mimeType: parsed.mimeType,
+        format: parsed.format,
+      });
 
       res.status(200).json({
         success: true,
