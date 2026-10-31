@@ -23,10 +23,7 @@ export const App: React.FC = () => {
         <UserProfileModal />
 
         {pageView === 'landing' && (
-          <>
-            <LandingHeader />
-            <LandingPage />
-          </>
+          <LandingPage />
         )}
 
         {pageView === 'home' && (
