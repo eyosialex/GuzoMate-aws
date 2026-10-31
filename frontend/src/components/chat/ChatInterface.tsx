@@ -488,7 +488,7 @@ export const ChatInterface: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <motion.button
             type="button"
             whileTap={shouldReduceMotion ? undefined : tactilePress.pill}
@@ -503,7 +503,7 @@ export const ChatInterface: React.FC = () => {
           <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200/60 px-2.5 py-1 rounded-full leading-none">
             Gemini RAG
           </span>
-        </div>
+        </div> */}
       </div>
 
       {/* Messages Flow with Scale 0.95 Spring Entry */}

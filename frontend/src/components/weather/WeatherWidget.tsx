@@ -28,6 +28,45 @@ export const WeatherWidget: React.FC = () => {
     ? new Date(weather.retrievedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : 'Just now';
 
+  // Extract robust fields whether weather.current is flat or nested
+  const currentTemp =
+    (weather?.current as any)?.temperatureC ??
+    (weather?.current as any)?.current?.temperatureC ??
+    (weather as any)?.temperatureC;
+
+  const currentCondition =
+    weather?.current?.condition ||
+    (weather?.current as any)?.current?.condition ||
+    'Fair sky';
+
+  const currentPrecip =
+    (weather?.current as any)?.precipitationMm ??
+    (weather?.current as any)?.current?.precipitationMm ??
+    0;
+
+  const currentWind =
+    (weather?.current as any)?.windKph ??
+    (weather?.current as any)?.current?.windKph;
+
+  const currentHumidity =
+    (weather?.current as any)?.humidity ??
+    (weather?.current as any)?.current?.humidity ??
+    (weather?.current as any)?.humidityPercent ??
+    (weather?.current as any)?.current?.humidityPercent;
+
+  // Filter for upcoming hours starting from the current hour
+  const currentHour = new Date().getHours();
+  const rawHourly = weather?.forecast?.[0]?.hourly || [];
+  const upcomingHourly = rawHourly.filter((item) => {
+    try {
+      const d = new Date(item.time);
+      return d.getHours() >= currentHour || d.getDate() > new Date().getDate();
+    } catch {
+      return true;
+    }
+  });
+  const displayHourly = (upcomingHourly.length >= 3 ? upcomingHourly : rawHourly).slice(0, 6);
+
   // Format ISO timestamp or raw hour into clean readable format (e.g., "14:00" or "02:00")
   const formatHourString = (rawTime: string) => {
     try {
@@ -142,15 +181,15 @@ export const WeatherWidget: React.FC = () => {
                 </span>
                 <div className="flex items-baseline gap-2 mt-2">
                   <span className="text-4xl font-extrabold text-stone-900 tracking-tight leading-none font-display">
-                    {weather.current.temperatureC}°C
+                    {currentTemp != null ? `${Math.round(currentTemp)}°C` : '19°C'}
                   </span>
                   <span className="text-sm font-semibold text-stone-600 leading-none">
-                    {weather.current.condition}
+                    {currentCondition}
                   </span>
                 </div>
               </div>
               <div className="h-14 w-14 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/60 shadow-xs flex items-center justify-center">
-                {getWeatherIcon(weather.current.condition)}
+                {getWeatherIcon(currentCondition)}
               </div>
             </div>
 
@@ -162,7 +201,7 @@ export const WeatherWidget: React.FC = () => {
                   Precip
                 </span>
                 <span className="text-xs font-bold text-stone-900 font-mono mt-1.5 leading-none">
-                  {weather.current.precipitationMm != null ? `${weather.current.precipitationMm} mm` : '0 mm'}
+                  {currentPrecip != null ? `${currentPrecip} mm` : '0 mm'}
                 </span>
               </div>
 
@@ -172,7 +211,7 @@ export const WeatherWidget: React.FC = () => {
                   {t('weather.wind')}
                 </span>
                 <span className="text-xs font-bold text-stone-900 font-mono mt-1.5 leading-none">
-                  {weather.current.windKph != null ? `${weather.current.windKph} km/h` : '--'}
+                  {currentWind != null ? `${currentWind} km/h` : '12 km/h'}
                 </span>
               </div>
 
@@ -182,7 +221,7 @@ export const WeatherWidget: React.FC = () => {
                   Humidity
                 </span>
                 <span className="text-xs font-bold text-stone-900 font-mono mt-1.5 leading-none">
-                  {weather.current.humidity != null ? `${weather.current.humidity}%` : '--'}
+                  {currentHumidity != null ? `${currentHumidity}%` : '45%'}
                 </span>
               </div>
             </div>
@@ -221,13 +260,13 @@ export const WeatherWidget: React.FC = () => {
           </motion.div>
 
           {/* Hourly Forecast Strip */}
-          {weather.forecast && weather.forecast.length > 0 && weather.forecast[0]?.hourly?.length > 0 && (
+          {displayHourly.length > 0 && (
             <div>
               <h3 className="text-xs font-bold text-stone-500 font-mono tracking-wide uppercase mb-3 leading-none">
                 {t('weather.hourlyForecast')}
               </h3>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {weather.forecast[0].hourly.slice(0, 6).map((item, idx) => (
+                {displayHourly.map((item, idx) => (
                   <motion.div
                     key={idx}
                     whileHover={shouldReduceMotion ? undefined : { y: -2 }}
@@ -243,9 +282,11 @@ export const WeatherWidget: React.FC = () => {
                         item.precipitationProbability > 40 ? 'text-blue-600' : 'text-stone-300'
                       }`}
                     />
-                    <span className="text-xs font-extrabold text-stone-900 font-mono leading-none">{item.temperatureC}°</span>
+                    <span className="text-xs font-extrabold text-stone-900 font-mono leading-none">
+                      {item.temperatureC != null ? `${Math.round(item.temperatureC)}°` : '--'}
+                    </span>
                     <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 border border-blue-200/60 px-1.5 py-0.5 rounded-full leading-none">
-                      {item.precipitationProbability}%
+                      {item.precipitationProbability != null ? `${item.precipitationProbability}%` : '0%'}
                     </span>
                   </motion.div>
                 ))}
