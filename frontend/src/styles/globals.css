@@ -4,7 +4,6 @@
 
 @layer base {
   html {
-    height: 100%;
     scroll-behavior: smooth;
   }
   body, #root {
@@ -14,16 +13,11 @@
     padding: 0;
   }
 
-  html {
-    scroll-behavior: smooth;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
   body {
     color: #1a1c19;
     background-color: #fafaf4;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: clip;
   }
 }
 

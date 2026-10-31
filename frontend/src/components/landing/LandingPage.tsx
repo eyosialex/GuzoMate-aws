@@ -6,6 +6,11 @@ import { weatherService } from '../../services/weatherService';
 import logoImg from '../../assets/logo.png';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import '../../styles/landing.css';
+import {
+  landingTranslations,
+  LandingCopy,
+  SceneTranslation,
+} from './landingTranslations';
 
 // ─── SVG Icons ─────────────────────────────────────────────────────────────────
 type IconName =
@@ -80,30 +85,6 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   );
 }
 
-// ─── Four-Chapter Narrative Scenes ─────────────────────────────────────────────
-const scenes = [
-  {
-    kicker: 'The map unfolds',
-    title: 'Your journey starts with a map.',
-    body: 'Open a little possibility. Discover the places, people and conditions that make every journey different.',
-  },
-  {
-    kicker: 'A welcome in every language',
-    title: 'Travel speaks every language.',
-    body: 'A travel companion that understands you. Speak or type naturally in English, Amharic or Afaan Oromoo.',
-  },
-  {
-    kicker: 'The road has a story',
-    title: 'Know what lies ahead.',
-    body: 'Accidents, closures, construction and hazards. See what fellow travelers have reported, right where it happened.',
-  },
-  {
-    kicker: 'Weather that follows you',
-    title: 'Arrive prepared, not surprised.',
-    body: 'Not just the weather here and now. The conditions at your destination, when you expect to arrive.',
-  },
-];
-
 // ─── SVG Map Artwork ───────────────────────────────────────────────────────────
 function MapArtwork() {
   return (
@@ -168,16 +149,18 @@ interface WeatherSnapshot {
 function MapCanvas({
   scene,
   incident,
+  copy,
 }: {
   scene: number;
   incident: IncidentSnapshot;
+  copy: LandingCopy;
 }) {
   return (
     <div
       className="map-canvas"
       data-scene={scene}
       role="img"
-      aria-label="An illustrative paper map of Bishoftu and Addis Ababa, with multilingual greetings, a community road incident and arrival-time rainfall"
+      aria-label={copy.stage.ariaLabel}
     >
       <div className="paper-panels" aria-hidden="true">
         <div className="paper-panel panel-2">
@@ -204,28 +187,28 @@ function MapCanvas({
         </div>
       </div>
       <div className="map-annotations">
-        <div className="map-label origin-label">Bishoftu</div>
+        <div className="map-label origin-label">{copy.map.origin}</div>
         <div className="origin-dot" />
-        <div className="map-label destination-label">Addis Ababa</div>
+        <div className="map-label destination-label">{copy.map.destination}</div>
         <div className="destination-pin">
           <Icon name="mapPin" size={22} />
         </div>
         <div className="arrival-tag">
-          <span>Estimated arrival</span>
-          <strong>4:30 PM</strong>
+          <span>{copy.map.estimatedArrival}</span>
+          <strong>{copy.map.arrivalTime}</strong>
         </div>
         <div className="map-greetings">
           <div className="greeting greeting-en">
-            <small>English</small>
-            <strong lang="en">Welcome</strong>
+            <small>{copy.map.greetings.enLabel}</small>
+            <strong lang="en">{copy.map.greetings.enText}</strong>
           </div>
           <div className="greeting greeting-am">
-            <small>Amharic</small>
-            <strong lang="am">እንኳን ደህና መጡ</strong>
+            <small>{copy.map.greetings.amLabel}</small>
+            <strong lang="am">{copy.map.greetings.amText}</strong>
           </div>
           <div className="greeting greeting-om">
-            <small>Afaan Oromoo</small>
-            <strong lang="om">Baga nagaan dhuftan</strong>
+            <small>{copy.map.greetings.omLabel}</small>
+            <strong lang="om">{copy.map.greetings.omText}</strong>
           </div>
         </div>
 
@@ -265,15 +248,15 @@ function MapCanvas({
           </div>
           <div className="marker-detail">
             <small>
-              {incident.isLive ? 'Live report' : 'Community report'} · {incident.timeAgo}
+              {incident.isLive ? copy.map.liveReport : copy.map.communityReport} · {incident.timeAgo}
             </small>
-            <strong>Road incident reported</strong>
+            <strong>{copy.map.incidentReported}</strong>
             <span>{incident.label}</span>
-            <em>{incident.isLive ? 'Verified community' : 'Unverified report'}</em>
+            <em>{incident.isLive ? copy.map.verifiedCommunity : copy.map.unverifiedReport}</em>
           </div>
         </div>
         <span className="demo-label">
-          {incident.isLive ? 'GuzoMate Live Spatial · Addis Ababa' : 'Illustrative map · not live data'}
+          {incident.isLive ? copy.map.liveSpatialLabel : copy.map.illustrativeLabel}
         </span>
       </div>
     </div>
@@ -281,13 +264,19 @@ function MapCanvas({
 }
 
 // ─── WeatherCard ───────────────────────────────────────────────────────────────
-function WeatherCard({ weather }: { weather: WeatherSnapshot }) {
+function WeatherCard({
+  weather,
+  copy,
+}: {
+  weather: WeatherSnapshot;
+  copy: LandingCopy;
+}) {
   return (
     <div className="weather-card">
       <div className="weather-top">
         <div>
-          <small>Destination forecast</small>
-          <strong>Addis Ababa</strong>
+          <small>{copy.weather.destinationForecast}</small>
+          <strong>{copy.weather.destinationCity}</strong>
         </div>
         <span>
           <Icon name="rain" size={28} />
@@ -295,22 +284,22 @@ function WeatherCard({ weather }: { weather: WeatherSnapshot }) {
       </div>
       <div className="arrival-weather">
         <div>
-          <small>At arrival</small>
-          <strong>4:30 PM</strong>
+          <small>{copy.weather.atArrival}</small>
+          <strong>{copy.weather.arrivalTime}</strong>
         </div>
         <div>
-          <small>Temperature</small>
+          <small>{copy.weather.temperature}</small>
           <strong>{weather.temperature}</strong>
         </div>
         <div>
-          <small>Rain chance</small>
+          <small>{copy.weather.rainChance}</small>
           <strong>{weather.rainChance}</strong>
         </div>
       </div>
       <div className="weather-advice">
         <Icon name="spark" size={16} />
         <p>
-          <strong>GuzoMate AI recommends</strong>
+          <strong>{copy.weather.aiRecommends}</strong>
           {weather.advice}
         </p>
       </div>
@@ -325,7 +314,7 @@ function SceneCopy({
   active,
 }: {
   index: number;
-  scene: typeof scenes[number];
+  scene: SceneTranslation;
   active: boolean;
 }) {
   return (
@@ -336,32 +325,28 @@ function SceneCopy({
       aria-hidden={!active}
     >
       <div className="scene-copy">
-        <span className="scene-number">0{index + 1} / 04</span>
+        <span className="scene-number">{scene.number}</span>
         <p className="eyebrow">{scene.kicker}</p>
         {index === 0 ? <h1>{scene.title}</h1> : <h2>{scene.title}</h2>}
         <p className="scene-body">{scene.body}</p>
-        {index === 0 && (
+        {index === 0 && scene.foundationNote && (
           <p className="foundation-note">
-            <Icon name="road" size={17} /> The map provides the geographical foundation.
-            Travel intelligence adds the context.
+            <Icon name="road" size={17} /> {scene.foundationNote}
           </p>
         )}
-        {index === 1 && (
+        {index === 1 && scene.badges && (
           <p className="feature-line">
-            <span>Text</span>
-            <span>Voice</span>
-            <span>3 languages</span>
-            <span>RAG-grounded</span>
+            {scene.badges.map((badge) => (
+              <span key={badge}>{badge}</span>
+            ))}
           </p>
         )}
-        {index === 2 && (
-          <p className="report-note">
-            Community reports are cross-verified by active scout consensus.
-          </p>
+        {index === 2 && scene.reportNote && (
+          <p className="report-note">{scene.reportNote}</p>
         )}
-        {index === 3 && (
+        {index === 3 && scene.exitLink && (
           <a className="story-exit" href="#features">
-            A little more about the intelligence <span>↓</span>
+            {scene.exitLink}
           </a>
         )}
       </div>
@@ -384,18 +369,46 @@ export const LandingPage: React.FC = () => {
   const openAuthModal = useAppStore((state) => state.openAuthModal);
   const destinationLocation = useAppStore((state) => state.destinationLocation);
 
-  const [incidentData, setIncidentData] = useState<IncidentSnapshot>({
-    label: 'Bole Road · Debris reported',
-    timeAgo: '18 min ago',
-    isLive: false,
-  });
+  const copy = landingTranslations[language] || landingTranslations.en;
 
-  const [weatherData, setWeatherData] = useState<WeatherSnapshot>({
-    temperature: '17°C',
-    rainChance: '72%',
-    advice: 'Rain is expected when you arrive. Bring an umbrella and a light jacket.',
-    isLive: false,
-  });
+  // Live state overrides (if real API data is fetched)
+  const [liveIncident, setLiveIncident] = useState<{
+    label: string;
+    mins: number;
+  } | null>(null);
+
+  const [liveWeather, setLiveWeather] = useState<{
+    temperature: string;
+    rainChance: string;
+    advice: string;
+  } | null>(null);
+
+  // Computed snapshot incorporating active language copy & live data
+  const incidentData: IncidentSnapshot = liveIncident
+    ? {
+        label: liveIncident.label,
+        timeAgo: copy.map.formatTimeAgo(liveIncident.mins),
+        isLive: true,
+      }
+    : {
+        label: copy.map.incidentDefaultLabel,
+        timeAgo: copy.map.formatTimeAgo(18),
+        isLive: false,
+      };
+
+  const weatherData: WeatherSnapshot = liveWeather
+    ? {
+        temperature: liveWeather.temperature,
+        rainChance: liveWeather.rainChance,
+        advice: liveWeather.advice,
+        isLive: true,
+      }
+    : {
+        temperature: '17°C',
+        rainChance: '72%',
+        advice: copy.weather.defaultAdvice,
+        isLive: false,
+      };
 
   // Languages supported by GuzoMate
   const languages: Array<{ code: Language; label: string; full: string }> = [
@@ -431,17 +444,16 @@ export const LandingPage: React.FC = () => {
             1,
             Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000)
           );
-          setIncidentData({
+          setLiveIncident({
             label: top.description
               ? top.description.slice(0, 60)
               : `${top.type || 'Incident'} reported`,
-            timeAgo: mins < 60 ? `${mins} min ago` : `${Math.floor(mins / 60)}h ago`,
-            isLive: true,
+            mins,
           });
         }
       })
       .catch(() => {
-        /* Keep initial fallback */
+        /* Keep fallback */
       });
   }, []);
 
@@ -450,14 +462,13 @@ export const LandingPage: React.FC = () => {
     const lat = destinationLocation?.lat ?? 9.005401;
     const lon = destinationLocation?.lon ?? 38.763611;
     weatherService
-      .getArrivalAdvice(lat, lon, '4:30 PM')
+      .getArrivalAdvice(lat, lon, copy.map.arrivalTime)
       .then((advice) => {
         if (advice) {
           const forecast = advice.forecastAtArrival;
           const suggestion =
-            advice.suggestions?.[0]?.text ||
-            'Rain is expected when you arrive. Bring an umbrella and a light jacket.';
-          setWeatherData({
+            advice.suggestions?.[0]?.text || copy.weather.defaultAdvice;
+          setLiveWeather({
             temperature:
               forecast?.temperatureC != null
                 ? `${Math.round(forecast.temperatureC)}°C`
@@ -467,14 +478,13 @@ export const LandingPage: React.FC = () => {
                 ? `${Math.round(forecast.precipitationProbability)}%`
                 : '72%',
             advice: suggestion,
-            isLive: true,
           });
         }
       })
       .catch(() => {
-        /* Keep initial fallback */
+        /* Keep fallback */
       });
-  }, [destinationLocation]);
+  }, [destinationLocation, copy.map.arrivalTime, copy.weather.defaultAdvice]);
 
   // Scroll-driven animation calculations
   useEffect(() => {
@@ -556,7 +566,7 @@ export const LandingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" lang={language}>
       {/* ─── Site Header ──────────────────────────────────────────────────────── */}
       <header className="site-header">
         <div
@@ -579,8 +589,8 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <p>
-          A map shows you where.{' '}
-          <strong>We help you know what to expect.</strong>
+          {copy.header.taglineLead}
+          <strong>{copy.header.taglineEmphasis}</strong>
         </p>
 
         <div className="header-right">
@@ -590,7 +600,7 @@ export const LandingPage: React.FC = () => {
               type="button"
               className="header-lang-trigger"
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              aria-label="Select application language"
+              aria-label={copy.header.selectLanguage}
             >
               <Globe className="w-3.5 h-3.5" />
               <span>{currentLangObj.label}</span>
@@ -618,7 +628,9 @@ export const LandingPage: React.FC = () => {
                     <span>
                       <strong>{l.label}</strong> ({l.full})
                     </span>
-                    {language === l.code && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                    {language === l.code && (
+                      <Check className="w-3.5 h-3.5 text-blue-600" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -627,7 +639,7 @@ export const LandingPage: React.FC = () => {
 
           {/* Explore Map Link */}
           <a className="header-action" href="#story">
-            Explore <Icon name="arrow" size={15} />
+            {copy.header.explore} <Icon name="arrow" size={15} />
           </a>
 
           {/* Rewired Authentication / App Buttons */}
@@ -638,14 +650,14 @@ export const LandingPage: React.FC = () => {
                 onClick={() => setPageView('home')}
                 className="header-btn header-btn-outline"
               >
-                Open App
+                {copy.header.openApp}
               </button>
               <button
                 type="button"
                 onClick={() => setCurrentUser(null)}
                 className="header-btn header-btn-ghost text-red-600"
               >
-                Sign Out
+                {copy.header.signOut}
               </button>
             </div>
           ) : (
@@ -655,14 +667,14 @@ export const LandingPage: React.FC = () => {
                 onClick={() => openAuthModal('login')}
                 className="header-btn header-btn-ghost"
               >
-                {language === 'am' ? 'ይግቡ' : language === 'om' ? 'Seenaa' : 'Log in'}
+                {copy.header.logIn}
               </button>
               <button
                 type="button"
                 onClick={() => openAuthModal('signup')}
                 className="header-btn header-btn-primary"
               >
-                {language === 'am' ? 'ይመዝገቡ' : language === 'om' ? "Galmaa'aa" : 'Sign up'}
+                {copy.header.signUp}
               </button>
             </div>
           )}
@@ -674,44 +686,42 @@ export const LandingPage: React.FC = () => {
         {/* Four-Chapter Story Article */}
         <article className="story" id="story" ref={storyRef}>
           <div className="sticky-stage">
-            <p className="stage-caption">
-              Travel intelligence / a journey in four chapters
-            </p>
-            <MapCanvas scene={activeScene} incident={incidentData} />
+            <p className="stage-caption">{copy.stage.caption}</p>
+            <MapCanvas scene={activeScene} incident={incidentData} copy={copy} />
             <div className="stage-narrative">
-              {scenes.map((scene, index) => (
+              {copy.scenes.map((scene, index) => (
                 <SceneCopy
                   index={index}
                   scene={scene}
                   active={activeScene === index}
-                  key={scene.kicker}
+                  key={scene.number}
                 />
               ))}
             </div>
             <div className="weather-wrap">
-              <WeatherCard weather={weatherData} />
+              <WeatherCard weather={weatherData} copy={copy} />
             </div>
-            <nav className="chapter-nav" aria-label="Story chapters">
-              {scenes.map((scene, index) => (
+            <nav className="chapter-nav" aria-label={copy.stage.chapterNavLabel}>
+              {copy.scenes.map((scene, index) => (
                 <a
-                  key={scene.kicker}
+                  key={scene.number}
                   className={activeScene === index ? 'active' : ''}
                   href={`#scene-${index + 1}`}
                   aria-current={activeScene === index ? 'step' : undefined}
-                  aria-label={`Go to chapter ${index + 1}: ${scene.kicker}`}
+                  aria-label={`${copy.stage.chapterAriaPrefix} ${index + 1}: ${scene.kicker}`}
                 >
-                  <span>0{index + 1}</span>
+                  <span>{scene.number.split(' ')[0]}</span>
                   <i />
                 </a>
               ))}
             </nav>
           </div>
           <div className="scene-track">
-            {scenes.map((scene, index) => (
+            {copy.scenes.map((scene, index) => (
               <div
                 className="scroll-chapter"
                 id={`scene-${index + 1}`}
-                key={scene.kicker}
+                key={scene.number}
                 aria-hidden="true"
               />
             ))}
@@ -725,53 +735,20 @@ export const LandingPage: React.FC = () => {
           aria-labelledby="features-title"
         >
           <div className="features-heading">
-            <p className="eyebrow">05 / From the map to the journey</p>
+            <p className="eyebrow">{copy.features.eyebrow}</p>
             <h2 id="features-title">
-              A little context.
+              {copy.features.titleLead}
               <br />
-              <em>A better journey.</em>
+              <em>{copy.features.titleEmphasis}</em>
             </h2>
             <p>
-              The map is your geographical foundation.
+              {copy.features.subtitleLead}
               <br />
-              These are the three layers we add.
+              {copy.features.subtitleHighlight}
             </p>
           </div>
           <div className="feature-grid">
-            {[
-              {
-                title: 'AI travel assistant',
-                icon: 'spark' as const,
-                text: 'Your personal travel companion, powered by AI and built to understand you.',
-                items: [
-                  'RAG-powered conversational assistance',
-                  'English, Amharic and Afaan Oromoo',
-                  'Voice and text interaction',
-                  'Context-aware travel information',
-                ],
-              },
-              {
-                title: 'Arrival-time weather',
-                icon: 'rain' as const,
-                text: 'Know what the weather will be when you get there, and what to bring.',
-                items: [
-                  'Destination-specific forecasts',
-                  'Estimated arrival-time weather',
-                  'AI-powered clothing and preparation recommendations',
-                ],
-              },
-              {
-                title: 'Community road reports',
-                icon: 'warning' as const,
-                text: 'Stay aware of incidents and road conditions reported by other travelers.',
-                items: [
-                  'Accident reports',
-                  'Road closures',
-                  'Construction and hazards',
-                  'Location-based incident information',
-                ],
-              },
-            ].map((feature, index) => (
+            {copy.features.cards.map((feature, index) => (
               <article
                 className={`feature-card feature-${index}`}
                 key={feature.title}
@@ -798,17 +775,13 @@ export const LandingPage: React.FC = () => {
             <MapArtwork />
           </div>
           <div className="closing-copy">
-            <p className="eyebrow">The journey continues</p>
+            <p className="eyebrow">{copy.closing.eyebrow}</p>
             <h2 id="closing-title">
-              Go beyond
+              {copy.closing.titleLead}
               <br />
-              <em>getting there.</em>
+              <em>{copy.closing.titleEmphasis}</em>
             </h2>
-            <p>
-              Understand your destination, anticipate the weather, stay informed
-              about road incidents and travel with an assistant that speaks your
-              language.
-            </p>
+            <p>{copy.closing.body}</p>
 
             <div className="final-actions" aria-describedby="auth-note">
               {currentUser ? (
@@ -818,14 +791,14 @@ export const LandingPage: React.FC = () => {
                     onClick={() => setPageView('home')}
                     className="primary-action"
                   >
-                    Open GuzoMate <Icon name="arrow" size={18} />
+                    {copy.closing.openApp} <Icon name="arrow" size={18} />
                   </button>
                   <button
                     type="button"
                     onClick={() => setPageView('explore')}
                     className="secondary-action"
                   >
-                    Explore Map <Icon name="arrow" size={18} />
+                    {copy.closing.exploreMap} <Icon name="arrow" size={18} />
                   </button>
                 </>
               ) : (
@@ -835,14 +808,14 @@ export const LandingPage: React.FC = () => {
                     onClick={() => openAuthModal('signup')}
                     className="primary-action"
                   >
-                    Sign up <Icon name="arrow" size={18} />
+                    {copy.closing.signUp} <Icon name="arrow" size={18} />
                   </button>
                   <button
                     type="button"
                     onClick={() => openAuthModal('login')}
                     className="secondary-action"
                   >
-                    Log in <Icon name="arrow" size={18} />
+                    {copy.closing.logIn} <Icon name="arrow" size={18} />
                   </button>
                 </>
               )}
@@ -850,8 +823,8 @@ export const LandingPage: React.FC = () => {
 
             <small id="auth-note">
               {currentUser
-                ? `Signed in as ${currentUser.name || currentUser.email}. Ready to explore routes and radar.`
-                : 'Create a free account to bookmark locations, report road hazards, and unlock AI guidance.'}
+                ? copy.closing.authNoteLoggedIn(currentUser.name || currentUser.email)
+                : copy.closing.authNoteLoggedOut}
             </small>
           </div>
         </section>
@@ -882,27 +855,27 @@ export const LandingPage: React.FC = () => {
 
             <div className="footer-nav">
               <button type="button" onClick={() => setPageView('about')}>
-                About Us
+                {copy.footer.aboutUs}
               </button>
               <button type="button" onClick={() => setPageView('contact')}>
-                Contact Us
+                {copy.footer.contactUs}
               </button>
               <button type="button" onClick={() => setPageView('explore')}>
-                Explore Map
+                {copy.footer.exploreMap}
               </button>
             </div>
           </div>
 
           <p>
-            Geography is the foundation.
+            {copy.footer.quoteLead}
             <br />
-            Travel intelligence is the difference.
+            {copy.footer.quoteEmphasis}
           </p>
         </div>
 
         <div className="footer-meta">
-          <span>AI assistant · Arrival weather · Community reports</span>
-          <span>Addis Ababa, Ethiopia</span>
+          <span>{copy.footer.metaPill}</span>
+          <span>{copy.footer.location}</span>
           <span>© {new Date().getFullYear()} GuzoMate</span>
         </div>
       </footer>

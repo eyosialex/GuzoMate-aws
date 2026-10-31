@@ -17,47 +17,47 @@ export const App: React.FC = () => {
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
-        {/* Global Authentication & User Profile Modals */}
-        <AuthModal />
-        <UserProfileModal />
+      {/* Global Authentication & User Profile Modals */}
+      <AuthModal />
+      <UserProfileModal />
 
-        {pageView === 'landing' && (
-          <LandingPage />
-        )}
+      {pageView === 'landing' ? (
+        <LandingPage />
+      ) : (
+        <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
+          {pageView === 'home' && (
+            <HomePage />
+          )}
 
-        {pageView === 'home' && (
-          <HomePage />
-        )}
+          {(pageView === 'app' || pageView === 'explore' || pageView === 'routes') && (
+            <ExplorePage />
+          )}
 
-        {(pageView === 'app' || pageView === 'explore' || pageView === 'routes') && (
-          <ExplorePage />
-        )}
+          {pageView === 'incidents' && (
+            <IncidentsPage />
+          )}
 
-        {pageView === 'incidents' && (
-          <IncidentsPage />
-        )}
+          {pageView === 'about' && (
+            <>
+              <LandingHeader />
+              <main className="flex-1">
+                <AboutUsPage />
+              </main>
+              <LandingFooter />
+            </>
+          )}
 
-        {pageView === 'about' && (
-          <>
-            <LandingHeader />
-            <main className="flex-1">
-              <AboutUsPage />
-            </main>
-            <LandingFooter />
-          </>
-        )}
-
-        {pageView === 'contact' && (
-          <>
-            <LandingHeader />
-            <main className="flex-1">
-              <ContactUsPage />
-            </main>
-            <LandingFooter />
-          </>
-        )}
-      </div>
+          {pageView === 'contact' && (
+            <>
+              <LandingHeader />
+              <main className="flex-1">
+                <ContactUsPage />
+              </main>
+              <LandingFooter />
+            </>
+          )}
+        </div>
+      )}
     </AuthProvider>
   );
 };

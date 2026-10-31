@@ -25,8 +25,8 @@
   min-height: 100vh;
   background: var(--ivory);
   color: var(--ink);
-  font-family: 'DM Sans', sans-serif;
-  overflow-x: hidden;
+  font-family: 'DM Sans', 'Noto Sans Ethiopic', system-ui, -apple-system, sans-serif;
+  overflow-x: clip;
   position: relative;
 }
 
@@ -254,9 +254,11 @@
 }
 
 .sticky-stage {
+  position: -webkit-sticky;
   position: sticky;
   z-index: 1;
   top: 0;
+  height: 100vh;
   height: 100svh;
   overflow: hidden;
 }
@@ -826,6 +828,7 @@
 .scene-track {
   position: relative;
   z-index: 10;
+  margin-top: -100vh;
   margin-top: -100svh;
   pointer-events: none;
 }
@@ -833,10 +836,12 @@
 .scene-track::after {
   content: '';
   display: block;
+  height: 100vh;
   height: 100svh;
 }
 
 .scroll-chapter {
+  height: 150vh;
   height: 150svh;
   scroll-margin-top: -18svh;
 }
