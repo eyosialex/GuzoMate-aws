@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, LoginCredentials, RegisterPayload } from '../types/auth';
+import { 
+  User, 
+  LoginCredentials, 
+  RegisterPayload, 
+  VerifyOtpPayload, 
+  GoogleAuthPayload,
+  RegisterResponseData 
+} from '../types/auth';
 import { authService } from '../services/authService';
 import { useAppStore } from './useAppStore';
 
@@ -8,7 +15,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<RegisterResponseData | void>;
+  verifyOtp: (payload: VerifyOtpPayload) => Promise<void>;
+  resendOtp: (phoneNumber: string) => Promise<void>;
+  googleAuth: (payload: GoogleAuthPayload) => Promise<void>;
   logout: () => void;
   updateUserPreferences: (prefs: Partial<User>) => void;
 }
@@ -75,7 +85,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (payload: RegisterPayload) => {
     setIsLoading(true);
     try {
-      const session = await authService.register(payload);
+      const result = await authService.register(payload);
+      if (result.accessToken && result.user) {
+        setUser(result.user);
+        useAppStore.getState().setCurrentUser(result.user as any);
+      }
+      return result;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOtp = async (payload: VerifyOtpPayload) => {
+    setIsLoading(true);
+    try {
+      const session = await authService.verifyOtp(payload);
+      setUser(session.user);
+      useAppStore.getState().setCurrentUser(session.user as any);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendOtp = async (phoneNumber: string) => {
+    await authService.resendOtp(phoneNumber);
+  };
+
+  const googleAuth = async (payload: GoogleAuthPayload) => {
+    setIsLoading(true);
+    try {
+      const session = await authService.googleAuth(payload);
       setUser(session.user);
       useAppStore.getState().setCurrentUser(session.user as any);
     } finally {
@@ -109,6 +148,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         login,
         register,
+        verifyOtp,
+        resendOtp,
+        googleAuth,
         logout,
         updateUserPreferences,
       }}

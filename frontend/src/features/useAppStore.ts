@@ -24,8 +24,11 @@ interface AppState {
   currentUser: UserProfile | null;
   setCurrentUser: (user: UserProfile | null) => void;
   isAuthModalOpen: boolean;
-  authModalTab: 'login' | 'signup';
-  openAuthModal: (tab?: 'login' | 'signup') => void;
+  authModalTab: 'login' | 'signup' | 'otp';
+  otpPhoneNumber: string;
+  openAuthModal: (tab?: 'login' | 'signup' | 'otp', phone?: string) => void;
+  openOtpModal: (phone: string) => void;
+  setOtpPhoneNumber: (phone: string) => void;
   closeAuthModal: () => void;
   isProfileModalOpen: boolean;
   openProfileModal: () => void;
@@ -106,7 +109,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentUser: (user: UserProfile | null) => set({ currentUser: user }),
   isAuthModalOpen: false,
   authModalTab: 'login',
-  openAuthModal: (tab: 'login' | 'signup' = 'login') => set({ isAuthModalOpen: true, authModalTab: tab }),
+  otpPhoneNumber: '',
+  openAuthModal: (tab: 'login' | 'signup' | 'otp' = 'login', phone?: string) => 
+    set({ isAuthModalOpen: true, authModalTab: tab, ...(phone ? { otpPhoneNumber: phone } : {}) }),
+  openOtpModal: (phone: string) => 
+    set({ isAuthModalOpen: true, authModalTab: 'otp', otpPhoneNumber: phone }),
+  setOtpPhoneNumber: (phone: string) => set({ otpPhoneNumber: phone }),
   closeAuthModal: () => set({ isAuthModalOpen: false }),
   isProfileModalOpen: false,
   openProfileModal: () => set({ isProfileModalOpen: true }),
