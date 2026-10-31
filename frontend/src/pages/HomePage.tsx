@@ -8,7 +8,6 @@ import {
   Route, 
   AlertTriangle, 
   CloudSun, 
-  ShieldCheck, 
   ArrowRight, 
   ExternalLink, 
   CheckCircle2, 
@@ -17,7 +16,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useAppStore } from '../features/useAppStore';
-import { useAuth } from '../features/AuthContext';
 import { placesService } from '../services/placesService';
 import { incidentsService } from '../services/incidentsService';
 import { Place, Incident } from '../types';
@@ -26,8 +24,6 @@ import { springTactile, springGentle } from '../lib/motion';
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
-  const { user } = useAuth();
-  const currentUser = useAppStore((state) => state.currentUser);
 
   const savedPlaceIds = useAppStore((state) => state.savedPlaceIds);
   const toggleSavePlace = useAppStore((state) => state.toggleSavePlace);
@@ -115,15 +111,6 @@ export const HomePage: React.FC = () => {
               <span>Current GPS: {userLocationName}</span>
               <span className="text-gray-400">•</span>
               <span className="font-mono text-[11px] text-[#25563e]">Alt: {userAltitude}</span>
-            </div>
-
-            {/* Scout Status Pill */}
-            <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-500">
-              <ShieldCheck className="w-4 h-4 text-[#183a2b]" />
-              <span>Logged as <strong className="text-gray-900">{currentUser?.name || user?.name || user?.fullName || 'Traveler'}</strong></span>
-              <span className="bg-emerald-50 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold">
-                {user?.scoutGuildBadge || 'Selam Guild #418'}
-              </span>
             </div>
           </motion.div>
 

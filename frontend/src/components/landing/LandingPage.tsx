@@ -793,13 +793,13 @@ export const LandingPage: React.FC = () => {
                   >
                     {copy.closing.openApp} <Icon name="arrow" size={18} />
                   </button>
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => setPageView('explore')}
                     className="secondary-action"
                   >
                     {copy.closing.exploreMap} <Icon name="arrow" size={18} />
-                  </button>
+                  </button> */}
                 </>
               ) : (
                 <>

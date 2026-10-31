@@ -331,7 +331,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
         {/* Authentication & Profile Controls */}
         {activeUser ? (
           <div className="flex items-center gap-2">
-            <button
+            {/* <button
               type="button"
               onClick={openProfileModal}
               className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-stone-700 hover:text-black py-1.5 px-3 rounded-full border border-black/10 bg-white shadow-xs cursor-pointer hover:border-black/20 transition-all"
@@ -339,7 +339,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ activePage }) => {
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="max-w-[100px] truncate">{displayedName}</span>
-            </button>
+            </button> */}
             <button
               type="button"
               className="logout-button cursor-pointer"

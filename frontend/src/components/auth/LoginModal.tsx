@@ -136,7 +136,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onSuccess,
   isEmbedded = false,
 }) => {
-  const { language, setCurrentUser, setPageView } = useAppStore();
+  const { language, setCurrentUser, setPageView, authModalError } = useAppStore();
   const t: LoginCopy = loginCopy[language as 'en' | 'am' | 'om'] || loginCopy.en;
 
   const [phone, setPhone] = useState('');
@@ -148,10 +148,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setErrorMsg('');
+      setErrorMsg(authModalError || '');
       setIsUnverifiedAlert(false);
     }
-  }, [isOpen]);
+  }, [isOpen, authModalError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

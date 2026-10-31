@@ -42,6 +42,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (typeof window !== 'undefined') {
       window.addEventListener('auth:logout', handleGlobalLogout);
+
+      // Handle OAuth redirect params from browser: ?token=... or ?authError=...
+      try {
+        const url = new URL(window.location.href);
+        const token = url.searchParams.get('token');
+        const authError = url.searchParams.get('authError');
+
+        if (token) {
+          authService.setSession({
+            accessToken: token,
+            user: {
+              id: '',
+              email: '',
+              phoneNumber: '',
+              name: 'Traveler',
+              role: 'USER',
+              status: 'ACTIVE',
+              preferredLanguage: 'en',
+            },
+          });
+          authService.getCurrentUser().then((fetched) => {
+            if (isMounted && fetched) {
+              setUser(fetched);
+              useAppStore.getState().setCurrentUser(fetched as any);
+            }
+          });
+          url.searchParams.delete('token');
+          url.searchParams.delete('isNewUser');
+          url.searchParams.delete('authProvider');
+          window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+        } else if (authError) {
+          useAppStore.getState().openAuthModal('login', undefined, authError);
+          url.searchParams.delete('authError');
+          window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+        }
+      } catch (err) {
+        console.error('Error parsing OAuth params', err);
+      }
     }
 
     try {

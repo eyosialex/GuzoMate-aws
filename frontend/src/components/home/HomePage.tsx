@@ -119,8 +119,6 @@ export const HomePage: React.FC = () => {
     setSelectedPlace,
     language,
     setLanguage,
-    currentUser,
-    setCurrentUser,
     openAuthModal,
     openIncidentModal,
     openProfileModal,

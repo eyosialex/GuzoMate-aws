@@ -12,7 +12,6 @@ import { GoogleAuthButton } from './GoogleAuthButton';
 import logoImg from '../../assets/logo.png';
 import { 
   X, 
-  Mail, 
   Lock, 
   User, 
   Phone, 
@@ -43,10 +42,9 @@ interface AuthCopy {
   tabSignup: string;
   nameLabel: string;
   namePlaceholder: string;
-  emailLabel: string;
-  emailPlaceholder: string;
   phoneLabel: string;
   phonePlaceholder: string;
+  phoneHelp: string;
   passwordLabel: string;
   passwordPlaceholder: string;
   confirmPasswordLabel: string;
@@ -60,8 +58,8 @@ interface AuthCopy {
   unverifiedNotice: string;
   verifyNowBtn: string;
   errors: {
-    validEmail: string;
-    validPhone: string;
+    phoneRequired: string;
+    phoneInvalid: string;
     nameRequired: string;
     passwordRequired: string;
     passwordRule: string;
@@ -79,7 +77,7 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     eyebrow: '01 / GuzoMate Access',
     loginTitleLead: 'Welcome ',
     loginTitleEm: 'back.',
-    loginSubtitle: 'Sign in to access your saved places, custom routes, and live reports.',
+    loginSubtitle: 'Sign in with your phone number to access saved places, custom routes, and live reports.',
     signupTitleLead: 'Begin your ',
     signupTitleEm: 'journey.',
     signupSubtitle: 'Create a free account to bookmark locations and unlock AI guidance.',
@@ -87,10 +85,9 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     tabSignup: 'Sign up',
     nameLabel: 'Full Name',
     namePlaceholder: 'e.g. Abebe Bikila',
-    emailLabel: 'Phone Number or Email address',
-    emailPlaceholder: '0911 234 567 or you@example.com',
     phoneLabel: 'Phone Number',
-    phonePlaceholder: '+251 9... or 09...',
+    phonePlaceholder: '0911 234 567 or +251 9...',
+    phoneHelp: 'Used for SMS verification and trip alerts',
     passwordLabel: 'Password',
     passwordPlaceholder: '••••••••',
     confirmPasswordLabel: 'Confirm Password',
@@ -104,14 +101,14 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     unverifiedNotice: 'Your phone number is not verified yet. Please enter your SMS verification code.',
     verifyNowBtn: 'Enter verification code now',
     errors: {
-      validEmail: 'Please enter a valid phone number (e.g., 0911234567) or Please enter a valid email address.',
-      validPhone: 'Please enter a valid phone number (e.g. 0911234567 or +251911234567).',
+      phoneRequired: 'Please enter your phone number.',
+      phoneInvalid: 'Please enter a valid phone number (e.g. 0911234567 or +251911234567).',
       nameRequired: 'Full name must be at least 2 characters long.',
       passwordRequired: 'Please enter your password.',
       passwordRule: 'Password must be at least 8 characters and contain at least one letter and one number.',
-      passwordMismatch: 'Passwords do not match',
-      conflict: 'An account with this email address already exists. Please sign in instead.',
-      unauthorized: 'Invalid email or password.',
+      passwordMismatch: 'Passwords do not match.',
+      conflict: 'A user with this phone number is already registered and verified. Please sign in.',
+      unauthorized: 'Invalid phone number or password.',
       forbidden: 'Your account has been suspended by moderation.',
       rateLimit: 'Too many attempts. Please try again in 15 minutes.',
       generic: 'Authentication failed. Please try again.',
@@ -121,7 +118,7 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     eyebrow: '01 / የጉዞሜት መግቢያ',
     loginTitleLead: 'እንኳን ',
     loginTitleEm: 'ደህና መጡ።',
-    loginSubtitle: 'የተቀመጡ ቦታዎችዎን፣ የመንገድ እቅዶችን እና የቀጥታ ሪፖርቶችን ለማግኘት ይግቡ።',
+    loginSubtitle: 'የተቀመጡ ቦታዎችዎን፣ የመንገድ እቅዶችን እና የቀጥታ ሪፖርቶችን ለማግኘት በስልክ ቁጥርዎ ይግቡ።',
     signupTitleLead: 'ጉዞዎን ',
     signupTitleEm: 'ይጀምሩ።',
     signupSubtitle: 'ቦታዎችን ለማስቀመጥ እና የAI የጉዞ ረዳት ለማግኘት ነፃ መለያ ይፍጠሩ።',
@@ -129,10 +126,9 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     tabSignup: 'ይመዝገቡ',
     nameLabel: 'ሙሉ ስም',
     namePlaceholder: 'ለምሳሌ፦ አበበ ቢቂላ',
-    emailLabel: 'ስልክ ቁጥር ወይም የኢሜይል አድራሻ',
-    emailPlaceholder: '0911 234 567 ወይም you@example.com',
     phoneLabel: 'ስልክ ቁጥር',
-    phonePlaceholder: '+251 9... ወይም 09...',
+    phonePlaceholder: '0911 234 567 ወይም +251 9...',
+    phoneHelp: 'ለማረጋገጫ ኮድ እና ማንቂያዎች ያገለግላል',
     passwordLabel: 'የይለፍ ቃል',
     passwordPlaceholder: '••••••••',
     confirmPasswordLabel: 'የይለፍ ቃል ያረጋግጡ',
@@ -146,14 +142,14 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     unverifiedNotice: 'ስልክ ቁጥርዎ ገና አልተረጋገጠም። እባክዎ የማረጋገጫ ኮድ ያስገቡ።',
     verifyNowBtn: 'ኮዱን አሁን ያስገቡ',
     errors: {
-      validEmail: 'እባክዎ ትክክለኛ የስልክ ቁጥር ያስገቡ ወይም እባክዎ ትክክለኛ የኢሜይል አድራሻ ያስገቡ።',
-      validPhone: 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ።',
+      phoneRequired: 'እባክዎ ስልክ ቁጥርዎን ያስገቡ።',
+      phoneInvalid: 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ (ለምሳሌ፦ 0911234567)።',
       nameRequired: 'ሙሉ ስም ቢያንስ 2 ፊደላት መሆን አለበት።',
       passwordRequired: 'እባክዎ የይለፍ ቃልዎን ያስገቡ።',
       passwordRule: 'የይለፍ ቃል ቢያንስ 8 ፊደላት እና ቢያንስ አንድ ፊደል እና ቁጥር መያዝ አለበት።',
       passwordMismatch: 'የይለፍ ቃሎች አይመሳሰሉም።',
-      conflict: 'በዚህ ኢሜይል የተመዘገበ መለያ አለ። እባክዎ ይግቡ።',
-      unauthorized: 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል።',
+      conflict: 'በዚህ ስልክ የተመዘገበ መለያ አለ። እባክዎ ይግቡ።',
+      unauthorized: 'የተሳሳተ ስልክ ቁጥር ወይም የይለፍ ቃል።',
       forbidden: 'መለያዎ ታግዷል።',
       rateLimit: 'ብዙ ሙከራዎች ተደርገዋል። እባክዎ ከ15 ደቂቃ በኋላ እንደገና ይሞክሩ።',
       generic: 'ማረጋገጥ አልተሳካም። እባክዎ እንደገና ይሞክሩ።',
@@ -163,7 +159,7 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     eyebrow: '01 / Seensa GuzoMate',
     loginTitleLead: 'Baga ',
     loginTitleEm: 'nagaan dhuftan.',
-    loginSubtitle: 'Bakkeewwan olkaa’aman, karoora karaalee fi gabaasaalee argachuuf seenaa.',
+    loginSubtitle: 'Bakkeewwan olkaa’aman, karoora karaalee fi gabaasaalee argachuuf lakkoofsa bilbilaan seenaa.',
     signupTitleLead: 'Imala keessan ',
     signupTitleEm: 'eegalaa.',
     signupSubtitle: 'Bakkeewwan galmeeffachuufi gorsa AI argachuuf akkaawuntii tolaa banadhaa.',
@@ -171,10 +167,9 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     tabSignup: "Galmaa'aa",
     nameLabel: 'Maqaa Guutuu',
     namePlaceholder: 'fkf. Abbabaa Biqilaa',
-    emailLabel: 'Lakkoofsa Bilbilaa ykn Teessoo Imeelii',
-    emailPlaceholder: '0911 234 567 ykn you@example.com',
     phoneLabel: 'Lakkoofsa Bilbilaa',
-    phonePlaceholder: '+251 9... ykn 09...',
+    phonePlaceholder: '0911 234 567 ykn +251 9...',
+    phoneHelp: 'Mirkaneessa koodii fi akeekkachiisaaf kan oolu',
     passwordLabel: 'Jecha Darbii',
     passwordPlaceholder: '••••••••',
     confirmPasswordLabel: 'Jecha Darbii Mirkaneessi',
@@ -188,14 +183,14 @@ const authCopy: Record<'en' | 'am' | 'om', AuthCopy> = {
     unverifiedNotice: 'Lakkoofsi bilbilaa keessan ammatti hin mirkanoofne. Maaloo koodii SMS galchaa.',
     verifyNowBtn: 'Koodii amma galchaa',
     errors: {
-      validEmail: 'Maaloo lakkoofsa bilbilaa sirrii ykn Maaloo teessoo imeelii sirrii galchaa.',
-      validPhone: 'Maaloo lakkoofsa bilbilaa sirrii galchaa.',
+      phoneRequired: 'Maaloo lakkoofsa bilbilaa keessan galchaa.',
+      phoneInvalid: 'Maaloo lakkoofsa bilbilaa sirrii galchaa (fkf. 0911234567).',
       nameRequired: 'Maqaan guutuun yoo xiqqaate qubee 2 ta’uu qaba.',
       passwordRequired: 'Maaloo jecha darbii keessan galchaa.',
       passwordRule: 'Jechi darbii yoo xiqqaate qubee 8 ta’uu fi qubee fi lakkoofsa of keessaa qabaachuu qaba.',
       passwordMismatch: 'Jechoonni darbii wal hin gitne.',
-      conflict: 'Imeelii kanaan akkaawuntiin duraan banameera. Maaloo seenaa.',
-      unauthorized: 'Imeelii ykn jecha darbii dogoggoraa.',
+      conflict: 'Lakkoofsa kanaan akkaawuntiin duraan banameera. Maaloo seenaa.',
+      unauthorized: 'Lakkoofsa bilbilaa ykn jecha darbii dogoggoraa.',
       forbidden: 'Akkaawuntiin keessan uggurameera.',
       rateLimit: 'Yaalii baay’ee taasiftaniittu. Maaloo daqiiqaa 15 booda yaalaa.',
       generic: 'Mirkaneeffachuun hin danda’amne. Maaloo irra deebi’aa yaalaa.',
@@ -208,9 +203,9 @@ export const AuthModal: React.FC = () => {
     isAuthModalOpen, 
     authModalTab, 
     otpPhoneNumber,
+    authModalError,
     closeAuthModal, 
     openAuthModal, 
-    openOtpModal,
     setOtpPhoneNumber,
     setCurrentUser, 
     setPageView,
@@ -218,7 +213,6 @@ export const AuthModal: React.FC = () => {
     setLanguage 
   } = useAppStore();
 
-  const [identifier, setIdentifier] = useState(''); // phone or email
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -243,16 +237,16 @@ export const AuthModal: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isAuthModalOpen, closeAuthModal]);
 
-  // Reset transient error when tab or open state changes
+  // Reset transient error when tab or open state changes, and apply authModalError if present
   useEffect(() => {
-    setErrorMsg('');
+    setErrorMsg(authModalError || '');
     setIsUnverifiedAlert(false);
     setPreferredLang(language as any || 'en');
-  }, [authModalTab, isAuthModalOpen, language]);
+  }, [authModalTab, isAuthModalOpen, language, authModalError]);
 
   // Handle direct transition to OTP modal when phone is unverified
   const handleGoToOtp = (targetPhone?: string) => {
-    const raw = targetPhone || phone || identifier;
+    const raw = targetPhone || phone;
     const norm = normalizePhoneNumber(raw) || raw.trim();
     if (norm) {
       setOtpPhoneNumber(norm);
@@ -265,21 +259,15 @@ export const AuthModal: React.FC = () => {
     setErrorMsg('');
     setIsUnverifiedAlert(false);
 
-    const inputVal = identifier.trim();
     const phoneVal = phone.trim();
 
-    // Check if user entered phone or email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isEmail = emailRegex.test(inputVal);
-    const isPhone = isValidPhoneNumber(inputVal) || isValidPhoneNumber(phoneVal);
-
     if (authModalTab === 'login') {
-      if (!inputVal) {
-        setErrorMsg(t.errors.validEmail);
+      if (!phoneVal) {
+        setErrorMsg(t.errors.phoneRequired);
         return;
       }
-      if (!isEmail && !isPhone && !/^\d{8,14}$/.test(inputVal.replace(/\D/g, ''))) {
-        setErrorMsg(t.errors.validEmail);
+      if (!isValidPhoneNumber(phoneVal)) {
+        setErrorMsg(t.errors.phoneInvalid);
         return;
       }
       if (!password) {
@@ -293,18 +281,12 @@ export const AuthModal: React.FC = () => {
         return;
       }
 
-      // Check phone or identifier for signup
-      const rawTarget = phoneVal || inputVal;
-      if (!rawTarget) {
-        setErrorMsg(t.errors.validEmail);
+      if (!phoneVal) {
+        setErrorMsg(t.errors.phoneRequired);
         return;
       }
-
-      const isTargetPhone = isValidPhoneNumber(rawTarget) || /^\d{8,14}$/.test(rawTarget.replace(/\D/g, ''));
-      const isTargetEmail = emailRegex.test(rawTarget);
-
-      if (!isTargetPhone && !isTargetEmail) {
-        setErrorMsg(t.errors.validEmail);
+      if (!isValidPhoneNumber(phoneVal)) {
+        setErrorMsg(t.errors.phoneInvalid);
         return;
       }
 
@@ -328,18 +310,16 @@ export const AuthModal: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      if (authModalTab === 'signup') {
-        const rawTargetPhone = phoneVal || inputVal;
-        const normalized = normalizePhoneNumber(rawTargetPhone) || rawTargetPhone;
+      const normalizedPhone = normalizePhoneNumber(phoneVal);
 
+      if (authModalTab === 'signup') {
         const regResult = await authService.register({
           fullName: name.trim() || 'Traveler',
-          phoneNumber: normalized,
+          phoneNumber: normalizedPhone,
           password,
           confirmPassword: confirmPassword || password,
           preferredLanguage: preferredLang,
           name: name.trim(),
-          email: isEmail ? inputVal : undefined,
         });
 
         if (preferredLang !== language) {
@@ -352,7 +332,7 @@ export const AuthModal: React.FC = () => {
             id: regResult.user.id,
             name: regResult.user.fullName || regResult.user.name || 'Traveler',
             email: regResult.user.email || '',
-            phone: regResult.user.phoneNumber || normalized,
+            phone: regResult.user.phoneNumber || normalizedPhone,
             preferredLanguage: regResult.user.preferredLanguage,
             isGuildVerified: regResult.user.role !== 'USER' || regResult.user.trustRating !== undefined,
           });
@@ -370,26 +350,22 @@ export const AuthModal: React.FC = () => {
         }
 
         // Standard flow: unverified user registered, advance to OTP Verification
-        setOtpPhoneNumber(normalized);
-        openAuthModal('otp', normalized);
+        setOtpPhoneNumber(normalizedPhone);
+        openAuthModal('otp', normalizedPhone);
         return;
       }
 
-      // Login tab
-      const targetPhoneOrEmail = inputVal || phoneVal;
-      const normalizedTarget = normalizePhoneNumber(targetPhoneOrEmail) || targetPhoneOrEmail;
-
+      // Login tab: strictly phone number & password
       const session = await authService.login({
-        phoneNumber: normalizedTarget,
-        email: isEmail ? inputVal : undefined,
+        phoneNumber: normalizedPhone,
         password,
       });
 
       setCurrentUser({
         id: session.user.id,
-        name: session.user.fullName || session.user.name || session.user.phoneNumber || inputVal.split('@')[0],
+        name: session.user.fullName || session.user.name || session.user.phoneNumber || normalizedPhone,
         email: session.user.email || '',
-        phone: session.user.phoneNumber || normalizedTarget,
+        phone: session.user.phoneNumber || normalizedPhone,
         preferredLanguage: session.user.preferredLanguage,
         isGuildVerified: session.user.role !== 'USER' || session.user.trustRating !== undefined,
       });
@@ -452,7 +428,7 @@ export const AuthModal: React.FC = () => {
             transition={{ type: 'spring', stiffness: 380, damping: 28, mass: 0.7 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Decorative Subtle Paper Contour Lines (Landing Map Motif) */}
+            {/* Decorative Subtle Paper Contour Lines */}
             <svg
               className="absolute -top-10 -right-10 w-44 h-44 opacity-[0.05] pointer-events-none"
               viewBox="0 0 200 200"
@@ -479,7 +455,7 @@ export const AuthModal: React.FC = () => {
               <OtpModal
                 isOpen={true}
                 isEmbedded={true}
-                phoneNumber={otpPhoneNumber || phone || identifier}
+                phoneNumber={otpPhoneNumber || phone}
                 onClose={closeAuthModal}
                 onChangePhone={() => openAuthModal('signup')}
                 onSuccess={(session) => {
@@ -653,22 +629,22 @@ export const AuthModal: React.FC = () => {
                     )}
                   </AnimatePresence>
 
-                  {/* Primary Identifier: Phone / Email Field */}
+                  {/* Phone Number Field (Strictly Phone Number, No Email) */}
                   <div>
                     <label 
                       className="block text-[11px] font-semibold tracking-wide uppercase text-[#555b55] mb-1 font-mono"
                       style={{ fontFamily: "'DM Mono', monospace" }}
                     >
-                      {t.emailLabel}
+                      {t.phoneLabel}
                     </label>
                     <div className="relative flex items-center">
-                      <Mail className="w-4 h-4 text-[#839084] absolute left-3 pointer-events-none" />
+                      <Phone className="w-4 h-4 text-[#839084] absolute left-3 pointer-events-none" />
                       <input
-                        type="text"
-                        value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder={t.emailPlaceholder}
-                        autoComplete="username tel"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder={t.phonePlaceholder}
+                        autoComplete="tel"
                         className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#f3f1ea] border border-[rgba(32,34,31,0.12)] focus:bg-white focus:border-[#2555d9] focus:ring-3 focus:ring-[#2555d9]/15 text-xs text-[#20221f] placeholder-[#9da098] outline-none transition-all duration-200"
                       />
                     </div>
@@ -702,37 +678,6 @@ export const AuthModal: React.FC = () => {
                       </button>
                     </div>
                   </div>
-
-                  {/* Phone Field (Signup only, additional dedicated SMS field) */}
-                  <AnimatePresence initial={false}>
-                    {authModalTab === 'signup' && (
-                      <motion.div
-                        key="phone-field"
-                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                        animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
-                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                        className="overflow-hidden"
-                      >
-                        <label 
-                          className="block text-[11px] font-semibold tracking-wide uppercase text-[#555b55] mb-1 font-mono"
-                          style={{ fontFamily: "'DM Mono', monospace" }}
-                        >
-                          <p>{t.phoneLabel}</p>
-                        </label>
-                        <div className="relative flex items-center">
-                          <Phone className="w-4 h-4 text-[#839084] absolute left-3 pointer-events-none" />
-                          <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder={t.phonePlaceholder}
-                            className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#f3f1ea] border border-[rgba(32,34,31,0.12)] focus:bg-white focus:border-[#2555d9] focus:ring-3 focus:ring-[#2555d9]/15 text-xs text-[#20221f] placeholder-[#9da098] outline-none transition-all duration-200"
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
 
                   {/* Confirm Password Field (Signup only) */}
                   <AnimatePresence initial={false}>
@@ -769,6 +714,43 @@ export const AuthModal: React.FC = () => {
                           >
                             {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Language Selection Pills (Signup only) */}
+                  <AnimatePresence initial={false}>
+                    {authModalTab === 'signup' && (
+                      <motion.div
+                        key="lang-selector"
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <label
+                          className="block text-[11px] font-semibold tracking-wide uppercase text-[#555b55] mb-1.5 font-mono flex items-center gap-1"
+                          style={{ fontFamily: "'DM Mono', monospace" }}
+                        >
+                          <Globe className="w-3.5 h-3.5 text-[#2555d9]" />
+                          {t.languageLabel}
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(['en', 'am', 'om'] as const).map((langCode) => (
+                            <button
+                              key={langCode}
+                              type="button"
+                              onClick={() => setPreferredLang(langCode)}
+                              className={`py-1.5 px-2 rounded-xl text-xs font-semibold border text-center transition-all cursor-pointer ${
+                                preferredLang === langCode
+                                  ? 'bg-[#2555d9] text-white border-[#2555d9] shadow-xs'
+                                  : 'bg-[#f3f1ea] text-[#555b55] border-[rgba(32,34,31,0.12)] hover:bg-[#eae7de]'
+                              }`}
+                            >
+                              {langCode === 'en' ? 'English' : langCode === 'am' ? 'አማርኛ' : 'Afaan Oromoo'}
+                            </button>
+                          ))}
                         </div>
                       </motion.div>
                     )}

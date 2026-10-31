@@ -92,10 +92,10 @@ describe('AuthModal Redesign Integration', () => {
     expect(text).toContain('GuzoMate Access');
     expect(text).toContain('Welcome');
     expect(text).toContain('back.');
-    expect(text).toContain('Sign in to access your saved places');
+    expect(text).toContain('saved places');
     expect(text).toContain('Log in');
     expect(text).toContain('Sign up');
-    expect(text).toContain('Email address');
+    expect(text).toContain('Phone Number');
     expect(text).toContain('Password');
     expect(text).toContain('Verified travel intelligence');
     expect(text).toContain('Continue with Google');
@@ -112,9 +112,9 @@ describe('AuthModal Redesign Integration', () => {
     expect(text).toContain('Begin your');
     expect(text).toContain('journey.');
     expect(text).toContain('Full Name');
-    expect(text).toContain('Email address');
-    expect(text).toContain('Password');
     expect(text).toContain('Phone Number');
+    expect(text).toContain('Password');
+    expect(text).toContain('Confirm Password');
     expect(text).toContain('Create Account');
     expect(text).toContain('Continue with Google');
   });
@@ -154,7 +154,7 @@ describe('AuthModal Redesign Integration', () => {
     expect(text).toContain('ደህና መጡ።');
     expect(text).toContain('ይግቡ');
     expect(text).toContain('ይመዝገቡ');
-    expect(text).toContain('ኢሜይል አድራሻ');
+    expect(text).toContain('ስልክ ቁጥር');
     expect(text).toContain('የይለፍ ቃል');
     expect(text).toContain('የተረጋገጠ የጉዞ መረጃ');
     expect(text).toContain('በGoogle ይቀጥሉ');
@@ -175,7 +175,7 @@ describe('AuthModal Redesign Integration', () => {
     expect(text).toContain('Seenaa');
     expect(text).toContain("Galmaa'aa");
     expect(text).toContain('Maqaa Guutuu');
-    expect(text).toContain('Teessoo Imeelii');
+    expect(text).toContain('Lakkoofsa Bilbilaa');
     expect(text).toContain('Akkaawuntii Uumaa');
     expect(text).toContain("Google'n itti fufaa");
   });
@@ -194,7 +194,7 @@ describe('AuthModal Redesign Integration', () => {
     expect(useAppStore.getState().isAuthModalOpen).toBe(false);
   });
 
-  it('shows validation error for invalid email or phone', async () => {
+  it('shows validation error for invalid phone number in login', async () => {
     useAppStore.setState({ isAuthModalOpen: true, authModalTab: 'login' });
     await renderModal();
 
@@ -205,7 +205,7 @@ describe('AuthModal Redesign Integration', () => {
       submitBtn.click();
     });
 
-    expect(container.textContent).toContain('Please enter a valid email address.');
+    expect(container.textContent).toContain('Please enter your phone number.');
   });
 
   it('renders standalone LoginModal component with Ethiopian phone field and Google sign-in', async () => {

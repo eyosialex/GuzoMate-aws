@@ -33,14 +33,22 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     if (onInitiate) onInitiate();
 
     try {
-      const authUrl = await authService.getGoogleAuthUrl();
+      const currentOrigin =
+        typeof window !== 'undefined' && window.location.origin
+          ? window.location.origin
+          : 'https://guzo-mate-aws.vercel.app';
+      const authUrl = await authService.getGoogleAuthUrl(undefined, currentOrigin);
       if (typeof window !== 'undefined') {
         window.location.href = authUrl;
       }
     } catch {
       // Direct redirect fallback
+      const currentOrigin =
+        typeof window !== 'undefined' && window.location.origin
+          ? encodeURIComponent(window.location.origin)
+          : 'https%3A%2F%2Fguzo-mate-aws.vercel.app';
       if (typeof window !== 'undefined') {
-        window.location.href = '/api/v1/auth/google';
+        window.location.href = `/api/v1/auth/google?state=${currentOrigin}`;
       }
     }
   };

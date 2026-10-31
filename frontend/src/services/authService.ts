@@ -289,10 +289,11 @@ export const authService = {
   /**
    * Retrieves Google OAuth authorization URL.
    */
-  async getGoogleAuthUrl(redirectUri?: string): Promise<string> {
+  async getGoogleAuthUrl(redirectUri?: string, state?: string): Promise<string> {
     try {
       const params = new URLSearchParams({ format: 'json' });
       if (redirectUri) params.append('redirectUri', redirectUri);
+      if (state) params.append('state', state);
 
       const res = await fetch(`${API_BASE}/auth/google?${params.toString()}`);
       const json = await res.json().catch(() => null);
@@ -302,7 +303,8 @@ export const authService = {
     } catch {
       // Fallback to direct redirect endpoint
     }
-    return `${API_BASE}/auth/google`;
+    const stateParam = state ? `?state=${encodeURIComponent(state)}` : '';
+    return `${API_BASE}/auth/google${stateParam}`;
   },
 
   /**

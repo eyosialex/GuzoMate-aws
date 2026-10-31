@@ -26,9 +26,11 @@ interface AppState {
   isAuthModalOpen: boolean;
   authModalTab: 'login' | 'signup' | 'otp';
   otpPhoneNumber: string;
-  openAuthModal: (tab?: 'login' | 'signup' | 'otp', phone?: string) => void;
+  authModalError: string;
+  openAuthModal: (tab?: 'login' | 'signup' | 'otp', phone?: string, error?: string) => void;
   openOtpModal: (phone: string) => void;
   setOtpPhoneNumber: (phone: string) => void;
+  setAuthModalError: (error: string) => void;
   closeAuthModal: () => void;
   isProfileModalOpen: boolean;
   openProfileModal: () => void;
@@ -110,12 +112,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   isAuthModalOpen: false,
   authModalTab: 'login',
   otpPhoneNumber: '',
-  openAuthModal: (tab: 'login' | 'signup' | 'otp' = 'login', phone?: string) => 
-    set({ isAuthModalOpen: true, authModalTab: tab, ...(phone ? { otpPhoneNumber: phone } : {}) }),
+  authModalError: '',
+  openAuthModal: (tab: 'login' | 'signup' | 'otp' = 'login', phone?: string, error?: string) => 
+    set({ 
+      isAuthModalOpen: true, 
+      authModalTab: tab, 
+      ...(phone ? { otpPhoneNumber: phone } : {}), 
+      authModalError: error || '' 
+    }),
   openOtpModal: (phone: string) => 
     set({ isAuthModalOpen: true, authModalTab: 'otp', otpPhoneNumber: phone }),
   setOtpPhoneNumber: (phone: string) => set({ otpPhoneNumber: phone }),
-  closeAuthModal: () => set({ isAuthModalOpen: false }),
+  setAuthModalError: (error: string) => set({ authModalError: error }),
+  closeAuthModal: () => set({ isAuthModalOpen: false, authModalError: '' }),
   isProfileModalOpen: false,
   openProfileModal: () => set({ isProfileModalOpen: true }),
   closeProfileModal: () => set({ isProfileModalOpen: false }),
