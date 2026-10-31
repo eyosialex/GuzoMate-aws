@@ -60,9 +60,17 @@ export const resendOtpSchema = z.object({
   phoneNumber: phoneValidation,
 });
 
-export const googleAuthSchema = z.object({
-  idToken: z.string().trim().min(1, 'Google ID token is required'),
-});
+export const googleAuthSchema = z
+  .object({
+    idToken: z.string().trim().min(1).optional(),
+    code: z.string().trim().min(1).optional(),
+    accessToken: z.string().trim().min(1).optional(),
+    redirectUri: z.string().trim().optional(),
+  })
+  .refine((data) => Boolean(data.idToken || data.code || data.accessToken), {
+    message: 'Google ID token, authorization code, or access token is required',
+    path: ['idToken'],
+  });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

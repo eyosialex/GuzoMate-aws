@@ -2,6 +2,7 @@ import { describe, it, expect, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/config/database.js';
+import { AfroMessageService } from '../src/services/afroMessage.service.js';
 
 describe('Mechanism B: Phone + Password + OTP Registration & Login', () => {
   const randomSuffix = Math.floor(10000000 + Math.random() * 90000000).toString(); // 8 digits
@@ -108,9 +109,9 @@ describe('Mechanism B: Phone + Password + OTP Registration & Login', () => {
       expect(res.body.data.user.isPhoneVerified).toBe(false); // Created unverified
       expect(res.body.data.user.authProvider).toBe('local');
       expect(res.body.data.accessToken).toBeUndefined(); // No access token before verification
-      expect(res.body.data.devOtp).toBeDefined(); // Dev OTP exposed in test environment
+      expect(res.body.data.devOtp).toBeUndefined(); // OTP is never returned in response
 
-      activeDevOtp = res.body.data.devOtp;
+      activeDevOtp = AfroMessageService.getLastSentOtp(testPhoneE164)!;
     });
 
     it('should update info and resend OTP when re-registering an unverified phone number', async () => {
@@ -132,9 +133,9 @@ describe('Mechanism B: Phone + Password + OTP Registration & Login', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.user.fullName).toBe('Abebe Updated Bikila');
       expect(res.body.data.user.isPhoneVerified).toBe(false);
-      expect(res.body.data.devOtp).toBeDefined();
+      expect(res.body.data.devOtp).toBeUndefined(); // OTP is never returned in response
 
-      activeDevOtp = res.body.data.devOtp;
+      activeDevOtp = AfroMessageService.getLastSentOtp(testPhoneE164)!;
     });
   });
 
@@ -212,8 +213,8 @@ describe('Mechanism B: Phone + Password + OTP Registration & Login', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.devOtp).toBeDefined();
-      activeDevOtp = res.body.data.devOtp;
+      expect(res.body.data.devOtp).toBeUndefined(); // OTP is never returned in response
+      activeDevOtp = AfroMessageService.getLastSentOtp(testPhoneE164)!;
     });
 
     it('should reject expired OTP code', async () => {
@@ -243,7 +244,8 @@ describe('Mechanism B: Phone + Password + OTP Registration & Login', () => {
       const resendRes = await request(app).post('/api/v1/auth/resend-otp').send({
         phoneNumber: testPhoneLocal,
       });
-      const freshOtp = resendRes.body.data.devOtp;
+      expect(resendRes.body.data.devOtp).toBeUndefined(); // OTP is never returned in response
+      const freshOtp = AfroMessageService.getLastSentOtp(testPhoneE164)!;
 
       // Verify with valid code
       const verifyRes = await request(app).post('/api/v1/auth/verify-otp').send({

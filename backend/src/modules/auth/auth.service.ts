@@ -192,15 +192,11 @@ export class AuthService {
     }
 
     // Generate & send OTP via AfroMessage
-    const otp = await this.sendAndRecordOtp(input.phoneNumber);
-
-    const isNonProd = env.NODE_ENV !== 'production';
-    const exposeOtp = isNonProd && (env.DEV_EXPOSE_OTP || env.NODE_ENV === 'test');
+    await this.sendAndRecordOtp(input.phoneNumber);
 
     return {
       message: 'Registration successful. A verification code has been sent to your phone number.',
       user: this.sanitizeUser(user),
-      ...(exposeOtp ? { devOtp: otp } : {}),
     };
   }
 
@@ -310,14 +306,10 @@ export class AuthService {
       throw new BadRequestError('Phone number is already verified.');
     }
 
-    const otp = await this.sendAndRecordOtp(input.phoneNumber);
-
-    const isNonProd = env.NODE_ENV !== 'production';
-    const exposeOtp = isNonProd && (env.DEV_EXPOSE_OTP || env.NODE_ENV === 'test');
+    await this.sendAndRecordOtp(input.phoneNumber);
 
     return {
       message: 'A new verification code has been sent to your phone number.',
-      ...(exposeOtp ? { devOtp: otp } : {}),
     };
   }
 
@@ -377,11 +369,21 @@ export class AuthService {
 
   /**
    * Mechanism A: Continue with Google (Unified Sign-in & Sign-up).
-   * Verifies ID token with google-auth-library. No phone verification required.
+   * Verifies Google credentials (ID token, OAuth code, or access token).
+   * No phone verification required.
    * Google accounts and phone accounts are strictly independent (no account linking).
    */
   static async googleAuth(input: GoogleAuthInput) {
-    const payload = await GoogleService.verifyIdToken(input.idToken);
+    let payload;
+    if (input.code) {
+      payload = await GoogleService.exchangeCode(input.code, input.redirectUri);
+    } else if (input.accessToken) {
+      payload = await GoogleService.verifyAccessToken(input.accessToken);
+    } else if (input.idToken) {
+      payload = await GoogleService.verifyIdToken(input.idToken);
+    } else {
+      throw new BadRequestError('Google ID token, authorization code, or access token is required.');
+    }
 
     // Primary & ONLY lookup by googleId (no account linking by email)
     let user = await prisma.user.findUnique({

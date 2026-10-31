@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { app } from '../src/app.js';
+import { AfroMessageService } from '../src/services/afroMessage.service.js';
 
 export interface TestUserOptions {
   email?: string;
@@ -26,9 +27,10 @@ export async function registerAndVerifyTestUser(options: TestUserOptions = {}) {
     preferredLanguage: options.preferredLanguage || 'en',
   });
 
-  const otp = regRes.body.data?.devOtp;
+  const normalizedPhone = regRes.body.data?.user?.phoneNumber || phoneNumber;
+  const otp = AfroMessageService.getLastSentOtp(normalizedPhone) || AfroMessageService.getLastSentOtp();
   if (!otp) {
-    throw new Error(`Failed to retrieve devOtp during registration: ${JSON.stringify(regRes.body)}`);
+    throw new Error(`Failed to retrieve dispatched OTP for test user: ${JSON.stringify(regRes.body)}`);
   }
 
   const verifyRes = await request(app).post('/api/v1/auth/verify-otp').send({

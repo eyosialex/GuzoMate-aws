@@ -264,4 +264,85 @@ describe('Mechanism A: Continue with Google (Independent Flow, No Phone Verifica
       expect(res.body.data.user.authProvider).toBe('google');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // 3. Google OAuth Redirect & Authorization Code Flows
+  // ---------------------------------------------------------------------------
+  describe('Google OAuth Redirect & Authorization Code Flows', () => {
+    it('GET /auth/google should redirect to Google OAuth login URL', async () => {
+      const res = await request(app).get('/auth/google');
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toContain('accounts.google.com/o/oauth2/v2/auth');
+      expect(res.headers.location).toContain(allowedClientId);
+    });
+
+    it('GET /auth/google?format=json should return authUrl as JSON', async () => {
+      const res = await request(app).get('/auth/google?format=json');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.authUrl).toContain('accounts.google.com/o/oauth2/v2/auth');
+    });
+
+    it('GET /auth/google/callback should reject when authorization code is missing', async () => {
+      const res = await request(app).get('/auth/google/callback');
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error.code).toBe('BAD_REQUEST');
+    });
+
+    it('GET /auth/google/callback should exchange authorization code and authenticate', async () => {
+      const codeSub = `google_code_${Date.now()}`;
+      const getTokenSpy = vi.spyOn(OAuth2Client.prototype, 'getToken').mockResolvedValueOnce({
+        tokens: {
+          id_token: 'valid-id-token-from-code',
+        },
+      } as any);
+
+      verifyIdTokenSpy.mockResolvedValueOnce({
+        getPayload: () => ({
+          sub: codeSub,
+          email: `code_user_${Date.now()}@gmail.com`,
+          email_verified: true,
+          name: 'Code Authenticated User',
+        }),
+      } as any);
+
+      const res = await request(app).get('/auth/google/callback?code=mock_oauth_code_123');
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.user.googleId).toBe(codeSub);
+      expect(res.body.data.accessToken).toBeDefined();
+
+      getTokenSpy.mockRestore();
+    });
+
+    it('POST /auth/google should accept authorization code in body', async () => {
+      const postCodeSub = `google_post_code_${Date.now()}`;
+      const getTokenSpy = vi.spyOn(OAuth2Client.prototype, 'getToken').mockResolvedValueOnce({
+        tokens: {
+          id_token: 'valid-id-token-from-post-code',
+        },
+      } as any);
+
+      verifyIdTokenSpy.mockResolvedValueOnce({
+        getPayload: () => ({
+          sub: postCodeSub,
+          email: `post_code_user_${Date.now()}@gmail.com`,
+          email_verified: true,
+          name: 'POST Code User',
+        }),
+      } as any);
+
+      const res = await request(app).post('/auth/google').send({
+        code: 'mock_post_code_456',
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.user.googleId).toBe(postCodeSub);
+      expect(res.body.data.accessToken).toBeDefined();
+
+      getTokenSpy.mockRestore();
+    });
+  });
 });

@@ -17,6 +17,8 @@ router.post('/register', authLimiter, validateRequest({ body: registerSchema }),
 router.post('/verify-otp', authLimiter, validateRequest({ body: verifyOtpSchema }), AuthController.verifyOtp);
 router.post('/resend-otp', authLimiter, validateRequest({ body: resendOtpSchema }), AuthController.resendOtp);
 router.post('/login', authLimiter, validateRequest({ body: loginSchema }), AuthController.login);
+router.get('/google', AuthController.googleRedirect);
+router.get('/google/callback', AuthController.googleCallback);
 router.post('/google', authLimiter, validateRequest({ body: googleAuthSchema }), AuthController.googleAuth);
 router.get('/me', authenticate, AuthController.getMe);
 

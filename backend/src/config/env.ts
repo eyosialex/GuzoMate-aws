@@ -12,17 +12,17 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('*'),
   // Google OAuth Configuration
   GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CLIENT_IDS: z.string().optional(),
   GOOGLE_ALLOWED_EMAIL_DOMAINS: z.string().optional(),
-  // AfroMessage SMS & OTP Configuration
-  AFROMESSAGE_API_TOKEN: z.string().optional(),
-  AFROMESSAGE_SENDER_ID: z.string().optional(),
-  AFROMESSAGE_IDENTIFIER_ID: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().optional(),
+  // AfroMessage SMS & OTP Configuration (only AFROMESSAGE_API_KEY is required)
+  AFROMESSAGE_API_KEY: z.string().optional(),
+  AFROMESSAGE_API_TOKEN: z.string().optional(), // fallback alias for backward compatibility
   AFROMESSAGE_BASE_URL: z.string().default('https://api.afromessage.com/api'),
   OTP_EXPIRY_MINUTES: z.coerce.number().default(5),
   OTP_LENGTH: z.coerce.number().default(6),
   OTP_MAX_ATTEMPTS: z.coerce.number().default(5),
-  DEV_EXPOSE_OTP: z.string().optional().transform((v) => v === 'true'),
   FCM_PROJECT_ID: z.string().optional(),
   FCM_CLIENT_EMAIL: z.string().optional(),
   FCM_PRIVATE_KEY: z.string().optional(),
